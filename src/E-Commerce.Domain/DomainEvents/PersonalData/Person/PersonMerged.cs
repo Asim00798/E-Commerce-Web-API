@@ -1,0 +1,14 @@
+using System;
+
+namespace E_Commerce.Domain.DomainEvents.PersonalData.Person
+{
+    public sealed class PersonMerged : DomainEvent
+    {
+        public Guid AggregateId { get; }
+
+        public PersonMerged(Guid aggregateId)
+        {
+            AggregateId = aggregateId;
+        }
+    }
+}

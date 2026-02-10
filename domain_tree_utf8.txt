@@ -1,0 +1,447 @@
+﻿Folder PATH listing
+Volume serial number is 640C-D6EA
+C:\USERS\HP GHH\DESKTOP\E-COMMERCE WEB API\SRC\E-COMMERCE.DOMAIN
+|   E-Commerce.Domain.csproj
+|   
++---bin
+|   \---Debug
+|       +---net8.0
+|       \---net9.0
++---DomainEvents
+|   +---Abstractions
+|   |       DomainEvent.cs
+|   |       IDomainEvent.cs
+|   |       
+|   +---Catalog
+|   |   \---Product
+|   |           ProductDiscontinued.cs
+|   |           ProductDrafted.cs
+|   |           ProductPriceAdjusted.cs
+|   |           ProductPublished.cs
+|   |           
+|   +---Finance
+|   |   +---Coupon
+|   |   |       CouponActivated.cs
+|   |   |       CouponCreated.cs
+|   |   |       CouponDeactivated.cs
+|   |   |       CouponExpired.cs
+|   |   |       
+|   |   +---CouponUsage
+|   |   |       CouponApplied.cs
+|   |   |       CouponRejected.cs
+|   |   |       CouponUsageLimitReached.cs
+|   |   |       CouponUsageReverted.cs
+|   |   |       
+|   |   +---Discount
+|   |   |       DiscountActivated.cs
+|   |   |       DiscountApplied.cs
+|   |   |       DiscountCreated.cs
+|   |   |       DiscountDeactivated.cs
+|   |   |       DiscountExpired.cs
+|   |   |       DiscountRemoved.cs
+|   |   |       
+|   |   +---Payment
+|   |   |       PaymentAuthorizationFailed.cs
+|   |   |       PaymentAuthorized.cs
+|   |   |       PaymentCancelled.cs
+|   |   |       PaymentCaptured.cs
+|   |   |       PaymentCaptureFailed.cs
+|   |   |       PaymentCompleted.cs
+|   |   |       PaymentDeclined.cs
+|   |   |       PaymentInitiated.cs
+|   |   |       PaymentMarkedAsFraud.cs
+|   |   |       PaymentSettled.cs
+|   |   |       
+|   |   +---PaymentTransaction
+|   |   |       PaymentTransactionApproved.cs
+|   |   |       PaymentTransactionFailed.cs
+|   |   |       PaymentTransactionReversed.cs
+|   |   |       
+|   |   +---Refund
+|   |   |       RefundApproved.cs
+|   |   |       RefundCancelled.cs
+|   |   |       RefundCompleted.cs
+|   |   |       RefundFailed.cs
+|   |   |       RefundPartiallyCompleted.cs
+|   |   |       RefundRejected.cs
+|   |   |       RefundRequested.cs
+|   |   |       
+|   |   \---Tax
+|   |           TaxApplied.cs
+|   |           TaxExemptionRuleAdded.cs
+|   |           TaxExemptionRuleRemoved.cs
+|   |           TaxRuleActivated.cs
+|   |           TaxRuleDeactivated.cs
+|   |           
+|   +---Identity
+|   |   +---Permission
+|   |   |       PermissionCreated.cs
+|   |   |       PermissionDeleted.cs
+|   |   |       PermissionDeprecated.cs
+|   |   |       PermissionReactivated.cs
+|   |   |       
+|   |   +---Role
+|   |   |       RoleActivated.cs
+|   |   |       RoleCreated.cs
+|   |   |       RoleDeactivated.cs
+|   |   |       RoleDeleted.cs
+|   |   |       
+|   |   +---RolePermission
+|   |   |       PermissionAssignedToRole.cs
+|   |   |       PermissionRemovedFromRole.cs
+|   |   |       RolePermissionConflictDetected.cs
+|   |   |       
+|   |   \---User
+|   |           UserActivated.cs
+|   |           UserDeactivated.cs
+|   |           UserDeleted.cs
+|   |           UserEmailConfirmed.cs
+|   |           UserLocked.cs
+|   |           UserPasswordResetCompleted.cs
+|   |           UserPermissionOverridden.cs
+|   |           UserRegistered.cs
+|   |           UserRoleAssigned.cs
+|   |           UserRoleRemoved.cs
+|   |           UserTwoFactorDisabled.cs
+|   |           UserTwoFactorEnabled.cs
+|   |           UserUnlocked.cs
+|   |           
+|   +---Inventory
+|   |   +---Inventory
+|   |   |       InventoryActivated.cs
+|   |   |       InventoryBackInStock.cs
+|   |   |       InventoryCreated.cs
+|   |   |       InventoryDamagedReported.cs
+|   |   |       InventoryDeactivated.cs
+|   |   |       InventoryExpiredReported.cs
+|   |   |       InventoryOutOfStock.cs
+|   |   |       InventoryReorderLevelReached.cs
+|   |   |       InventoryStockLocked.cs
+|   |   |       InventoryStockReleased.cs
+|   |   |       InventoryStockTransferred.cs
+|   |   |       
+|   |   +---InventoryTransaction
+|   |   |       InventoryTransactionFlagged.cs
+|   |   |       InventoryTransactionReversed.cs
+|   |   |       
+|   |   +---StockReservation
+|   |   |       StockReservationCancelled.cs
+|   |   |       StockReservationConfirmed.cs
+|   |   |       StockReservationExpired.cs
+|   |   |       StockReservationFailed.cs
+|   |   |       StockReservationReleased.cs
+|   |   |       StockReserved.cs
+|   |   |       
+|   |   \---Warehouse
+|   |           WarehouseActivated.cs
+|   |           WarehouseCreated.cs
+|   |           WarehouseDamagedStockReported.cs
+|   |           WarehouseDeactivated.cs
+|   |           WarehouseStockDispatched.cs
+|   |           WarehouseStockReceived.cs
+|   |           WarehouseStockTransferredIn.cs
+|   |           WarehouseStockTransferredOut.cs
+|   |           
+|   +---Ordering
+|   |   +---Cart
+|   |   |       CartCleared.cs
+|   |   |       CartCreated.cs
+|   |   |       CartExpired.cs
+|   |   |       
+|   |   +---Invoice
+|   |   |       InvoiceIssued.cs
+|   |   |       InvoicePaid.cs
+|   |   |       
+|   |   +---Order
+|   |   |       OrderCancelled.cs
+|   |   |       OrderConfirmed.cs
+|   |   |       OrderDelivered.cs
+|   |   |       OrderPaid.cs
+|   |   |       OrderPlaced.cs
+|   |   |       OrderRefunded.cs
+|   |   |       OrderShipped.cs
+|   |   |       
+|   |   \---OrderItem
+|   |           OrderItemBackordered.cs
+|   |           OrderItemDamagedReported.cs
+|   |           OrderItemReturned.cs
+|   |           OrderItemSubstituted.cs
+|   |           
+|   +---PersonalData
+|   |   +---Person
+|   |   |       PersonActivated.cs
+|   |   |       PersonAnonymized.cs
+|   |   |       PersonCreated.cs
+|   |   |       PersonDataExported.cs
+|   |   |       PersonDeactivated.cs
+|   |   |       PersonMerged.cs
+|   |   |       
+|   |   \---Registration
+|   |           RegistrationCancelled.cs
+|   |           RegistrationCompleted.cs
+|   |           RegistrationExpired.cs
+|   |           RegistrationRejected.cs
+|   |           RegistrationStarted.cs
+|   |           RegistrationSubmitted.cs
+|   |           RegistrationVerified.cs
+|   |           
+|   +---Profiles
+|   |   +---CustomerProfile
+|   |   |       CustomerBlacklisted.cs
+|   |   |       CustomerProfileActivated.cs
+|   |   |       CustomerProfileCreated.cs
+|   |   |       CustomerProfileDeactivated.cs
+|   |   |       CustomerProfileReinstated.cs
+|   |   |       CustomerProfileSuspended.cs
+|   |   |       CustomerTierChanged.cs
+|   |   |       CustomerWhitelisted.cs
+|   |   |       
+|   |   +---EmployeeProfile
+|   |   |       EmployeeAccessGranted.cs
+|   |   |       EmployeeAccessRevoked.cs
+|   |   |       EmployeeDemoted.cs
+|   |   |       EmployeeProfileActivated.cs
+|   |   |       EmployeeProfileCreated.cs
+|   |   |       EmployeeProfileDeactivated.cs
+|   |   |       EmployeePromoted.cs
+|   |   |       EmployeeReinstated.cs
+|   |   |       EmployeeSuspended.cs
+|   |   |       
+|   |   \---SellerProfile
+|   |           SellerBlocked.cs
+|   |           SellerComplianceRevoked.cs
+|   |           SellerComplianceVerified.cs
+|   |           SellerProfileApproved.cs
+|   |           SellerProfileCreated.cs
+|   |           SellerProfileReactivated.cs
+|   |           SellerProfileRejected.cs
+|   |           SellerProfileSuspended.cs
+|   |           SellerUnblocked.cs
+|   |           
+|   +---Reviews
+|   |   +---Rating
+|   |   |       RatingApproved.cs
+|   |   |       RatingRejected.cs
+|   |   |       RatingSubmitted.cs
+|   |   |       
+|   |   +---Review
+|   |   |       ReviewApproved.cs
+|   |   |       ReviewDeleted.cs
+|   |   |       ReviewRejected.cs
+|   |   |       ReviewSubmitted.cs
+|   |   |       
+|   |   \---Wishlist
+|   |           WishlistActivated.cs
+|   |           WishlistArchived.cs
+|   |           WishlistCreated.cs
+|   |           
+|   +---Security
+|   |   +---ApiClient
+|   |   |       ApiClientActivated.cs
+|   |   |       ApiClientDeactivated.cs
+|   |   |       ApiClientRegistered.cs
+|   |   |       ApiClientSuspended.cs
+|   |   |       
+|   |   +---ApiKey
+|   |   |       ApiKeyActivated.cs
+|   |   |       ApiKeyCompromised.cs
+|   |   |       ApiKeyRevoked.cs
+|   |   |       
+|   |   +---LoginAttempt
+|   |   |       AccountLockoutTriggered.cs
+|   |   |       BruteForceDetected.cs
+|   |   |       SuspiciousLoginDetected.cs
+|   |   |       
+|   |   \---RefreshToken
+|   |           AllUserTokensRevoked.cs
+|   |           RefreshTokenCompromised.cs
+|   |           RefreshTokenExpired.cs
+|   |           RefreshTokenIssued.cs
+|   |           RefreshTokenRefreshed.cs
+|   |           RefreshTokenReusedDetected.cs
+|   |           RefreshTokenRevoked.cs
+|   |           
+|   \---Shipping
+|       +---Delivery
+|       |       DeliveryCanceled.cs
+|       |       DeliveryCompleted.cs
+|       |       DeliveryFailed.cs
+|       |       DeliveryScheduled.cs
+|       |       DeliveryStarted.cs
+|       |       
+|       +---DeliveryMethod
+|       |       DeliveryMethodActivated.cs
+|       |       DeliveryMethodCreated.cs
+|       |       DeliveryMethodDeactivated.cs
+|       |       
+|       +---Shipment
+|       |       ShipmentCanceled.cs
+|       |       ShipmentDelivered.cs
+|       |       ShipmentDispatched.cs
+|       |       ShipmentLost.cs
+|       |       ShipmentReturned.cs
+|       |       
+|       \---ShipmentItem
+|               ShipmentItemDamaged.cs
+|               ShipmentItemReturned.cs
+|               
++---Entities
+|   +---Abstract
+|   |       BaseEntity.cs
+|   |       
+|   +---Administration
+|   |       AuditLog.cs
+|   |       Notification.cs
+|   |       NotificationTemplate.cs
+|   |       
+|   +---Catalog
+|   |       Brand.cs
+|   |       Category.cs
+|   |       CategoryAttribute.cs
+|   |       Product.cs
+|   |       ProductAttribute.cs
+|   |       ProductImage.cs
+|   |       ProductVariant.cs
+|   |       Tag.cs
+|   |       
+|   +---Finance
+|   |       Coupon.cs
+|   |       CouponUsage.cs
+|   |       Discount.cs
+|   |       Payment.cs
+|   |       PaymentTransaction.cs
+|   |       Refund.cs
+|   |       Tax.cs
+|   |       
+|   +---Identity
+|   |       Permission.cs
+|   |       Role.cs
+|   |       RolePermission.cs
+|   |       User.cs
+|   |       
+|   +---Inventory
+|   |       Inventory.cs
+|   |       InventoryTransaction.cs
+|   |       StockReservation.cs
+|   |       Warehouse.cs
+|   |       
+|   +---Ordering
+|   |       Cart.cs
+|   |       CartItem.cs
+|   |       Invoice.cs
+|   |       Order.cs
+|   |       OrderItem.cs
+|   |       OrderStatusHistory.cs
+|   |       
+|   +---PersonalData
+|   |       Address.cs
+|   |       Contact.cs
+|   |       Country.cs
+|   |       Person.cs
+|   |       Registration.cs
+|   |       
+|   +---Profiles
+|   |       CustomerProfile.cs
+|   |       EmployeeProfile.cs
+|   |       SellerProfile.cs
+|   |       
+|   +---Reviews
+|   |       Rating.cs
+|   |       Review.cs
+|   |       Wishlist.cs
+|   |       WishlistItem.cs
+|   |       
+|   +---Security
+|   |       ApiClient.cs
+|   |       ApiKey.cs
+|   |       LoginAttempt.cs
+|   |       RefreshToken.cs
+|   |       
+|   \---Shipping
+|           Delivery.cs
+|           DeliveryMethod.cs
+|           Shipment.cs
+|           ShipmentItem.cs
+|           TrackingEvent.cs
+|           
++---Enums
+|       AddressType.cs
+|       AuditActionType.cs
+|       ContactType.cs
+|       Currency.cs
+|       DeliveryMethod.cs
+|       EmailType.cs
+|       Gender.cs
+|       MessageStatus.cs
+|       NotificationChannel.cs
+|       NotificationStatus.cs
+|       PaymentMethod.cs
+|       PaymentStatus.cs
+|       ProductStatus.cs
+|       Rating.cs
+|       RefundStatus.cs
+|       RegistrationStatus.cs
+|       ReviewRate.cs
+|       
++---Exceptions
+|       BusinessRuleViolationException.cs
+|       DomainException.cs
+|       NotAllowedOperationException.cs
+|       
++---Interfaces
+|       IBaseRepository.cs
+|       IUnitOfWork.cs
+|       IValidatableEntity.cs
+|       
++---obj
+|   |   E-Commerce.Domain.csproj.nuget.dgspec.json
+|   |   E-Commerce.Domain.csproj.nuget.g.props
+|   |   E-Commerce.Domain.csproj.nuget.g.targets
+|   |   project.assets.json
+|   |   project.nuget.cache
+|   |   
+|   \---Debug
+|       +---net8.0
+|       |   |   .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+|       |   |   E-Commerce.Domain.AssemblyInfo.cs
+|       |   |   E-Commerce.Domain.AssemblyInfoInputs.cache
+|       |   |   E-Commerce.Domain.assets.cache
+|       |   |   E-Commerce.Domain.GeneratedMSBuildEditorConfig.editorconfig
+|       |   |   E-Commerce.Domain.GlobalUsings.g.cs
+|       |   |   
+|       |   +---ref
+|       |   \---refint
+|       \---net9.0
+|           |   .NETCoreApp,Version=v9.0.AssemblyAttributes.cs
+|           |   E-Commerce.Domain.AssemblyInfo.cs
+|           |   E-Commerce.Domain.AssemblyInfoInputs.cache
+|           |   E-Commerce.Domain.assets.cache
+|           |   E-Commerce.Domain.csproj.AssemblyReference.cache
+|           |   E-Commerce.Domain.GeneratedMSBuildEditorConfig.editorconfig
+|           |   E-Commerce.Domain.GlobalUsings.g.cs
+|           |   
+|           +---ref
+|           \---refint
++---Specifications
+|   +---Catalog
+|   |       ProductsInStockSpecification.cs
+|   |       
+|   +---Ordering
+|   |       OrderByStatusSpecification.cs
+|   |       PendingOrdersSpecification.cs
+|   |       
+|   \---PersonalData
+|           ActiveCustomersSpecification.cs
+|           
+\---ValueObjects
+        Address.cs
+        BrandDescription.cs
+        Contact.cs
+        Dimension.cs
+        Email.cs
+        Money.cs
+        Name.cs
+        ProductDescription.cs
+        Quantity.cs
+        Weight.cs
+        

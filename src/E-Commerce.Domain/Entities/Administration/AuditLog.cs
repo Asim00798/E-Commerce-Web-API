@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Domain.Entities.Abstract;
 using E_Commerce.Domain.Entities.Identity;
 using E_Commerce.Domain.Enums;
+using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.Interfaces;
 
 namespace LibraryManagementSystem.Domain.Entities
@@ -10,7 +11,7 @@ namespace LibraryManagementSystem.Domain.Entities
         public Guid Id { get; set; } // Primary Key
 
         /// <summary>
-        /// Name of the entity being audited (e.g., "Author", "User").
+        /// Name of the entity being audited (e.g., "Order", "Person").
         /// </summary>
         public string EntityName { get; set; } = string.Empty;
 
@@ -53,7 +54,7 @@ namespace LibraryManagementSystem.Domain.Entities
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(EntityName))
-                throw new InvalidOperationException("EntityName is required.");
+                throw new NotAllowedOperationException("Audit logging","EntityName is required.");
         }
     }
 

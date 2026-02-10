@@ -1,4 +1,5 @@
-﻿using E_Commerce.Domain.Interfaces;
+﻿using E_Commerce.Domain.DomainEvents.Abstractions;
+using E_Commerce.Domain.Interfaces;
 
 namespace E_Commerce.Domain.Entities.Abstract
 {
@@ -20,6 +21,19 @@ namespace E_Commerce.Domain.Entities.Abstract
 
         public virtual void Validate() {
             // Default implementation (can be overridden in derived classes)
+        }
+
+        private readonly List<IDomainEvent> _domainEvents = new();
+        public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+        protected void AddDomainEvent(IDomainEvent domainEvent)
+        {
+            _domainEvents.Add(domainEvent);
+        }
+
+        public void ClearDomainEvents()
+        {
+            _domainEvents.Clear();
         }
 
     }

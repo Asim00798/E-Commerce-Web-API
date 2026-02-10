@@ -1,14 +1,21 @@
 ﻿using E_Commerce.Domain.Entities.Abstract;
+using E_Commerce.Domain.Exceptions;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.Catalog
 {
     public class Brand : BaseEntity
     {
-        public string Name { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public string? LogoUrl { get; set; }
-
-        // Navigation
+        public BrandDescription Description { get; private set; } = null!;
         public ICollection<Product>? Products { get; set; }
+
+        public Brand(BrandDescription description)
+        {
+            if (description == null)
+                throw new NotAllowedOperationException("Brand creation", "Brand description cannot be empty.");
+
+            Description = description;
+        }
     }
+
 }

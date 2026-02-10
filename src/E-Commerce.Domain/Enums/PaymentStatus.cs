@@ -10,8 +10,15 @@ namespace E_Commerce.Domain.Enums
     {
         None = 0,
         Pending = 1,
-        Completed = 2,
-        Failed = 3,
-        Refunded = 4
+        Authorized = 2,
+        Captured = 3,
+        Completed = 4,
+        Failed = 5,
+        Refunded = 6,
+        PartiallyRefunded = 7,
+        Cancelled = 8,
+        Settled = 9,
+        TimedOut = 10,
+        Declined = 11
     }
 }
