@@ -1,11 +1,12 @@
 ﻿using E_Commerce.Domain.Entities.Abstract;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.Inventory
 {
     public class Warehouse : BaseEntity
     {
         public string Name { get; set; } = string.Empty;
-        public string? Address { get; set; }
+        public Address? Address { get; set; }
         public string? Code { get; set; } // Optional warehouse code
         public bool IsActive { get; set; } = true;
 

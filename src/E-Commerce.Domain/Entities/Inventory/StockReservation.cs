@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Domain.Entities.Abstract;
 using E_Commerce.Domain.Entities.Catalog;
+using E_Commerce.Domain.Entities.Ordering;
 
 namespace E_Commerce.Domain.Entities.Inventory
 {

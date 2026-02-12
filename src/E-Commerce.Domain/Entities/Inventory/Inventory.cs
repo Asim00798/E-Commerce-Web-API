@@ -1,14 +1,16 @@
 ﻿using E_Commerce.Domain.Entities.Abstract;
 using E_Commerce.Domain.Entities.Catalog;
+using E_Commerce.Domain.Exceptions;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.Inventory
 {
     public class Inventory : BaseEntity
     {
         public Guid ProductId { get; set; }
-        public int Quantity { get; set; } = 0;
-        public int ReservedQuantity { get; set; } = 0; // Stock reserved for orders
-        public int AvailableQuantity => Quantity - ReservedQuantity;
+        public Quantity Quantity { get; set; } = null!; // Total stock available
+        public Quantity ReservedQuantity { get; set; } = null!; // Stock reserved for orders
+        public int AvailableQuantity => Quantity.Value - ReservedQuantity.Value; // Computed property for available stock
 
         // Navigation
         public Product? Product { get; set; }
@@ -17,14 +19,14 @@ namespace E_Commerce.Domain.Entities.Inventory
         {
             base.Validate();
 
-            if (Quantity < 0)
-                throw new InvalidOperationException("Inventory Quantity cannot be negative.");
+            if (Quantity.Value < 0)
+                throw new BusinessRuleViolationException("Inventory Quantity", "Inventory Quantity cannot be negative.");
 
-            if (ReservedQuantity < 0)
-                throw new InvalidOperationException("ReservedQuantity cannot be negative.");
+            if (ReservedQuantity.Value < 0)
+                throw new BusinessRuleViolationException("Reserved Quantity","Reserved Quantity cannot be negative.");
 
-            if (ReservedQuantity > Quantity)
-                throw new InvalidOperationException("ReservedQuantity cannot exceed total Quantity.");
+            if (ReservedQuantity.Value > Quantity.Value)
+                throw new BusinessRuleViolationException("Reserved Quantity","Reserved Quantity cannot exceed total Quantity.");
         }
     }
 }

@@ -4,38 +4,49 @@ namespace E_Commerce.Domain.ValueObjects
 {
     public sealed record BrandDescription
     {
-        public string Name { get; private set; }
-        public string? Text { get; private set; }
-        public string? LogoUrl { get; private set; }
+        public string Name { get; init; }
+        public string? Text { get; init; }
+        public string? LogoUrl { get; init; }
 
         public BrandDescription(string name, string? text = null, string? logoUrl = null)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new BusinessRuleViolationException("Brand name cannot be empty");
-            if (text != null && text.Length > 1000)
-                throw new BusinessRuleViolationException("Brand description text cannot exceed 1000 characters.");
-
-            Name = name;
-            Text = text;
+            Name = ValidateName(name);
+            Text = ValidateText(text);
             LogoUrl = logoUrl;
         }
 
-        public void Rename(string newName)
+        // ======================
+        // "With" methods for immutability + validation
+        // ======================
+
+        public BrandDescription WithName(string name) =>
+            this with { Name = ValidateName(name) };
+
+        public BrandDescription WithText(string? text) =>
+            this with { Text = ValidateText(text) };
+
+        public BrandDescription WithLogoUrl(string? logoUrl) =>
+            this with { LogoUrl = logoUrl };
+
+        // ======================
+        // Validation helpers
+        // ======================
+
+        private static string ValidateName(string name)
         {
-            if (string.IsNullOrWhiteSpace(newName) || Name == newName) return;
-            Name = newName;
+            if (string.IsNullOrWhiteSpace(name))
+                throw new BusinessRuleViolationException("Brand name cannot be empty");
+            return name.Trim();
         }
 
-        public void UpdateDescription(string? newText)
+        private static string? ValidateText(string? text)
         {
-            if (Text == newText) return;
-            Text = newText;
+            if (text != null && text.Length > 1000)
+                throw new BusinessRuleViolationException("Brand description text cannot exceed 1000 characters.");
+            return text?.Trim();
         }
 
-        public void UpdateLogo(string? newLogoUrl)
-        {
-            if (LogoUrl == newLogoUrl) return;
-            LogoUrl = newLogoUrl;
-        }
+        public override string ToString() =>
+            $"{Name}" + (string.IsNullOrWhiteSpace(Text) ? "" : $" - {Text}");
     }
 }

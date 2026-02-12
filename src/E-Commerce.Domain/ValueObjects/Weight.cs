@@ -4,7 +4,7 @@ namespace E_Commerce.Domain.ValueObjects
 {
     public sealed record Weight
     {
-        public decimal Kilograms { get; }
+        public decimal Kilograms { get; init; }
 
         public Weight(decimal kilograms)
         {
@@ -13,5 +13,12 @@ namespace E_Commerce.Domain.ValueObjects
 
             Kilograms = kilograms;
         }
+
+        // ======================
+        // Immutable "With" method
+        // ======================
+        public Weight WithKilograms(decimal kilograms) => new Weight(kilograms);
+
+        public override string ToString() => $"{Kilograms} kg";
     }
 }

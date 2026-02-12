@@ -1,40 +1,34 @@
-﻿using E_Commerce.Domain.Entities;
-using E_Commerce.Domain.Entities.Abstract;
-using E_Commerce.Domain.Enums;
+﻿using E_Commerce.Domain.Entities.Abstract;
+using E_Commerce.Domain.Exceptions;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.PersonalData
 {
-    public class Person : BaseEntity 
+    public class Person : BaseEntity
     {
-        // Personal Info
-        public string FirstName { get; set; } = string.Empty;
-        public string? SecondName { get; set; }
-        public string? ThirdName { get; set; }
-        public string LastName { get; set; } = string.Empty;
-        public DateTime DateOfBirth { get; set; }
-        public Gender Gender { get; set; } = Gender.Unspecified;
+        public PersonIdentity Identity { get; private set; }
+        public ICollection<Contact> Contacts { get; private set; }
+        public Address? HomeAddress { get; private set; }
+        public string? PersonalImageUrl { get; private set; }
 
-        // Optional personal image
-        public string? ProfileImageUrl { get; set; }
-
-        // Optional foreign keys
-        public Guid? AddressId { get; set; }
-
-        // Navigation
-        public Address? Address { get; set; }
-        public ICollection<Contact>? Contacts { get; set; }
-
-        // Business rules
-        public override void Validate()
+        //DDD Constructor
+        public Person(PersonIdentity identity, ICollection<Contact> contacts, Address? address)
         {
-            base.Validate();
-
-            if (DateOfBirth > DateTime.UtcNow)
-                throw new InvalidOperationException("DateOfBirth cannot be in the future.");
-
-            if (DateOfBirth < DateTime.UtcNow.AddYears(-120))
-                throw new InvalidOperationException("Person cannot be older than 120 years.");
+            Identity = identity;
+            Contacts = contacts;
+            HomeAddress = address;
         }
+
+        public void ChangeProfileImage(string? newUrl)
+        {
+            if (PersonalImageUrl == newUrl) return;
+
+            if (newUrl != null && !Uri.IsWellFormedUriString(newUrl, UriKind.Absolute))
+                throw new BusinessRuleViolationException("Invalid image URL.");
+
+            PersonalImageUrl = newUrl;
+        }
+
     }
 
 }

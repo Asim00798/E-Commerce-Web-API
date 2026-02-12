@@ -1,16 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace E_Commerce.Domain.Enums
+﻿namespace E_Commerce.Domain.Enums
 {
     public enum RegistrationStatus
     {
         None = 0,
-        Completed = 1,
-        Failed = 2,
-        Pending = 3
+
+        // Lifecycle
+        Started = 1,
+        Submitted = 2,
+        Verified = 3,
+
+        // Terminal outcomes
+        Completed = 10,
+        Rejected = 11,
+        Cancelled = 12,
+        Expired = 13,
+
+        // Technical failure (not a business decision)
+        Failed = 99
     }
 }

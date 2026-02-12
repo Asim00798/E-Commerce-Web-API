@@ -4,7 +4,7 @@ namespace E_Commerce.Domain.ValueObjects
 {
     public sealed record Quantity
     {
-        public int Value { get; }
+        public int Value { get; init; }
 
         public Quantity(int value)
         {
@@ -13,6 +13,11 @@ namespace E_Commerce.Domain.ValueObjects
 
             Value = value;
         }
+
+        // ======================
+        // Immutable "With" methods
+        // ======================
+        public Quantity WithValue(int value) => new Quantity(value);
 
         public Quantity Add(Quantity other)
         {
@@ -27,5 +32,6 @@ namespace E_Commerce.Domain.ValueObjects
             return new Quantity(Value - other.Value);
         }
 
+        public override string ToString() => Value.ToString();
     }
 }

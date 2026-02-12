@@ -4,6 +4,7 @@ using E_Commerce.Domain.Entities.Finance;
 using E_Commerce.Domain.Entities.Identity;
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.DomainEvents.Ordering.Order;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.Ordering
 {
@@ -23,7 +24,7 @@ namespace E_Commerce.Domain.Entities.Ordering
 
         // Navigation
         public User? User { get; private set; }
-        public ShippingAddress? ShippingAddress { get; private set; }
+        public Address? ShippingAddress { get; private set; }
         public Payment? Payment { get; private set; }
         public ICollection<OrderItem> Items { get; private set; } = new HashSet<OrderItem>();
         public ICollection<OrderStatusHistory>? StatusHistory { get; private set; }
