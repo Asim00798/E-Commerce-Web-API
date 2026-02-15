@@ -1,18 +1,17 @@
 ﻿using E_Commerce.Domain.Entities.Abstract;
-using E_Commerce.Domain.Entities.Catalog;
 using E_Commerce.Domain.Entities.Ordering;
 using E_Commerce.Domain.Entities.Reviews;
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.DomainEvents.Catalog.Product;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.Catalog
 {
     public class Product : BaseEntity
     {
-        public string Name { get; private set; } = string.Empty;      // Required
-        public string? Description { get; private set; }
-        public decimal Price { get; private set; }                     // Required, non-nullable
+        public ProductDescription ProductDescription { get; set; }
+        public Money Price { get; private set; }                  // Required, non-nullable
         public ProductStatus Status { get; private set; } = ProductStatus.Draft;
 
         public Guid CategoryId { get; private set; }                  // FK to category
@@ -32,16 +31,9 @@ namespace E_Commerce.Domain.Entities.Catalog
         public ICollection<Review>? Reviews { get; private set; }
 
         // DDD Constructor
-        public Product(string name, string? description, decimal price, Guid categoryId, Guid? brandId = null)
+        public Product(ProductDescription productDescription, Money price, Guid categoryId, Guid? brandId = null)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new BusinessRuleViolationException("Product name cannot be empty.");
-            
-            if (price < 0)
-                throw new BusinessRuleViolationException("Product price cannot be negative.");
-
-            Name = name;
-            Description = description;
+            ProductDescription = productDescription;
             Price = price;
             CategoryId = categoryId;
             BrandId = brandId;
@@ -68,32 +60,39 @@ namespace E_Commerce.Domain.Entities.Catalog
             AddDomainEvent(new ProductDiscontinued(Id));
         }
 
-        public void AdjustPrice(decimal newPrice)
+        public void SetMainImage(ProductImage image)
         {
-            if (newPrice < 0)
-                throw new BusinessRuleViolationException("Product price cannot be negative.");
+            foreach (var img in Images)
+                img.IsMain = false;
 
-            if (Price == newPrice) return;
-
-            Price = newPrice;
-            AddDomainEvent(new ProductPriceAdjusted(Id));
+            image.IsMain = true;
         }
 
-        public void UpdateDescription(string? description)
+        public void AddVariant(ProductVariant variant)
         {
-            // Business rule: description changes are allowed but don't emit events per refined strategy
-            Description = description;
+            if (Variants.Any(v => v.Name == variant.Name || v.SKU == variant.SKU))
+                throw new BusinessRuleViolationException("Duplicate variant name or SKU not allowed.");
+
+            Variants.Add(variant);
+        }
+
+        public void AdjustVariantStock(Guid variantId, int delta)
+        {
+            var variant = Variants.FirstOrDefault(v => v.Id == variantId)
+                ?? throw new BusinessRuleViolationException("Variant not found.");
+
+            if (variant.StockQuantity + delta < 0)
+                throw new BusinessRuleViolationException("Stock cannot be negative.");
+
+            variant.StockQuantity += delta;
         }
 
         public override void Validate()
         {
             base.Validate();
 
-            if (string.IsNullOrWhiteSpace(Name))
-                throw new InvalidOperationException("Product name cannot be empty.");
-
-            if (Price < 0)
-                throw new InvalidOperationException("Product price cannot be negative.");
+            if (Price.Amount < 0)
+                throw new BusinessRuleViolationException("Product price cannot be negative.");
         }
     }
 }

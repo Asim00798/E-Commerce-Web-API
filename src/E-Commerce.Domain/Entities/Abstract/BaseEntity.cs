@@ -19,6 +19,13 @@ namespace E_Commerce.Domain.Entities.Abstract
         public DateTime? DeletedAt { get; set; }
         public Guid? DeletedBy { get; set; }
 
+        /*
+         Protected parameterless constructor required by EF Core for materialization,
+         preventing direct instantiation while centralizing the repeated empty constructors
+         across all derived entities.
+        */
+        protected BaseEntity() { } // For EF Core
+
         public virtual void Validate() {
             // Default implementation (can be overridden in derived classes)
         }

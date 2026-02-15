@@ -43,7 +43,14 @@ namespace E_Commerce.Domain.Entities.Ordering
 
             AddDomainEvent(new OrderPlaced(Id));
         }
+        public void ApplyDiscount(Discount discount)
+        {
+            //if (Status != OrderStatus.Draft)
+            //    throw new DomainException("Cannot discount finalized order.");
 
+            //Total = Total.Subtract(discount.Amount);
+            //AddDomainEvent(new OrderDiscountApplied(Id, discount.Id));
+        }
         public void Pay(Guid paymentId)
         {
             if (Status != OrderStatus.Pending)

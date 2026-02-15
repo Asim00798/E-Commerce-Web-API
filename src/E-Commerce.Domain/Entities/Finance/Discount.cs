@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Domain.Entities.Abstract;
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.DomainEvents.Finance.Discount;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.Finance
 {
@@ -8,7 +9,7 @@ namespace E_Commerce.Domain.Entities.Finance
     {
         public string Name { get; private set; } = string.Empty;
         public string? Description { get; private set; }
-        public decimal Amount { get; private set; }
+        public Money Amount { get; private set; }
         public bool IsPercentage { get; private set; } = false;
         public bool IsActive { get; private set; } = true;
 
@@ -26,7 +27,7 @@ namespace E_Commerce.Domain.Entities.Finance
                 throw new BusinessRuleViolationException("Discount amount must be greater than zero.");
 
             Name = name;
-            Amount = amount;
+            Amount = new Money(amount);
             IsPercentage = isPercentage;
             ProductId = productId;
             CategoryId = categoryId;
@@ -66,7 +67,7 @@ namespace E_Commerce.Domain.Entities.Finance
             if (string.IsNullOrWhiteSpace(Name))
                 throw new InvalidOperationException("Discount name cannot be empty.");
 
-            if (Amount <= 0)
+            if (Amount.Amount <= 0)
                 throw new InvalidOperationException("Discount amount must be greater than zero.");
         }
     }

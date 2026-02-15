@@ -2,13 +2,14 @@
 using E_Commerce.Domain.Enums;
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.DomainEvents.Finance.Refund;
+using E_Commerce.Domain.ValueObjects;
 
 namespace E_Commerce.Domain.Entities.Finance
 {
     public class Refund : BaseEntity
     {
         public Guid PaymentId { get; private set; }
-        public decimal Amount { get; private set; }
+        public Money Amount { get; private set; }
         public string? Reason { get; private set; }
         public RefundStatus Status { get; private set; } = RefundStatus.Requested;
         public DateTimeOffset RefundDate { get; private set; } = DateTimeOffset.UtcNow;
@@ -17,10 +18,8 @@ namespace E_Commerce.Domain.Entities.Finance
         public Payment? Payment { get; private set; }
 
         // DDD Constructor
-        public Refund(Guid paymentId, decimal amount, string? reason)
+        internal Refund(Guid paymentId, Money amount, string? reason)
         {
-            if (amount <= 0)
-                throw new BusinessRuleViolationException("Refund amount must be positive.");
 
             PaymentId = paymentId;
             Amount = amount;
@@ -77,7 +76,7 @@ namespace E_Commerce.Domain.Entities.Finance
         {
             base.Validate();
 
-            if (Amount <= 0)
+            if (Amount.Amount <= 0)
                 throw new InvalidOperationException("Refund amount must be positive.");
         }
     }

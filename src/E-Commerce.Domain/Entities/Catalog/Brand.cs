@@ -7,8 +7,12 @@ namespace E_Commerce.Domain.Entities.Catalog
     public class Brand : BaseEntity
     {
         public BrandDescription Description { get; private set; } = null!;
-        public ICollection<Product>? Products { get; set; }
 
+        // Navigation
+        private readonly List<Product> _products = new();
+        public IReadOnlyCollection<Product> Products => _products;
+
+        // DDD-style constructor enforcing invariants
         public Brand(BrandDescription description)
         {
             if (description == null)
@@ -16,6 +20,17 @@ namespace E_Commerce.Domain.Entities.Catalog
 
             Description = description;
         }
+
+        public void ChangeDescription(BrandDescription description)
+        {
+            if (description == null)
+                throw new BusinessRuleViolationException("Brand description cannot be empty.");
+
+            if (Description == description) return;
+
+            Description = description;
+        }
+
     }
 
 }
