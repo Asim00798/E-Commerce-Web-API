@@ -1,10 +1,10 @@
 using E_Commerce.Domain.Entities.Catalog;
 using E_Commerce.Domain.Entities.Ordering;
-using E_Commerce.Domain.Enums;
-using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.DomainEvents.Catalog.Product;
 using E_Commerce.Domain.DomainEvents.Ordering.Order;
 using Xunit;
+using E_Commerce.Domain.SharedKernel.Exceptions;
+using E_Commerce.Domain.SharedKernel.Enums;
 
 namespace E_Commerce.Domain.Tests
 {
