@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="SharedKernel\Specifications\" />
+    <None Remove="BoundedContexts\Catalog\AggregateRoots\Product\ValueObjects\wx5bk5gm.1kd~" />
   </ItemGroup>
 
 </Project>

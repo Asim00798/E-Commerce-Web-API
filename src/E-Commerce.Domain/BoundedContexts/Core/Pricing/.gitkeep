@@ -1,0 +1,13 @@
+﻿    Pricing Context (very important in real systems)
+
+    Most developers put pricing inside Catalog or Ordering, but in enterprise systems it becomes its own context because pricing rules get complex.
+
+    Typical responsibilities:
+
+    dynamic pricing
+    discount rules
+    time-based prices
+    regional pricing
+    campaign pricing
+    price history
+
