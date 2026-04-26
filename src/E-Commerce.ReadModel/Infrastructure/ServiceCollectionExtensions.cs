@@ -1,24 +1,19 @@
-using E_Commerce.ReadModel.Abstractions;
-using E_Commerce.ReadModel.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace E_Commerce.ReadModel.Infrastructure;
 
+/// <summary>
+/// Extension methods for registering all ReadModel services, DbContexts, and query handlers
+/// into the ASP.NET Core DI container.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddReadModel(this IServiceCollection services, string connectionString)
+    /// <summary>
+    /// Registers all read-side services including DbContexts, handlers, and the query bus.
+    /// </summary>
+    public static IServiceCollection AddReadModel(this IServiceCollection services)
     {
-        services.AddDbContext<ReadDbContext>(options =>
-            options.UseSqlServer(connectionString));
-
-        services.AddScoped<IReadDbContext>(provider => provider.GetRequiredService<ReadDbContext>());
-        services.AddScoped<IQueryBus, QueryBus>();
-
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-        services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
+        // TODO: Register CatalogReadDbContext, query handlers, QueryBus, projection services
         return services;
     }
 }

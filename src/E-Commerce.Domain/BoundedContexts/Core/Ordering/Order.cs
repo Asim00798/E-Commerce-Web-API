@@ -1,11 +1,12 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.Events.Ordering.Order;
-using E_Commerce.Domain.SharedKernel.ValueObjects;
 using E_Commerce.Domain.SharedKernel.Abstract;
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.Discount;
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.Payment;
+using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.Enums;
 
 namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
 {
@@ -144,3 +145,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
         Refunded = 6
     }
 }
+
+#endif

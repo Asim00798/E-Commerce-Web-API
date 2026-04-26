@@ -1,8 +1,9 @@
+﻿#if false
 using E_Commerce.Domain.Events.PersonalData.Registration;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Enums;
+using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.Enums;
 
 namespace E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData
 {
@@ -83,3 +84,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData
 
 
 
+
+#endif

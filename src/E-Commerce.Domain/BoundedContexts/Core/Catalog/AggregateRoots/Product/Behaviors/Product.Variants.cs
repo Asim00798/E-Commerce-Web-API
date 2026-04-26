@@ -1,7 +1,9 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Entities;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Entities;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Events;
 using E_Commerce.Domain.SharedKernel.Exceptions;
+using E_Commerce.Domain.SharedKernel.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Behaviors
 {
     public partial class Product
     {
@@ -13,6 +15,16 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.
                 throw new BusinessRuleViolationException("Duplicate SKU.");
 
             _variants.Add(variant);
+        }
+
+        public void UpdatePrice(Guid variantId, Money newPrice)
+        {
+            EnsureIsDraft();
+            var variant = _variants.FirstOrDefault(v => v.Id == variantId)
+                ?? throw new BusinessRuleViolationException("Variant not found.");
+            
+            variant.UpdatePrice(newPrice);
+            AddDomainEvent(new ProductPriceAdjusted(Id, variantId, newPrice));
         }
 
         public void AdjustVariantStock(Guid variantId, int delta)

@@ -1,6 +1,9 @@
+﻿#if false
 namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Subscription.Specifications
 {
     public class TrialSubscriptionsSpecification
     {
     }
 }
+
+#endif

@@ -1,29 +1,30 @@
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Brand.ValueObjects
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects
 {
     public sealed record BrandLogo
     {
-        public string Url { get; init; }
+        // File ID is referenced in the storage system (e.g., blob storage)
+        // where the logo is stored.
+        // It can be used to retrieve or manage the file.
+        public Guid FileId { get; init; } 
         public bool IsPrimary { get; init; }
 
-        public BrandLogo(string url, bool isPrimary = false)
+        public BrandLogo(Guid fileId, bool isPrimary = false)
         {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out _))
-                throw new ArgumentException("Invalid logo URL.", nameof(url));
-
-            Url = url.Trim();
             IsPrimary = isPrimary;
+            if (fileId == Guid.Empty)
+                throw new Exceptions.BrandException("Logo File ID cannot be empty.", nameof(fileId));
         }
 
         internal BrandLogo SetPrimary() => this with { IsPrimary = true };
 
         internal BrandLogo UnsetPrimary() => this with { IsPrimary = false };
 
-        public BrandLogo ChangeUrl(string newUrl)
+        public BrandLogo ChangeFileId(Guid newFileId)
         {
-            if (!Uri.TryCreate(newUrl, UriKind.Absolute, out _))
-                throw new ArgumentException("Invalid logo URL.", nameof(newUrl));
+            if (newFileId == Guid.Empty)
+                throw new Exceptions.BrandException("Logo File ID cannot be empty.", nameof(newFileId));
 
-            return this with { Url = newUrl.Trim() };
+            return this with { FileId = newFileId };
         }
     }
 }

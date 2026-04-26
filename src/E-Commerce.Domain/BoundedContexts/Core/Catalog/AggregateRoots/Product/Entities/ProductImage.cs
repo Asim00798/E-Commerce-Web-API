@@ -1,14 +1,19 @@
-using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Abstractions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Entities
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Entities
 {
-    public class ProductImage : BaseEntity,IEntity<ProductImage>
+    public class ProductImage : BaseEntity
     {
-        public Guid ProductId { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
-        public string? AltText { get; set; }
-        public bool IsMain { get; set; } = false;
+        public Guid ProductId { get; private set; }
+        public Guid FileId { get; private set; }
+        public string? AltText { get; private set; }
+        public bool IsMain { get; internal set; } = false;
 
+        public ProductImage(Guid productId, Guid fileId, string? altText = null)
+        {
+            ProductId = productId;
+            FileId = fileId;
+            AltText = altText;          
+        }
     }
 }

@@ -17,4 +17,8 @@
     <None Remove="BoundedContexts\Catalog\AggregateRoots\Product\ValueObjects\wx5bk5gm.1kd~" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="BoundedContexts\Core\Promotion\" />
+  </ItemGroup>
+
 </Project>

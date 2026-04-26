@@ -1,7 +1,7 @@
-using E_Commerce.Domain.SharedKernel.Enums;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Enums;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.ValueObjects
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.ValueObjects
 {
     public sealed record CategoryAttributeInfo
     {

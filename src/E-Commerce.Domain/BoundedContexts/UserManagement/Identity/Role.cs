@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.Events;
 using E_Commerce.Domain.Events.Identity.Role;
 using Microsoft.AspNetCore.Identity;
@@ -52,3 +53,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Identity
         }
     }
 }
+
+#endif

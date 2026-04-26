@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.Events.Finance.Discount;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
@@ -72,3 +73,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.
         }
     }
 }
+
+#endif

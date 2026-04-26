@@ -1,6 +1,6 @@
 using E_Commerce.Domain.SharedKernel.Exceptions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Exceptions
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Exceptions
 {
 
     /// <summary>

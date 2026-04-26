@@ -1,6 +1,6 @@
 using E_Commerce.Domain.SharedKernel.Exceptions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Brand.ValueObjects
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects
 {
     public sealed record BrandDescription
     {

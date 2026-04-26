@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.SharedKernel.Abstract;
 using System.Text.Json;
 
@@ -30,3 +31,5 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Configuration.Aggre
         }
     }
 }
+
+#endif

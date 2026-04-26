@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering;
 using E_Commerce.Domain.SharedKernel.Abstract;
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.Payment;
@@ -28,3 +29,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
         }
     }
 }
+
+#endif

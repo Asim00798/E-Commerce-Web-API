@@ -1,4 +1,4 @@
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.Enums
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.Enums
 {
     public enum SocialPlatform
     {

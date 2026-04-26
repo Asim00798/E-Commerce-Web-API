@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.SharedKernel.Abstract;
 
 namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Shipping
@@ -24,3 +25,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Shipping
         }
     }
 }
+
+#endif

@@ -1,6 +1,7 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.SystemOperations.BackgroundProcessing.Entities;
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Entities;
 
 namespace E_Commerce.Domain.BoundedContexts.SystemOperations.BackgroundProcessing.AggregateRoots.ScheduledJob.Behaviors
 {
@@ -91,3 +92,4 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.BackgroundProcessin
         }
     }
 }
+#endif

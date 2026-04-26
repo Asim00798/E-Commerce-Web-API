@@ -1,6 +1,7 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.SystemOperations.Configuration.AggregateRoots.SystemSetting.Entities;
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Entities;
 using System.Text.Json;
 
 namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Configuration.AggregateRoots.SystemSetting.Behaviors
@@ -54,3 +55,5 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Configuration.Aggre
         }
     }
 }
+
+#endif

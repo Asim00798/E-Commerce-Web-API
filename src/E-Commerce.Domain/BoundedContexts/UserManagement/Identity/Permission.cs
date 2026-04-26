@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
 using E_Commerce.Domain.SharedKernel.Abstract;
 using System;
@@ -14,3 +15,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Identity
         public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     }
 }
+
+#endif

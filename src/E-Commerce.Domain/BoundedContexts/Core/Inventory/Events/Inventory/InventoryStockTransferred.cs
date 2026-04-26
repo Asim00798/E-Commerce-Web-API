@@ -1,3 +1,4 @@
+﻿#if false
 using System;
 
 namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Inventory.Inventory.Inventory
@@ -12,3 +13,4 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Inventory.Inventory.Inv
         }
     }
 }
+#endif

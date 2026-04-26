@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
 using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData;
 using E_Commerce.Domain.SharedKernel.Abstract;
@@ -31,3 +32,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Profiles
         }
     }
 }
+
+#endif

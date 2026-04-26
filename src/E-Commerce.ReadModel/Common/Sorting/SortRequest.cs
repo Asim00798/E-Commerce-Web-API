@@ -1,3 +1,10 @@
 namespace E_Commerce.ReadModel.Common.Sorting;
 
-public record SortRequest(string SortBy, bool IsAscending = true);
+/// <summary>
+/// Encapsulates sort parameters for a read query.
+/// </summary>
+public sealed class SortRequest
+{
+    public string? SortBy { get; init; }
+    public bool Descending { get; init; }
+}

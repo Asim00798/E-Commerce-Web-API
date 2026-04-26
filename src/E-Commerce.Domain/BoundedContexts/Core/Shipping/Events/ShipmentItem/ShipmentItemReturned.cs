@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 
 namespace E_Commerce.Domain.Events.Shipping.ShipmentItem
 {
@@ -12,3 +13,4 @@ namespace E_Commerce.Domain.Events.Shipping.ShipmentItem
         }
     }
 }
+#endif

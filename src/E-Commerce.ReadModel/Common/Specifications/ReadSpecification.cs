@@ -1,12 +1,10 @@
-using E_Commerce.ReadModel.Common.Paging;
-using E_Commerce.ReadModel.Common.Sorting;
-using E_Commerce.ReadModel.Common.Filtering;
-
 namespace E_Commerce.ReadModel.Common.Specifications;
 
+/// <summary>
+/// Base read specification for composing complex dynamic filter predicates.
+/// </summary>
+/// <typeparam name="T">The entity/read-model type.</typeparam>
 public abstract class ReadSpecification<T>
 {
-    public PagingRequest? Paging { get; set; }
-    public SortRequest? Sorting { get; set; }
-    public List<FilterRule> Filters { get; set; } = new();
+    // TODO: Define Criteria expression and Include logic
 }

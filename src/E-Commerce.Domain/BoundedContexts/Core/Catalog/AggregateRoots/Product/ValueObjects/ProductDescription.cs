@@ -1,7 +1,7 @@
 using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.ValueObjects
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.ValueObjects
 {
     public sealed record ProductDescription
     {

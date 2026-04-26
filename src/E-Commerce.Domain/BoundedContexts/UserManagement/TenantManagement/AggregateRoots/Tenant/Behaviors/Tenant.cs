@@ -1,9 +1,10 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.AggregateRoots.Tenant.Events;
 using E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.AggregateRoots.Tenant.Exceptions;
 using E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.Enums;
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Events.Abstractions;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Entities;
+using E_Commerce.Domain.SharedKernel.Events;
 
 namespace E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.AggregateRoots.Tenant.Behaviors
 {
@@ -135,3 +136,4 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.Aggr
         }
     }
 }
+#endif

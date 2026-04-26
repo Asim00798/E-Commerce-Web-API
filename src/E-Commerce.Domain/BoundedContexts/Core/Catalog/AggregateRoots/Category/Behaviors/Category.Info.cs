@@ -1,10 +1,13 @@
 
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.ValueObjects;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors
 {
     public partial class Category
     {
-        public CategoryInfo Info { get; private set; }
+        public void UpdateInfo(CategoryInfo newInfo)
+        {
+            Info = newInfo ?? throw new ArgumentNullException(nameof(newInfo));
+        }
     }
 }

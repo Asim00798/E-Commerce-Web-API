@@ -1,21 +1,21 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Brand.ValueObjects;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Brand.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors
 {
     public partial class Brand
     {
-        public void AddLogo(string url, bool isPrimary = false)
+        public void SetLogo(Guid fileId, bool isPrimary = false)
         {
-            _logos.Add(new BrandLogo(url, isPrimary));
+            _logos.Add(new BrandLogo(fileId, isPrimary));
         }
 
-        public void RemoveLogo(string url) {
-           _logos.Remove(new BrandLogo(url));
+        public void RemoveLogo(Guid fileId) {
+           _logos.Remove(new BrandLogo(fileId));
         }
 
-        public void SetPrimaryLogo(string url)
+        public void SetPrimaryLogo(Guid fileId)
         {
-            var logo = _logos.FirstOrDefault(l => l.Url == url);
+            var logo = _logos.FirstOrDefault(l => l.FileId == fileId);
             if (logo != null)
             {
                 foreach (var l in _logos) l.UnsetPrimary();
@@ -23,8 +23,8 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.
             }
         }
 
-        public void SetSecondaryLogo(string url) {
-            var logo = _logos.FirstOrDefault(l => l.Url == url);
+        public void SetSecondaryLogo(Guid fileId) {
+            var logo = _logos.FirstOrDefault(l => l.FileId == fileId);
             if (logo != null)
                 logo.UnsetPrimary();
         }

@@ -1,5 +1,6 @@
+﻿#if false
+using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.Enums;
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.ValueObjects;
 
 namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Inventory
 {
@@ -22,3 +23,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Inventory
         }
     }
 }
+
+#endif

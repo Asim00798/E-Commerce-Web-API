@@ -1,11 +1,15 @@
 namespace E_Commerce.ReadModel.Abstractions;
 
-public interface IPagedResult<out T>
+/// <summary>
+/// Represents a paginated result set.
+/// </summary>
+/// <typeparam name="T">The item type.</typeparam>
+public interface IPagedResult<T>
 {
-    IEnumerable<T> Items { get; }
+    IReadOnlyList<T> Items { get; }
+    int TotalCount { get; }
     int PageNumber { get; }
     int PageSize { get; }
-    int TotalCount { get; }
     int TotalPages { get; }
     bool HasPreviousPage { get; }
     bool HasNextPage { get; }

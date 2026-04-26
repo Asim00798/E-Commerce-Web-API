@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoot.Product;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
 using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData;
@@ -41,3 +42,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Profiles
         }
     }
 }
+
+#endif

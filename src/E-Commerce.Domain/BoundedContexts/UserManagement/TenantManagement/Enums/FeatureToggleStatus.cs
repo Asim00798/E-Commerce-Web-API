@@ -1,3 +1,4 @@
+﻿#if false
 namespace E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.Enums
 {
     public enum FeatureToggleStatus
@@ -6,3 +7,4 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.Enum
         Enabled = 1
     }
 }
+#endif

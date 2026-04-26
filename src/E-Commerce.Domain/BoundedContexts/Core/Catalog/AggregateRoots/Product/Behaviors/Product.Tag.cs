@@ -1,9 +1,7 @@
-using System.Linq;
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Entities;
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.Enums;
 using E_Commerce.Domain.SharedKernel.Exceptions;
+using E_Commerce.Domain.SharedKernel.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Behaviors
 {
     public partial class Product 
     {

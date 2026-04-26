@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.Events.Finance.Coupon;
 using E_Commerce.Domain.Events.Finance.CouponUsage;
@@ -134,3 +135,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.
         }
     }
 }
+
+#endif

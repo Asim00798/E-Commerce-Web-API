@@ -1,6 +1,9 @@
-using E_Commerce.Domain.Exceptions;
-using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.ValueObjects;
+﻿#if false
+
+using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.Enums;
+using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.ValueObjects;
+using E_Commerce.Domain.SharedKernel.Entities;
+using E_Commerce.Domain.SharedKernel.Exceptions;
 
 namespace E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData
 {
@@ -24,7 +27,7 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData
             if (PersonalImageUrl == newUrl) return;
 
             if (newUrl != null && !Uri.IsWellFormedUriString(newUrl, UriKind.Absolute))
-                throw new BusinessRuleViolationException("Invalid image URL.");
+                throw new Exception("Invalid image URL.");
 
             PersonalImageUrl = newUrl;
         }
@@ -32,3 +35,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData
     }
 
 }
+
+#endif

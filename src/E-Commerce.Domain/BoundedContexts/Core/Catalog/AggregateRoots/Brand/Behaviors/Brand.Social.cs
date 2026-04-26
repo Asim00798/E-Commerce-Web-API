@@ -1,7 +1,7 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Brand.ValueObjects;
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.Enums;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Enums;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Brand.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors
 {
     public partial class Brand
     {

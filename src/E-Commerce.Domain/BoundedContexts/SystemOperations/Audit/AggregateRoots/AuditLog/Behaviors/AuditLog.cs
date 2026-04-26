@@ -1,8 +1,9 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.Administration.Exceptions;
+using E_Commerce.Domain.BoundedContexts.SystemOperations.Audit.Enums;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Enums;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Entities;
 
 namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Audit.AggregateRoots.AuditLog.Behaviors
 {
@@ -57,3 +58,5 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Audit.AggregateRoot
     }
 
 }
+
+#endif

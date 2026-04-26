@@ -1,11 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace E_Commerce.ReadModel.Common.Paging;
 
+/// <summary>
+/// Extension methods for applying paging to IQueryable sources.
+/// </summary>
 public static class PagingExtensions
 {
-    public static async Task<PagedResult<T>> ToPagedResultAsync<T>(this IQueryable<T> source, int pageNumber, int pageSize)
-    {
-        return await PagedResult<T>.CreateAsync(source, pageNumber, pageSize);
-    }
+    // TODO: Implement ToPagedResultAsync helper
 }

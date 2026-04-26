@@ -1,6 +1,7 @@
+﻿#if false
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
 using E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.Enums;
+using E_Commerce.Domain.SharedKernel.Entities;
 
 namespace E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.Entities
 {
@@ -122,3 +123,4 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.TenantManagement.Enti
         }
     }
 }
+#endif

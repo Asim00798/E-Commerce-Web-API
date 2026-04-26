@@ -1,13 +1,14 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Entities;
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.ValueObjects;
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.Enums;
-using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Entities;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Events;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.ValueObjects;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Enums;
+using E_Commerce.Domain.BoundedContexts.Core.Compliance.Evaluation;
+using E_Commerce.Domain.SharedKernel.Abstractions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Behaviors
 {
-    public partial class Product : BaseEntity,IAggregateRoot
+    public partial class Product : BaseEntity,IAggregateRoot, IComplianceTarget
     {
         private readonly List<ProductImage> _images = new();
         private readonly List<ProductVariant> _variants = new();
@@ -15,7 +16,6 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.
         private readonly List<Tag> _tags = new();
 
         public ProductDescription Description { get; private set; }
-        public Money Price { get; private set; }
         public ProductStatus Status { get; private set; }
 
         public Guid CategoryId { get; private set; }
@@ -26,15 +26,34 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.
         public IReadOnlyCollection<ProductAttribute> Attributes => _attributes;
         public IReadOnlyCollection<Tag> Tags => _tags;
 
-        public Product(ProductDescription description, Money price, Guid categoryId, Guid? brandId = null)
+        public Product(ProductDescription description, Guid categoryId, Guid? brandId = null)
         {
             Description = description;
-            Price = price;
             CategoryId = categoryId;
             BrandId = brandId;
             Status = ProductStatus.Draft;
 
             AddDomainEvent(new ProductDrafted(Id));
+        }
+
+        /// <summary>
+        /// Pure static factory to encapsulate the creation of a Product aggregate.
+        /// Following Senior DDD patterns: logic stays here, but events are emitted by the aggregate itself.
+        /// </summary>
+        public static Product Create(
+            string description,
+            Guid categoryId,
+            Guid? brandId = null)
+        {
+            if (string.IsNullOrWhiteSpace(description)) throw new ArgumentNullException(nameof(description));
+
+            var productDescription = new ProductDescription(description);
+
+            return new Product(
+                productDescription,
+                categoryId,
+                brandId
+            );
         }
     }
 }

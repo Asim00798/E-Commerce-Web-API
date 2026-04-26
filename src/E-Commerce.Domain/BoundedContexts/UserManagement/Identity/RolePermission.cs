@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -21,3 +22,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Identity
         public Permission Permission { get; set; } = null!;
     }
 }
+
+#endif

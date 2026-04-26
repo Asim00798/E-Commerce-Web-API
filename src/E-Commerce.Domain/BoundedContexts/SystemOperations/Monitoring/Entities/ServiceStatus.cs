@@ -1,3 +1,4 @@
+﻿#if false
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,3 +11,5 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Monitoring.Entities
     {
     }
 }
+
+#endif

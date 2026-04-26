@@ -1,24 +1,25 @@
 using E_Commerce.ReadModel.Abstractions;
-using MediatR;
 
 namespace E_Commerce.ReadModel.Infrastructure;
 
-public interface IQueryBus
+/// <summary>
+/// Mediator-like query bus that resolves and dispatches queries to their registered handlers.
+/// </summary>
+public sealed class QueryBus
 {
-    Task<TResponse> Send<TResponse>(IQuery<TResponse> query, CancellationToken cancellationToken = default);
-}
+    private readonly IServiceProvider _serviceProvider;
 
-public class QueryBus : IQueryBus
-{
-    private readonly IMediator _mediator;
-
-    public QueryBus(IMediator mediator)
+    public QueryBus(IServiceProvider serviceProvider)
     {
-        _mediator = mediator;
+        _serviceProvider = serviceProvider;
     }
 
-    public Task<TResponse> Send<TResponse>(IQuery<TResponse> query, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Dispatches the given query to its registered handler.
+    /// </summary>
+    public Task<TResult> SendAsync<TResult>(IQuery<TResult> query, CancellationToken cancellationToken = default)
     {
-        return _mediator.Send(query, cancellationToken);
+        // TODO: Resolve IQueryHandler<TQuery, TResult> from DI and invoke HandleAsync
+        throw new NotImplementedException();
     }
 }

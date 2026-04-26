@@ -1,8 +1,9 @@
+﻿#if false
 using E_Commerce.Domain.Exceptions;
 using E_Commerce.Domain.Events.Finance.Refund;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
-using E_Commerce.Domain.SharedKernel.Enums;
 using E_Commerce.Domain.SharedKernel.Abstract;
+using E_Commerce.Domain.BoundedContexts.Core.Finance.Enums;
 
 namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.Payment
 {
@@ -81,3 +82,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.
         }
     }
 }
+
+#endif

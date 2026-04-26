@@ -1,9 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace E_Commerce.ReadModel.Abstractions;
 
+/// <summary>
+/// Abstraction for a read-optimised EF Core DbContext (no-tracking by default).
+/// </summary>
 public interface IReadDbContext
 {
-    DbSet<T> Set<T>() where T : class;
-    IQueryable<T> Query<T>() where T : class;
 }

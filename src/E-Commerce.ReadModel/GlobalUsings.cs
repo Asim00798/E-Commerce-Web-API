@@ -3,3 +3,7 @@ global using System.Collections.Generic;
 global using System.Linq;
 global using System.Threading;
 global using System.Threading.Tasks;
+global using Microsoft.EntityFrameworkCore;
+global using E_Commerce.ReadModel.Abstractions;
+global using E_Commerce.ReadModel.Common;
+global using E_Commerce.ReadModel.Common.Paging;

@@ -1,20 +1,18 @@
-using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
-using E_Commerce.Domain.SharedKernel.ValueObjects;
-using System;
+using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.ValueObjects;
+using E_Commerce.Domain.SharedKernel.Abstractions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.Entities
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Entities
 {
-    public class CategoryImage : BaseEntity, IEntity<CategoryImage>
+    public class CategoryImage : BaseEntity
     {
+        public Guid FileId { get; private set; }
         public Guid CategoryId { get; private set; }
-        public ImageUrl Url { get; private set; }
         public bool IsPrimary { get; private set; }
 
-        public CategoryImage(Guid categoryId, ImageUrl url, bool isPrimary)
+        public CategoryImage(Guid categoryId, Guid fileId, bool isPrimary)
         {
+            FileId = fileId;
             CategoryId = categoryId;
-            Url = url;
             IsPrimary = isPrimary;
         }
 

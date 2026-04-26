@@ -1,5 +1,6 @@
+﻿#if false
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Entities;
 
 namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Monitoring.AggregateRoots.SystemLog.Behaviors
 {
@@ -97,3 +98,4 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Monitoring.Aggregat
         public void MarkProcessed() => Processed = true;
     }
 }
+#endif

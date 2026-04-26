@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.UserManagement.Profiles;
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Reviews___Engagement;
 using E_Commerce.Domain.SharedKernel.Abstract;
@@ -25,3 +26,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Reviews
         }
     }
 }
+
+#endif

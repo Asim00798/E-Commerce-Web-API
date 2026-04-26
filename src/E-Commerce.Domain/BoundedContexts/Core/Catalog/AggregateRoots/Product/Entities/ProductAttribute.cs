@@ -1,9 +1,8 @@
-using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Abstractions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Product.Entities
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Entities
 {
-    public class ProductAttribute: BaseEntity, IEntity<ProductAttribute>
+    public class ProductAttribute: BaseEntity
     {
         public Guid ProductId { get; private set; }
         public string Name { get; private set; } = string.Empty;

@@ -1,12 +1,11 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.ValueObjects;
-using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Enums;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.ValueObjects;
+using E_Commerce.Domain.SharedKernel.Abstractions;
 using E_Commerce.Domain.SharedKernel.Exceptions;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Enums;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.Entities
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Entities
 {
-    public class CategoryAttribute : BaseEntity,IEntity<CategoryAttribute>
+    public class CategoryAttribute : BaseEntity
     {
         public Guid CategoryId { get; private set; }
         public CategoryAttributeInfo Info { get; private set; }

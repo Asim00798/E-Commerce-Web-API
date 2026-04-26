@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoot.Product;
 using E_Commerce.Domain.SharedKernel.Abstract;
 
@@ -28,3 +29,5 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Reviews
         }
     }
 }
+
+#endif

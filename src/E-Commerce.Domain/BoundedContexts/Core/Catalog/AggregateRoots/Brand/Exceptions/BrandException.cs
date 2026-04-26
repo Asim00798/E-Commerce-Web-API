@@ -1,7 +1,7 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.Exceptions;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Exceptions;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Brand.Exceptions
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Exceptions
 {
     /// <summary>
     /// Exception related to the Brand aggregate root.

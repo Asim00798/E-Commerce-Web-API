@@ -1,6 +1,9 @@
+﻿#if false
 namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Monitoring.Specifications
 {
     public class CriticalAlertsSpecification
     {
     }
 }
+
+#endif

@@ -1,9 +1,8 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.Behaviors;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors;
+using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.Repositories
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories
 {
     public interface ICategoryRepository : IRepository<Category>
-    {
-    }
+    {}
 }

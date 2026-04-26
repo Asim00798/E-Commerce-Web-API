@@ -1,5 +1,6 @@
+﻿#if false
 using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.SharedKernel.Interfaces;
+using E_Commerce.Domain.SharedKernel.Entities;
 
 namespace E_Commerce.Domain.BoundedContexts.Communication.Notification.AggregateRoots.NotificationTemplate.Behaviors
 {
@@ -14,3 +15,5 @@ namespace E_Commerce.Domain.BoundedContexts.Communication.Notification.Aggregate
         public bool IsActive { get; set; } = true;
     }
 }
+
+#endif

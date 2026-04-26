@@ -1,3 +1,10 @@
 namespace E_Commerce.ReadModel.Common.Paging;
 
-public record PagingRequest(int PageNumber = 1, int PageSize = 10);
+/// <summary>
+/// Encapsulates paging parameters for a read query.
+/// </summary>
+public sealed class PagingRequest
+{
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 20;
+}

@@ -1,6 +1,6 @@
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.Entities;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Entities;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoots.Category.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors
 {
     public partial class Category
     {

@@ -1,3 +1,4 @@
+﻿#if false
 using System;
 
 namespace E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.PersonalData.Registration
@@ -15,3 +16,4 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.Personal
         }
     }
 }
+#endif

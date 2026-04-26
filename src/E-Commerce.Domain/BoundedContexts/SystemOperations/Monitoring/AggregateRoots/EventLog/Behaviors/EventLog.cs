@@ -1,4 +1,5 @@
-using E_Commerce.Domain.SharedKernel.Events.Abstractions;
+ï»¿#if false
+using E_Commerce.Domain.SharedKernel.Events;
 using System.Text.Json;
 /*
 1- EventName
@@ -19,7 +20,7 @@ using System.Text.Json;
    This is extremely useful in real production debugging.
 
 4?- Version
-   Not event sourcing — just future-safe:
+   Not event sourcing ï¿½ just future-safe:
        ProductPublished v1
        ProductPublished v2
        Support evolving event structures.
@@ -82,3 +83,4 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.Monitoring.Aggregat
         }
     }
 }
+#endif

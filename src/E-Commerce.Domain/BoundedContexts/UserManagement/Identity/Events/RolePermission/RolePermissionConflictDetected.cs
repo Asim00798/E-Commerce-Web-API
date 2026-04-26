@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if false
+using System;
 
 namespace E_Commerce.Domain.Events.Identity.RolePermission
 {
@@ -12,3 +13,4 @@ namespace E_Commerce.Domain.Events.Identity.RolePermission
         }
     }
 }
+#endif

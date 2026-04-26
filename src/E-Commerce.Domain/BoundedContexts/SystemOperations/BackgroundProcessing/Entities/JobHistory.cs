@@ -1,3 +1,4 @@
+﻿#if false
 using E_Commerce.Domain.SharedKernel.Abstract;
 
 namespace E_Commerce.Domain.BoundedContexts.SystemOperations.BackgroundProcessing.Entities
@@ -33,3 +34,5 @@ namespace E_Commerce.Domain.BoundedContexts.SystemOperations.BackgroundProcessin
         }
     }
 }
+
+#endif

@@ -1,3 +1,4 @@
+ï»¿#if false
 using E_Commerce.Domain.BoundedContexts;
 using E_Commerce.Domain.Interfaces;
 using E_Commerce.Domain.Events;
@@ -8,7 +9,7 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Identity
 {
     public class User : IdentityUser<Guid>
     {
-        // Required 1–1 link: User must originate from Registration
+        // Required 1ï¿½1 link: User must originate from Registration
         public Guid RegistrationId { get; private set; }
         public Registration Registration { get; private set; } = null!;
 
@@ -74,3 +75,5 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Identity
         }
     }
 }
+
+#endif

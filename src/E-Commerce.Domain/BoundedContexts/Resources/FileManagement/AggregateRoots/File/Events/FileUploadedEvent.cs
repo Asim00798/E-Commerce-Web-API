@@ -1,6 +1,16 @@
-namespace E_Commerce.Domain.BoundedContexts.SharedResources.FileManagement.AggregateRoots.File.Events
+using E_Commerce.Domain.SharedKernel.Events;
+
+namespace E_Commerce.Domain.BoundedContexts.Resources.FileManagement.AggregateRoots.File.Events
 {
-    public class FileUploadedEvent
+    public class FileUploadedEvent : DomainEvent
     {
+        public Guid FileId { get; }
+        public string FileName { get; }
+
+        public FileUploadedEvent(Guid fileId, string fileName)
+        {
+            FileId = fileId;
+            FileName = fileName;
+        }
     }
 }
