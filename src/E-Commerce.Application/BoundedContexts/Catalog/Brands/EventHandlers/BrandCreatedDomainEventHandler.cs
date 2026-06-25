@@ -1,6 +1,7 @@
+#if false
+
 using MediatR;
 using Microsoft.Extensions.Logging;
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.Events;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Brands.EventHandlers;
 
@@ -16,3 +17,5 @@ public class BrandCreatedDomainEventHandler(ILogger<BrandCreatedDomainEventHandl
         await Task.CompletedTask;
     }
 }
+
+#endif

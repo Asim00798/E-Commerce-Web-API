@@ -1,8 +1,8 @@
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Events;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
 using E_Commerce.Domain.BoundedContexts.Core.Compliance.Evaluation;
-using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.Enums;
 using E_Commerce.Domain.SharedKernel.Abstractions;
+using E_Commerce.Domain.SharedKernel.ValueObjects;
 
 namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors
 {

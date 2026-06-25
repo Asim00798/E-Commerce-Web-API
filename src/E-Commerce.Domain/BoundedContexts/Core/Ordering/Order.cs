@@ -1,12 +1,6 @@
-﻿#if false
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog;
-using E_Commerce.Domain.BoundedContexts.UserManagement.Identity;
-using E_Commerce.Domain.Exceptions;
-using E_Commerce.Domain.Events.Ordering.Order;
-using E_Commerce.Domain.SharedKernel.Abstract;
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.Discount;
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Finance.AggreagteRoots.Payment;
-using E_Commerce.Domain.BoundedContexts.UserManagement.PersonalData.Enums;
+﻿using Domain.Orders.Events;
+using E_Commerce.Domain.SharedKernel.Abstractions;
+using E_Commerce.Domain.SharedKernel.Exceptions;
 
 namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
 {
@@ -14,6 +8,7 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
     {
         public string OrderNumber { get; private set; } = string.Empty;
         public Guid UserId { get; private set; }
+        public Guid CustomerId { get; private set; }
         public Guid ShippingAddressId { get; private set; }
         public Guid? PaymentId { get; private set; }
 
@@ -24,12 +19,12 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
 
         public DateTimeOffset PlacedAt { get; private set; } = DateTimeOffset.UtcNow;
 
-        // Navigation
-        public User? User { get; private set; }
-        public Address? ShippingAddress { get; private set; }
-        public Payment? Payment { get; private set; }
-        public ICollection<OrderItem> Items { get; private set; } = new HashSet<OrderItem>();
-        public ICollection<OrderStatusHistory>? StatusHistory { get; private set; }
+        //// Navigation
+        //public User? User { get; private set; }
+        //public Address? ShippingAddress { get; private set; }
+        //public Payment? Payment { get; private set; }
+        //public ICollection<OrderItem> Items { get; private set; } = new HashSet<OrderItem>();
+        //public ICollection<OrderStatusHistory>? StatusHistory { get; private set; }
 
         // DDD Constructor
         public Order(Guid userId, Guid shippingAddressId, string orderNumber)
@@ -43,84 +38,84 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
             Status = OrderStatus.Pending;
             PlacedAt = DateTimeOffset.UtcNow;
 
-            AddDomainEvent(new OrderPlaced(Id));
+            AddDomainEvent(new OrderPlacedDomainEvent(Id, CustomerId, TotalAmount));
         }
-        public void ApplyDiscount(Discount discount)
-        {
-            //if (Status != OrderStatus.Draft)
-            //    throw new DomainException("Cannot discount finalized order.");
+        //public void ApplyDiscount(Discount discount)
+        //{
+        //    //if (Status != OrderStatus.Draft)
+        //    //    throw new DomainException("Cannot discount finalized order.");
 
-            //Total = Total.Subtract(discount.Amount);
-            //AddDomainEvent(new OrderDiscountApplied(Id, discount.Id));
-        }
-        public void Pay(Guid paymentId)
-        {
-            if (Status != OrderStatus.Pending)
-                throw new BusinessRuleViolationException("Only pending orders can be paid.");
+        //    //Total = Total.Subtract(discount.Amount);
+        //    //AddDomainEvent(new OrderDiscountApplied(Id, discount.Id));
+        //}
+        //public void Pay(Guid paymentId)
+        //{
+        //    if (Status != OrderStatus.Pending)
+        //        throw new BusinessRuleViolationException("Only pending orders can be paid.");
 
-            PaymentId = paymentId;
-            Status = OrderStatus.Paid;
-            AddDomainEvent(new OrderPaid(Id));
-        }
+        //    PaymentId = paymentId;
+        //    Status = OrderStatus.Paid;
+        //    AddDomainEvent(new OrderPaid(Id));
+        //}
 
-        public void Confirm()
-        {
-            if (Status != OrderStatus.Paid)
-                throw new BusinessRuleViolationException("Only paid orders can be confirmed.");
+        //public void Confirm()
+        //{
+        //    if (Status != OrderStatus.Paid)
+        //        throw new BusinessRuleViolationException("Only paid orders can be confirmed.");
 
-            Status = OrderStatus.Confirmed;
-            AddDomainEvent(new OrderConfirmed(Id));
-        }
+        //    Status = OrderStatus.Confirmed;
+        //    AddDomainEvent(new OrderConfirmed(Id));
+        //}
 
-        public void Ship()
-        {
-            if (Status != OrderStatus.Confirmed)
-                throw new BusinessRuleViolationException("Only confirmed orders can be shipped.");
+        //public void Ship()
+        //{
+        //    if (Status != OrderStatus.Confirmed)
+        //        throw new BusinessRuleViolationException("Only confirmed orders can be shipped.");
 
-            Status = OrderStatus.Shipped;
-            AddDomainEvent(new OrderShipped(Id));
-        }
+        //    Status = OrderStatus.Shipped;
+        //    AddDomainEvent(new OrderShipped(Id));
+        //}
 
-        public void Deliver()
-        {
-            if (Status != OrderStatus.Shipped)
-                throw new BusinessRuleViolationException("Only shipped orders can be delivered.");
+        //public void Deliver()
+        //{
+        //    if (Status != OrderStatus.Shipped)
+        //        throw new BusinessRuleViolationException("Only shipped orders can be delivered.");
 
-            Status = OrderStatus.Delivered;
-            AddDomainEvent(new OrderDelivered(Id));
-        }
+        //    Status = OrderStatus.Delivered;
+        //    AddDomainEvent(new OrderDelivered(Id));
+        //}
 
-        public void Cancel(string reason)
-        {
-            if (Status == OrderStatus.Shipped || Status == OrderStatus.Delivered)
-                throw new BusinessRuleViolationException("Cannot cancel an order that has already been shipped or delivered.");
+        //public void Cancel(string reason)
+        //{
+        //    if (Status == OrderStatus.Shipped || Status == OrderStatus.Delivered)
+        //        throw new BusinessRuleViolationException("Cannot cancel an order that has already been shipped or delivered.");
 
-            Status = OrderStatus.Cancelled;
-            AddDomainEvent(new OrderCancelled(Id));
-        }
+        //    Status = OrderStatus.Cancelled;
+        //    AddDomainEvent(new OrderCancelled(Id));
+        //}
 
-        public void Refund()
-        {
-            if (Status != OrderStatus.Paid && Status != OrderStatus.Delivered)
-                throw new BusinessRuleViolationException("Only paid or delivered orders can be refunded.");
+        //public void Refund()
+        //{
+        //    if (Status != OrderStatus.Paid && Status != OrderStatus.Delivered)
+        //        throw new BusinessRuleViolationException("Only paid or delivered orders can be refunded.");
 
-            Status = OrderStatus.Refunded;
-            AddDomainEvent(new OrderRefunded(Id));
-        }
+        //    Status = OrderStatus.Refunded;
+        //    AddDomainEvent(new OrderRefunded(Id));
+        //}
 
-        public void AddItem(OrderItem item)
-        {
-            if (Status != OrderStatus.Pending)
-                throw new BusinessRuleViolationException("Cannot add items to an order that is not pending.");
+        //public void AddItem(OrderItem item)
+        //{
+        //    if (Status != OrderStatus.Pending)
+        //        throw new BusinessRuleViolationException("Cannot add items to an order that is not pending.");
 
-            Items.Add(item);
-            RecalculateTotal();
-        }
+        //    Items.Add(item);
+        //    RecalculateTotal();
+        //}
 
-        private void RecalculateTotal()
-        {
-            TotalAmount = Items.Sum(x => x.UnitPrice * x.Quantity) + ShippingFee + TaxAmount;
-        }
+        //private void RecalculateTotal()
+        //{
+        //    TotalAmount = Items.Sum(x => x.UnitPrice * x.Quantity) + ShippingFee + TaxAmount;
+        //}
 
         public override void Validate()
         {
@@ -146,4 +141,3 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
     }
 }
 
-#endif

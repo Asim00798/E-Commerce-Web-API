@@ -1,27 +1,38 @@
-using MediatR;
-using AutoMapper;
-using E_Commerce.Domain.Catalog;
-using E_Commerce.Domain.Catalog.Repositories;
-using E_Commerce.Domain.SharedKernel.ValueObjects;
-using E_Commerce.Application.BoundedContexts.Catalog.Products.DTOs;
-using E_Commerce.Application.BoundedContexts.Catalog.Products.IntegrationEvents;
+using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.CreateProduct;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Behaviors;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.ValueObjects;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
+using E_Commerce.Domain.SharedKernel.Events;
+using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 
-namespace E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.CreateProduct;
-
-public class CreateProductCommandHandler(
-    IProductRepository productRepository,
-    IMapper mapper,
-    IMediator mediator) : IRequestHandler<CreateProductCommand, ProductDto>
+namespace E_Commerce.Application.Catalog.Products.Commands.CreateProduct;
+public class CreateProductHandler
 {
-    public async Task<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    private readonly IProductRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IDomainEventDispatcher _dispatcher;
+
+    public CreateProductHandler(
+        IProductRepository repository,
+        IUnitOfWork unitOfWork,
+        IDomainEventDispatcher dispatcher)
     {
-        var price = new Money(request.Price, "USD");
-        var product = Product.Create(request.Name, price, request.CategoryId, request.BrandId);
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+        _dispatcher = dispatcher;
+    }
 
-        await productRepository.AddAsync(product, cancellationToken);
-        
-        await mediator.Publish(new ProductCreatedIntegrationEvent(product.Id, product.Name), cancellationToken);
+    public async Task Handle(CreateProductCommand command)
+    {
+        var product = new Product(new ProductDescription(command.Name), Guid.NewGuid());
 
-        return mapper.Map<ProductDto>(product);
+        await _repository.AddAsync(product);
+
+        await _unitOfWork.SaveChangesAsync();
+
+        // IMPORTANT STEP
+        await _dispatcher.DispatchAsync(product.DomainEvents);
+
+        product.ClearDomainEvents();
     }
 }

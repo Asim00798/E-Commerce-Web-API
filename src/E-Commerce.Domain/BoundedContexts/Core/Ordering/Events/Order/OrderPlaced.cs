@@ -1,16 +1,20 @@
-﻿#if false
-using System;
+﻿using Domain.SharedKernel.Events;
+using E_Commerce.Domain.SharedKernel.Events;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering.Ordering.Order
+namespace Domain.Orders.Events;
+
+public class OrderPlacedDomainEvent : DomainEvent
 {
-    public sealed class OrderPlaced : DomainEvent
-    {
-        public Guid AggregateId { get; }
+    public Guid OrderId { get; }
+    public Guid CustomerId { get; }
+    public decimal TotalAmount { get; }
+    public DateTime OccurredAt { get; }
 
-        public OrderPlaced(Guid aggregateId)
-        {
-            AggregateId = aggregateId;
-        }
+    public OrderPlacedDomainEvent(Guid orderId, Guid customerId, decimal totalAmount)
+    {
+        OrderId = orderId;
+        CustomerId = customerId;
+        TotalAmount = totalAmount;
+        OccurredAt = DateTime.UtcNow;
     }
 }
-#endif

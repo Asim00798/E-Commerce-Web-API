@@ -6,7 +6,20 @@ public class UpdateBrandCommandValidator : AbstractValidator<UpdateBrandCommand>
 {
     public UpdateBrandCommandValidator()
     {
-        RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Id)
+            .NotEmpty().WithMessage("Brand ID is required.");
+
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Brand name is required.")
+            .MaximumLength(100).WithMessage("Brand name cannot exceed 100 characters.");
+
+        RuleFor(x => x.Description)
+            .MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters.");
+
+        RuleFor(x => x.LogoUrl)
+            .MaximumLength(500).WithMessage("Logo URL cannot exceed 500 characters.")
+            .Must(url => url == null || Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            .When(x => !string.IsNullOrEmpty(x.LogoUrl))
+            .WithMessage("Logo URL must be a valid absolute URL.");
     }
 }

@@ -1,7 +1,26 @@
 namespace E_Commerce.Api.Configuration;
 
-public class CorsOptions
+public sealed class CorsOptions
 {
-    public string PolicyName { get; set; } = "DefaultCorsPolicy";
-    public string[] AllowedOrigins { get; set; } = Array.Empty<string>();
+    public const string SectionName = "Cors";
+
+    public string[] AllowedOrigins { get; init; } = [];
+
+    public bool AllowCredentials { get; init; }
+
+    public string[] AllowedHeaders { get; init; } =
+    [
+        "Content-Type",
+        "Authorization",
+        "X-Correlation-ID"
+    ];
+
+    public string[] AllowedMethods { get; init; } =
+    [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE"
+    ];
 }

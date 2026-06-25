@@ -1,10 +1,13 @@
+using E_Commerce.ReadModel.Infrastructure;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace E_Commerce.ReadModel;
 
-/// <summary>
-/// Entry point for registering all ReadModel services, DbContexts, and the query bus
-/// into the DI container.
-/// </summary>
 public static class DependencyInjection
 {
-    // TODO: Register read DbContexts, query handlers, and query bus
+    public static IServiceCollection AddReadModel(this IServiceCollection services, IConfiguration configuration)
+    {
+        return ServiceCollectionExtensions.AddReadModel(services, configuration);
+    }
 }
