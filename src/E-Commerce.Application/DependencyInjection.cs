@@ -1,9 +1,11 @@
-using E_Commerce.Application.BoundedContexts.Catalog.Services;
+﻿using E_Commerce.Application.BoundedContexts.Catalog.Services;
 using E_Commerce.Application.Common.Behaviors;
+using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Decorators;
 using Microsoft.Extensions.DependencyInjection;
-using Scrutor;                                                           // Install-Package Scrutor
+using Microsoft.Extensions.Logging;
+using Scrutor;// Install-Package Scrutor
 using System.Reflection;
 
 namespace E_Commerce.Application;
@@ -30,7 +32,7 @@ public static class DependencyInjection
         services.AddScoped<CatalogSearchService>();
 
         // ---------------------------------------------------------------
-        // Integration Event Handlers � automatic registration & decoration
+        // Integration Event Handlers – automatic registration & decoration
         // ---------------------------------------------------------------
 
         // 1. Register all IIntegrationEventHandler<T> implementations from the Application assembly.
@@ -42,10 +44,28 @@ public static class DependencyInjection
             .WithScopedLifetime());
 
         // 2. Decorate every IIntegrationEventHandler<T> with the idempotency decorator.
-        //    This is a single line � no per-handler registration overhead.
+        //    This is a single line – no per-handler registration overhead.
         services.Decorate(
             typeof(IIntegrationEventHandler<>),
             typeof(IdempotentIntegrationEventHandler<>));
+
+        // ---------------------------------------------------------------
+        // Background Job Handlers – automatic registration
+        // ---------------------------------------------------------------
+        services.Scan(scan => scan
+            .FromAssemblies(Assembly.GetExecutingAssembly())
+            .AddClasses(classes => classes.AssignableTo(typeof(IJobHandler<>)))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
+
+        // ---------------------------------------------------------------
+        // Trigger Jobs – automatic registration via marker interface
+        // ---------------------------------------------------------------        
+        services.Scan(scan => scan
+            .FromAssemblies(Assembly.GetExecutingAssembly())
+            .AddClasses(classes => classes.AssignableTo(typeof(IRecurringJobTrigger)))
+            .AsSelf()
+            .WithScopedLifetime());
 
         return services;
     }

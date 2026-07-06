@@ -1,38 +1,33 @@
-﻿using Domain.SharedKernel.Events;
-using E_Commerce.Application.BoundedContexts.Orders.Dtos;
-using E_Commerce.Domain.BoundedContexts.Core.Ordering.Repositories;
+﻿using E_Commerce.Domain.BoundedContexts.Core.Ordering.Repositories;  // IOrderRepository
 using E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering;
-using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
+using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;        // IUnitOfWork
 using MediatR;
 
-namespace E_Commerce.Application.BoundedContexts.Orders.Commands
+namespace E_Commerce.Application.BoundedContexts.Orders.Commands;
+
+public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, PlaceOrderResult>
 {
-    public class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IOrderRepository _orderRepository;
+
+    public PlaceOrderCommandHandler(IUnitOfWork unitOfWork, IOrderRepository orderRepository)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IOrderRepository _orderRepository;
-        private readonly IDomainEventDispatcher _domainEventDispatcher;
+        _unitOfWork = unitOfWork;
+        _orderRepository = orderRepository;
+    }
 
-        public PlaceOrderCommandHandler(IUnitOfWork unitOfWork, IOrderRepository orderRepository, IDomainEventDispatcher domainEventDispatcher)
-        {
-            _unitOfWork = unitOfWork;
-            _orderRepository = orderRepository;
-            _domainEventDispatcher = domainEventDispatcher;
-        }
+    public async Task<PlaceOrderResult> Handle(PlaceOrderCommand command, CancellationToken ct)
+    {
+        await _unitOfWork.BeginTransactionAsync(ct);
 
-        public async Task<Guid> Handle(PlaceOrderCommand command, CancellationToken cancellationToken)
-        {
-            var orderLines = command.Lines.Select(l => new OrderLine(l.ProductId, l.Quantity, l.Price)).ToList();
-            var order = Order.Place(command.CustomerId, orderLines);
+        var order = Order.Place(command.CustomerId, command.Lines);
 
-            await _orderRepository.AddAsync(order, cancellationToken);
+        await _orderRepository.AddAsync(order, ct);
 
-            // SaveChangesAsync internally dispatches domain events and saves again
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        // SaveChangesAsync dispatches domain events (both internal and integration‑event creators)
+        await _unitOfWork.SaveChangesAsync(ct);
+        await _unitOfWork.CommitTransactionAsync(ct);
 
-            await _unitOfWork.CommitTransactionAsync(cancellationToken);
-
-            return order.Id;
-        }
+        return new PlaceOrderResult(order.Id, order.TotalAmount);
     }
 }

@@ -3,5 +3,6 @@
     public interface IEmailService
     {
         Task SendOrderConfirmationAsync(Guid orderId, Guid customerId);
+        Task SendFeedbackRequestAsync(Guid orderId, string customerEmail);
     }
 }

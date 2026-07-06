@@ -3,6 +3,7 @@
     public class ProcessedEvent
     {
         public Guid EventId { get; set; }
-        public DateTime ProcessedAt { get; set; } = DateTime.Now;
+        public string HandlerIdentifier { get; set; } = null!;
+        public DateTime ProcessedAt { get; set; }
     }
 }

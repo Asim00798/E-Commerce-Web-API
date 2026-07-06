@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Shared.Persistence;
+namespace E_Commerce.Application.Shared.Abstractions;
 
 public interface IAppContext
 {

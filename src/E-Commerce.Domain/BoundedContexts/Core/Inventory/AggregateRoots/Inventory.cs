@@ -1,10 +1,8 @@
-﻿#if false
-using E_Commerce.Domain.BoundedContexts.CoreCommerce.Catalog.AggregateRoot.Product;
-using E_Commerce.Domain.Exceptions;
-using E_Commerce.Domain.SharedKernel.Abstract;
+﻿using E_Commerce.Domain.SharedKernel.Abstractions;
+using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Inventory
+namespace E_Commerce.Domain.BoundedContexts.Core.Inventory.AggregateRoots
 {
     public class Inventory : BaseEntity
     {
@@ -12,10 +10,7 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Inventory
         public Quantity Quantity { get; set; } = null!; // Total stock available
         public Quantity ReservedQuantity { get; set; } = null!; // Stock reserved for orders
         public int AvailableQuantity => Quantity.Value - ReservedQuantity.Value; // Computed property for available stock
-
-        // Navigation
-        public Product? Product { get; set; }
-
+        public int Count => Quantity.Value; // Total stock count
         public override void Validate()
         {
             base.Validate();
@@ -31,5 +26,3 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Inventory
         }
     }
 }
-
-#endif

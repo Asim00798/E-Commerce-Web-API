@@ -1,5 +1,4 @@
 ﻿using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
-using E_Commerce.Infrastructure.Abstractions;
 
 namespace E_Commerce.Infrastructure.Communication.Messaging.Dispatching;
 
@@ -42,7 +41,6 @@ public class IntegrationEventDispatcher : IIntegrationEventDispatcher
     public IntegrationEventDispatcher(IServiceProvider serviceProvider)
         => _serviceProvider = serviceProvider;
 
-    /// <inheritdoc />
     public async Task DispatchAsync(
         IIntegrationEvent integrationEvent,
         CancellationToken cancellationToken)

@@ -1,5 +1,5 @@
 ﻿
-namespace E_Commerce.Application.BoundedContexts.Orders.Dtos
+namespace E_Commerce.Domain.BoundedContexts.Core.Ordering.ValueObjects
 {
     public class OrderLine
     {

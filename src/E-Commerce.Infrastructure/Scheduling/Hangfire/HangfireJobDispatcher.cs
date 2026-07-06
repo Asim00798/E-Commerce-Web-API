@@ -1,6 +1,6 @@
 ﻿using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using Hangfire.Server;
-using JobExecutionContext = E_Commerce.Infrastructure.Scheduling.Execution.JobExecutionContext;
+using E_Commerce.Infrastructure.Scheduling.Execution;
 
 namespace E_Commerce.Infrastructure.Scheduling.Hangfire;
 
@@ -11,11 +11,11 @@ namespace E_Commerce.Infrastructure.Scheduling.Hangfire;
 /// </summary>
 public class HangfireJobDispatcher
 {
-    private readonly IJobExecutionEngine _engine;
+    private readonly IJobOrchestrator _orchestrator;
 
-    public HangfireJobDispatcher(IJobExecutionEngine engine)
+    public HangfireJobDispatcher(IJobOrchestrator Orchestrator)
     {
-        _engine = engine;
+        _orchestrator = Orchestrator;
     }
 
     /// <summary>
@@ -35,6 +35,6 @@ public class HangfireJobDispatcher
             attempt: ctx.GetJobParameter<int>("RetryCount") + 1,
             queuedAt: ctx.BackgroundJob.CreatedAt);
 
-        await _engine.ExecuteAsync(job, jobContext, ctx.CancellationToken.ShutdownToken);
+        await _orchestrator.ExecuteAsync(job, jobContext, ctx.CancellationToken.ShutdownToken);
     }
 }

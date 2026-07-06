@@ -17,8 +17,14 @@ public class TimeoutPolicy : IJobPolicy
         Func<Task> next,
         CancellationToken cancellationToken) where TJob : IJob
     {
+        /// <summary>
+        /// Creates a linked <see cref="CancellationTokenSource"/> that cancels after the configured timeout.
+        /// </summary>
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(_timeout);
+        /// <summary>
+        /// Executes the next delegate and throws <see cref="OperationCanceledException"/> if the timeout fires.
+        /// </summary>
         await next().WaitAsync(cts.Token);
     }
 }

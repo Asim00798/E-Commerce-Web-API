@@ -1,5 +1,4 @@
 ﻿using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
-using E_Commerce.Application.Shared.Persistence;  // IProcessedEventRepository
 
 namespace E_Commerce.Application.Shared.Communication.Messaging.Decorators;
 /// <summary>
@@ -15,6 +14,7 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>
 {
     private readonly IIntegrationEventHandler<TIntegrationEvent> _inner;
     private readonly IProcessedEventRepository _processedEvents;
+    private readonly string _handlerId;
 
     public IdempotentIntegrationEventHandler(
         IIntegrationEventHandler<TIntegrationEvent> inner,
@@ -22,20 +22,17 @@ public sealed class IdempotentIntegrationEventHandler<TIntegrationEvent>
     {
         _inner = inner;
         _processedEvents = processedEvents;
+        _handlerId = inner.GetType().FullName!;   // unique per handler class
     }
 
-    public async Task HandleAsync(
-        TIntegrationEvent integrationEvent,
-        CancellationToken cancellationToken)
+    public async Task HandleAsync(TIntegrationEvent integrationEvent, CancellationToken ct)
     {
-        // 1. Skip if already processed
-        if (await _processedEvents.IsProcessedAsync(integrationEvent.EventId, cancellationToken))
+        // Check if the event has already been processed by this handler
+        if (await _processedEvents.IsProcessedAsync(integrationEvent.EventId, _handlerId, ct))
             return;
-
-        // 2. Execute the actual business logic (the “side effect”)
-        await _inner.HandleAsync(integrationEvent, cancellationToken);
-
-        // 3. Mark as processed so that future retries are skipped
-        await _processedEvents.MarkAsProcessedAsync(integrationEvent.EventId, cancellationToken);
+        // Invoke the inner handler
+        await _inner.HandleAsync(integrationEvent, ct);
+        // Mark the evnt as processed by this handler
+        await _processedEvents.MarkAsProcessedAsync(integrationEvent.EventId, _handlerId, ct);
     }
 }

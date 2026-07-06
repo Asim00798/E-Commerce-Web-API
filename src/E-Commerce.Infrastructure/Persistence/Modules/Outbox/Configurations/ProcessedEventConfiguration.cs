@@ -7,8 +7,9 @@ namespace E_Commerce.Infrastructure.Persistence.Modules.Outbox.Configurations
     {
         public void Configure(EntityTypeBuilder<ProcessedEvent> builder)
         {
-            builder.HasKey(e => e.EventId);
-            builder.Property(e => e.ProcessedAt).IsRequired();
+            builder.ToTable("ProcessedEvents");
+            builder.HasKey(e => new { e.EventId, e.HandlerIdentifier });
+            builder.Property(e => e.HandlerIdentifier).IsRequired().HasMaxLength(500);
         }
     }
 }

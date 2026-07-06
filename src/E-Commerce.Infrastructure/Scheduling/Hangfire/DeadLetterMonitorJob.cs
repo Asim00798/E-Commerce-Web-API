@@ -29,7 +29,7 @@ namespace E_Commerce.Infrastructure.Scheduling.Hangfire
             if (deadMessages.Count > 0)
             {
                 _logger.LogWarning("Dead‑lettered messages detected: {Count}", deadMessages.Count);
-                //await _alertService.SendAsync($"Dead‑lettered messages: {deadMessages.Count}");
+                await _alertService.SendAsync($"Dead‑lettered messages: {deadMessages.Count}");
             }
         }
     }

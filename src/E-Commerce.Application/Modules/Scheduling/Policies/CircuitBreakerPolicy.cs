@@ -19,18 +19,34 @@ public class CircuitBreakerPolicy : IJobPolicy
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public async Task ExecuteAsync<TJob>(
         TJob job,
         IJobContext context,
         Func<Task> next,
         CancellationToken cancellationToken) where TJob : IJob
     {
+        EnsureCircuitClosed(context);
+        await ExecuteAndTrackResultAsync(next);
+    }
+
+    /// <summary>
+    /// Throws an exception if the circuit breaker is open.
+    /// </summary>
+    private void EnsureCircuitClosed(IJobContext context)
+    {
         if (_failureCount >= _failureThreshold)
         {
             _logger.LogWarning("Circuit breaker open – job {JobId} not executed.", context.JobId);
             throw new InvalidOperationException("Circuit breaker is open.");
         }
+    }
 
+    /// <summary>
+    /// Executes the next delegate and updates the failure counter accordingly.
+    /// </summary>
+    private async Task ExecuteAndTrackResultAsync(Func<Task> next)
+    {
         try
         {
             await next();

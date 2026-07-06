@@ -8,7 +8,7 @@ public class CreateBrandCommandValidator : AbstractValidator<CreateBrandCommand>
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Brand name is required.")
-            .MaximumLength(100).WithMessage("Brand name cannot exceed 100 characters.");
+            .MaximumLength(50).WithMessage("Brand name cannot exceed 50 characters.");
 
         RuleFor(x => x.Description)
             .MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters.");

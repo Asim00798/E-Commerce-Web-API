@@ -1,4 +1,6 @@
 ﻿using Domain.Orders.Events;
+using E_Commerce.Domain.BoundedContexts.Core.Ordering.ValueObjects;
+using E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering.Ordering.Order;
 using E_Commerce.Domain.SharedKernel.Abstractions;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 
@@ -9,14 +11,13 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
         public string OrderNumber { get; private set; } = string.Empty;
         public Guid UserId { get; private set; }
         public Guid CustomerId { get; private set; }
-        public Guid ShippingAddressId { get; private set; }
+        public string ShippingAddress { get; private set; } = string.Empty;
         public Guid? PaymentId { get; private set; }
-
+        public List <OrderLine> Lines { get; private set; } = new List<OrderLine>();
         public OrderStatus Status { get; private set; } = OrderStatus.Pending;
         public decimal TotalAmount { get; private set; }
         public decimal ShippingFee { get; private set; } = 0;
         public decimal TaxAmount { get; private set; } = 0;
-
         public DateTimeOffset PlacedAt { get; private set; } = DateTimeOffset.UtcNow;
 
         //// Navigation
@@ -27,19 +28,32 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
         //public ICollection<OrderStatusHistory>? StatusHistory { get; private set; }
 
         // DDD Constructor
-        public Order(Guid userId, Guid shippingAddressId, string orderNumber)
+        public Order(Guid userId, string shippingAddress, string orderNumber)
         {
             if (string.IsNullOrWhiteSpace(orderNumber))
                 throw new BusinessRuleViolationException("Order number cannot be empty.");
 
             UserId = userId;
-            ShippingAddressId = shippingAddressId;
+            ShippingAddress = shippingAddress;
             OrderNumber = orderNumber;
             Status = OrderStatus.Pending;
             PlacedAt = DateTimeOffset.UtcNow;
 
             AddDomainEvent(new OrderPlacedDomainEvent(Id, CustomerId, TotalAmount));
         }
+
+        /// <summary>
+        /// Updates the order's shipping address. No domain event is raised – this is a
+        /// pure state change that does not require any side‑effects.
+        /// </summary>
+        public void ChangeShippingAddress(string newAddress)
+        {
+            if (string.IsNullOrWhiteSpace(newAddress))
+                throw new ArgumentException("Shipping address cannot be empty.", nameof(newAddress));
+
+            ShippingAddress = newAddress;
+        }
+
         //public void ApplyDiscount(Discount discount)
         //{
         //    //if (Status != OrderStatus.Draft)
@@ -116,7 +130,33 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
         //{
         //    TotalAmount = Items.Sum(x => x.UnitPrice * x.Quantity) + ShippingFee + TaxAmount;
         //}
+        public static Order Place(Guid customerId, List<OrderLine> lines)
+        {
+            if (lines == null || !lines.Any())
+                throw new BusinessRuleViolationException("Order must have at least one line item.");
+            var order = new Order(customerId, "Default Shipping Address", Guid.NewGuid().ToString());
+            order.Lines.AddRange(lines);
+            order.TotalAmount = lines.Sum(line => line.Quantity * line.Price);
+            order.AddDomainEvent(new OrderPlacedDomainEvent(order.Id, customerId, order.TotalAmount));
+            return order;
+        }
+        /// <summary>
+        /// Marks the order as delivered and records the corresponding domain event.
+        /// </summary>
+        public void MarkAsDelivered()
+        {
+            if (Status != OrderStatus.Shipped)
+                throw new BusinessRuleViolationException("Only shipped orders can be marked as delivered.");
 
+            Status = OrderStatus.Delivered;
+            AddDomainEvent(new OrderDelivered(Id));
+        }
+        public void Expire()
+        {
+            if (Status != OrderStatus.Pending)
+                throw new BusinessRuleViolationException("Only pending orders can be expired.");
+            Status = OrderStatus.Expired;
+        }
         public override void Validate()
         {
             base.Validate();
@@ -137,6 +177,7 @@ namespace E_Commerce.Domain.BoundedContexts.CoreCommerce.Ordering
         Shipped = 3,
         Delivered = 4,
         Cancelled = 5,
+        Expired = 7,
         Refunded = 6
     }
 }

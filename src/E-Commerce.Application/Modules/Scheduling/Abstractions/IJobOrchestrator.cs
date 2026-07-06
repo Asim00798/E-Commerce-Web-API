@@ -5,7 +5,7 @@ namespace E_Commerce.Application.Modules.Scheduling.Abstractions;
 /// for infrastructure‑side job runners to hand a job to
 /// the application's execution pipeline.
 /// </summary>
-public interface IJobExecutionEngine
+public interface IJobOrchestrator
 {
     Task ExecuteAsync<TJob>(TJob job, IJobContext context, CancellationToken cancellationToken)
         where TJob : IJob;

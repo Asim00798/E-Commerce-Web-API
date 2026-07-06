@@ -1,7 +1,7 @@
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Contracts;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Entities;
-using E_Commerce.Infrastructure.Communication.Messaging.Serialization;
+using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Serialization;
 
 namespace E_Commerce.Infrastructure.Communication.Messaging.Outbox.Implementation;
 

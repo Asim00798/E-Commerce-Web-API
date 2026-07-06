@@ -2,7 +2,9 @@
 using E_Commerce.Application;
 using E_Commerce.Infrastructure;
 using E_Commerce.Infrastructure.Extensions;
+using E_Commerce.Infrastructure.Scheduling.Extensions;
 using Serilog;
+using E_Commerce.Application.Modules.Scheduling.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 // ========== Configure Logging ==========
@@ -43,6 +45,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+
+// Schedule recurring jobs from all ITrigger implementations in the Application assembly.
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.ScheduleRecurringJobs(typeof(IRecurringJobTrigger).Assembly);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

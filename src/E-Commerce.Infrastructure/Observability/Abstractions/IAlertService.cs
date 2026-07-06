@@ -2,5 +2,5 @@
 
 public interface IAlertService
 {
-    Task SendAsync(Alert alert, CancellationToken ct = default);
+    Task SendAsync(string message);
 }

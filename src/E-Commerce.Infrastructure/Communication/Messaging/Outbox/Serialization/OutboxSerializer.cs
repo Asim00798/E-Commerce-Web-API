@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace E_Commerce.Infrastructure.Communication.Messaging.Serialization;
+namespace E_Commerce.Infrastructure.Communication.Messaging.Outbox.Serialization;
 
 /// <summary>
 /// Handles JSON serialization and deserialization of integration events

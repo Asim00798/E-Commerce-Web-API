@@ -1,6 +1,6 @@
 using E_Commerce.Application.Common.Constants;
+using E_Commerce.Application.Shared.Abstractions;
 using E_Commerce.Application.Shared.Identity;
-using E_Commerce.Application.Shared.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 
