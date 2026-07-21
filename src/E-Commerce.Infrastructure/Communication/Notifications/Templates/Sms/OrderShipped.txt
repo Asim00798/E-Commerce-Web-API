@@ -1,0 +1,1 @@
+Your order @Model.OrderId has been shipped! Track your delivery at @Model.TrackingUrl.

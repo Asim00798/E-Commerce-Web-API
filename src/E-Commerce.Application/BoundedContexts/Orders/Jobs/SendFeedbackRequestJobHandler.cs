@@ -1,5 +1,5 @@
 ﻿using E_Commerce.Application.Modules.Scheduling.Abstractions;
-using E_Commerce.Application.Shared.Communication.Notifications;
+using E_Commerce.Application.Shared.Communication.Notifications.Services;
 using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.BoundedContexts.Orders.Jobs;
@@ -9,11 +9,11 @@ namespace E_Commerce.Application.BoundedContexts.Orders.Jobs;
 /// </summary>
 public class SendFeedbackRequestJobHandler : IJobHandler<SendFeedbackRequestJob>
 {
-    private readonly IEmailService _emailService;
+    private readonly IEmailChannel _emailService;
     private readonly ILogger<SendFeedbackRequestJobHandler> _logger;
 
     public SendFeedbackRequestJobHandler(
-        IEmailService emailService,
+        IEmailChannel emailService,
         ILogger<SendFeedbackRequestJobHandler> logger)
     {
         _emailService = emailService;

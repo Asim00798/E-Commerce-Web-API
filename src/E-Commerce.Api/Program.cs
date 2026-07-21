@@ -1,4 +1,5 @@
-﻿using E_Commerce.Api.Extensions;
+using E_Commerce.Api.Extensions;
+using E_Commerce.Api.Hubs;
 using E_Commerce.Application;
 using E_Commerce.Infrastructure;
 using E_Commerce.Infrastructure.Extensions;
@@ -43,6 +44,7 @@ builder.Services.AddCorsExtension(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -75,6 +77,7 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<NotificationHub>("/hubs/notification");
 app.MapControllers();
 
 try

@@ -1,14 +1,14 @@
 ﻿using E_Commerce.Application.BoundedContexts.Orders.IntegrationEvents;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
-using E_Commerce.Application.Shared.Communication.Notifications;
+using E_Commerce.Application.Shared.Communication.Notifications.Services;
 
 namespace E_Commerce.Application.BoundedContexts.Orders.IntegrationEventHandlers
 {
     public class SendOrderConfirmationEmailHandler : IIntegrationEventHandler<OrderPlacedIntegrationEvent>
     {
-        private readonly IEmailService _emailService;   
+        private readonly IEmailChannel _emailService;   
 
-        public SendOrderConfirmationEmailHandler(IEmailService emailService)
+        public SendOrderConfirmationEmailHandler(IEmailChannel emailService)
         {
             _emailService = emailService;
         }
@@ -16,7 +16,7 @@ namespace E_Commerce.Application.BoundedContexts.Orders.IntegrationEventHandlers
         public async Task HandleAsync(OrderPlacedIntegrationEvent integrationEvent, CancellationToken cancellationToken)
         {
             // Execute the side effect
-            await _emailService.SendOrderConfirmationAsync(integrationEvent.OrderId, integrationEvent.CustomerId);         
+            await _emailService.SendAsync(integrationEvent.OrderId, integrationEvent.CustomerId);         
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Common.Models;
+namespace E_Commerce.Application.Shared.Models;
 
 public class Result<T>
 {
