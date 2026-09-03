@@ -1,16 +1,39 @@
-using Microsoft.EntityFrameworkCore;
+using CategoryAggregate = E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors.Category;
+using E_Commerce.Infrastructure.Persistence.Common.Configurations;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors;
 
-namespace E_Commerce.Infrastructure.Persistence.Modules.Catalog.Configurations;
+namespace E_Commerce.Infrastructure.Persistence.Modules.Catalog.Category.Configurations;
 
-/// <summary>
-/// EF Core fluent configuration for the Category aggregate root.
-/// </summary>
-public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
+public sealed class CategoryConfiguration : BaseEntityConfiguration<CategoryAggregate>
 {
-    public void Configure(EntityTypeBuilder<Category> builder)
+    public override void Configure(EntityTypeBuilder<CategoryAggregate> builder)
     {
-        // TODO: Configure Category table, keys, and relationships
+        base.Configure(builder);
+
+        builder.ToTable("Categories", "catalog");
+
+        builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.Name)
+            .IsRequired()
+            .HasMaxLength(150);
+
+        builder.Property(x => x.Description)
+            .IsRequired()
+            .HasMaxLength(1000);
+
+        builder.Property(x => x.ParentCategoryId)
+            .IsRequired(false);
+
+        builder.HasMany(x => x.Images)
+            .WithOne()
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(x => x.Images)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasIndex(x => x.Name)
+            .IsUnique();
     }
 }

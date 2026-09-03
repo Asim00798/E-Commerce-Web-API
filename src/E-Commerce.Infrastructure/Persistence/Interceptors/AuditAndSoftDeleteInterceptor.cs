@@ -1,4 +1,4 @@
-﻿using E_Commerce.Application.Shared.Identity;
+﻿using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

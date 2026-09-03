@@ -40,5 +40,33 @@ namespace E_Commerce.Infrastructure.Persistence.Common.Implementation
         {
             _dbSet.Remove(aggregate);
         }
+
+        public virtual async Task<IReadOnlyList<T>> GetPagedAsync(
+                int pageNumber,
+                int pageSize,
+                CancellationToken ct = default)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .OrderBy(e => EF.Property<DateTime>(e, "CreatedAt"))
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+        }
+
+        public virtual async Task<int> GetTotalCountAsync(CancellationToken ct = default)
+        {
+            return await _dbSet.CountAsync(ct);
+        }
+
+        // Hard delete an entity by its ID
+        public virtual async Task<bool> HardDeleteAsync(Guid id, CancellationToken ct = default)
+        {
+            var rowsAffected = await _dbSet
+                .Where(e => EF.Property<Guid>(e, "Id") == id)
+                .ExecuteDeleteAsync(ct);   // EF Core 7+
+
+            return rowsAffected > 0;
+        }
     }
 }

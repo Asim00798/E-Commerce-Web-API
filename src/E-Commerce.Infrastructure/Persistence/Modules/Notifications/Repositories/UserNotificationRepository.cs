@@ -2,89 +2,127 @@
 using E_Commerce.Application.Shared.Communication.Notifications.Persistence;
 using E_Commerce.Infrastructure.Communication.Notifications.Entities;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Notifications.Repositories;
 
-public class UserNotificationRepository : IUserNotificationRepository
+/// <summary>
+/// EF Core implementation of <see cref="IUserNotificationRepository"/>.
+/// Maps between the <see cref="UserNotificationDto"/> (Application layer)
+/// and the <see cref="UserNotification"/> entity (Persistence layer).
+/// </summary>
+internal sealed class UserNotificationRepository
+    : IUserNotificationRepository
 {
     private readonly AppDbContext _db;
 
-    public UserNotificationRepository(AppDbContext db) => _db = db;
-
-    public async Task AddAsync(UserNotificationDto dto, CancellationToken cancellationToken = default)
+    public UserNotificationRepository(AppDbContext db)
     {
-        var entity = MapToEntity(dto);
-        _db.Set<UserNotification>().Add(entity);
-        await _db.SaveChangesAsync(cancellationToken);
+        _db = db;
     }
 
-    public async Task<List<UserNotificationDto>> GetByUserIdAsync(
-        Guid userId, int skip, int take, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task AddAsync(
+        UserNotificationDto dto,
+        CancellationToken cancellationToken = default)
     {
-        var entities = await _db.Set<UserNotification>()
-            .Where(n => n.UserId == userId)
-            .OrderByDescending(n => n.CreatedAtUtc)
+        var entity = new UserNotification
+        {
+            Id = Guid.NewGuid(),
+            UserId = dto.UserId,
+            Type = dto.Type,
+            Title = dto.Title,
+            Message = dto.Message,
+            PayloadJson = dto.PayloadJson,
+            SourceEventId = dto.SourceEventId,
+            CreatedAtUtc = dto.CreatedAtUtc,
+            IsRead = false
+        };
+
+        await _db.Set<UserNotification>()
+            .AddAsync(entity, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task<UserNotificationDto?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await _db.Set<UserNotification>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        return entity == null ? null : MapToDto(entity);
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<UserNotificationDto>> GetByUserIdAsync(
+        Guid userId,
+        int skip,
+        int take,
+        CancellationToken cancellationToken = default)
+    {
+        var notifications = await _db.Set<UserNotification>()
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.CreatedAtUtc)
             .Skip(skip)
             .Take(take)
             .ToListAsync(cancellationToken);
 
-        return entities.Select(MapToDto).ToList();
+        return notifications.Select(MapToDto).ToList();
     }
 
-    public async Task<int> GetTotalCountAsync(Guid userId, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task<int> GetTotalCountAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
     {
         return await _db.Set<UserNotification>()
-            .CountAsync(n => n.UserId == userId, cancellationToken);
+            .CountAsync(x => x.UserId == userId, cancellationToken);
     }
 
-    public async Task<int> GetUnreadCountAsync(Guid userId, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task<int> GetUnreadCountAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
     {
         return await _db.Set<UserNotification>()
-            .CountAsync(n => n.UserId == userId && !n.IsRead, cancellationToken);
+            .CountAsync(x => x.UserId == userId && !x.IsRead, cancellationToken);
     }
 
-    public async Task<UserNotificationDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task MarkAsReadAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await _db.Set<UserNotification>().FindAsync(new object[] { id }, cancellationToken);
-        return entity is null ? null : MapToDto(entity);
+        var entity = await _db.Set<UserNotification>()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (entity is null || entity.IsRead)
+            return;
+
+        entity.IsRead = true;
+        entity.ReadAtUtc = DateTime.UtcNow;
     }
 
-    public async Task MarkAsReadAsync(Guid id, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Maps a persistence entity to the Application‑layer DTO.
+    /// </summary>
+    private static UserNotificationDto MapToDto(UserNotification entity)
     {
-        var entity = await _db.Set<UserNotification>().FindAsync(new object[] { id }, cancellationToken);
-        if (entity is not null)
+        return new UserNotificationDto
         {
-            entity.IsRead = true;
-            entity.ReadAtUtc = DateTime.UtcNow;
-            await _db.SaveChangesAsync(cancellationToken);
-        }
+            Id = entity.Id,
+            UserId = entity.UserId,
+            Type = entity.Type,
+            Title = entity.Title,
+            Message = entity.Message,
+            PayloadJson = entity.PayloadJson,
+            SourceEventId = entity.SourceEventId,
+            CreatedAtUtc = entity.CreatedAtUtc,
+            ReadAtUtc = entity.ReadAtUtc,
+            IsRead = entity.IsRead
+        };
     }
-
-    private static UserNotification MapToEntity(UserNotificationDto dto) => new()
-    {
-        Id = dto.Id,
-        UserId = dto.UserId,
-        Type = dto.Type,
-        Title = dto.Title,
-        Message = dto.Message,
-        PayloadJson = dto.PayloadJson,
-        SourceEventId = dto.SourceEventId,
-        CreatedAtUtc = dto.CreatedAtUtc,
-        ReadAtUtc = dto.ReadAtUtc,
-        IsRead = dto.IsRead
-    };
-
-    private static UserNotificationDto MapToDto(UserNotification entity) => new()
-    {
-        Id = entity.Id,
-        UserId = entity.UserId,
-        Type = entity.Type,
-        Title = entity.Title,
-        Message = entity.Message,
-        PayloadJson = entity.PayloadJson,
-        SourceEventId = entity.SourceEventId,
-        CreatedAtUtc = entity.CreatedAtUtc,
-        ReadAtUtc = entity.ReadAtUtc,
-        IsRead = entity.IsRead
-    };
 }

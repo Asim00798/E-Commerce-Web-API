@@ -1,7 +1,6 @@
-using E_Commerce.Application.Common.Abstractions.Identity;
-using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
-using E_Commerce.Infrastructure.Identity.Entities;
 using E_Commerce.Infrastructure.Persistence.Extensions;
+using E_Commerce.Infrastructure.Security.Identity.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Reflection;
 
@@ -10,7 +9,7 @@ namespace E_Commerce.Infrastructure.Persistence.Context;
 /// Unified EF Core DbContext for all write-side operations.
 /// Ensures strong consistency and a single transaction boundary across bounded contexts.
 /// </summary>
-public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
+public partial class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {} 
@@ -26,6 +25,6 @@ public partial class AppDbContext : IdentityDbContext<User, Role, Guid>
         modelBuilder.ApplySoftDeleteFilter();
 
         // Rename Identity Tables
-        modelBuilder.RenameIdentityTables();
+        modelBuilder.RenameSecurityTables();
     }
 }
