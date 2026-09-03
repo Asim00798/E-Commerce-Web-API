@@ -14,4 +14,12 @@ public static class MiddlewareExtensions
     {
         app.UseMiddleware<CorrelationIdMiddleware>();
     }
+    public static void UseRequestResponseLoggingMiddleware(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<RequestLoggingMiddleware>();
+    }
+    public static void UseGlobalExceptionHandler(this IApplicationBuilder app)
+    {
+        app.UseMiddleware<GlobalExceptionMiddleware>();
+    }
 }

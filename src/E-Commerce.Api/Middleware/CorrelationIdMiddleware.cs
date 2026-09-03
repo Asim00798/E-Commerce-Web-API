@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using E_Commerce.Application.Common.Constants;
+using E_Commerce.Application.Shared.Constants;
 
 namespace E_Commerce.Api.Middleware;
 

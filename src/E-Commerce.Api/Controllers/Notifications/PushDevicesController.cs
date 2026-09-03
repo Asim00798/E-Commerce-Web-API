@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace E_Commerce.Api.Controllers;
+namespace E_Commerce.Api.Controllers.Notifications;
 
 [ApiController]
 [Route("api/push-devices")]

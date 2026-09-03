@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace E_Commerce.Api.Controllers;
+namespace E_Commerce.Api.Controllers.Notifications;
 
 [ApiVersion("1.0")]
 [Authorize]   // requires authentication to access user‑specific notifications
@@ -67,15 +67,4 @@ public class NotificationsController : BaseApiController
         var claim = User.FindFirst(ClaimTypes.NameIdentifier);
         return claim is not null ? Guid.Parse(claim.Value) : Guid.Empty;
     }
-
-    private static UserNotificationDto MapToDto(UserNotification notification) =>
-        new()
-        {
-            Id = notification.Id,
-            Type = notification.Type,
-            Title = notification.Title,
-            Message = notification.Message,
-            IsRead = notification.IsRead,
-            CreatedAtUtc = notification.CreatedAtUtc
-        };
 }
