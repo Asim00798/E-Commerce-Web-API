@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Common.Constants;
+namespace E_Commerce.Application.Shared.Constants;
 
 public static class ContextKeys
 {

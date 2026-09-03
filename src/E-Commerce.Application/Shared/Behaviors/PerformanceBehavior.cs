@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using E_Commerce.Application.Shared.Identity;
+using E_Commerce.Application.Shared.Security.Identity;
 
-namespace E_Commerce.Application.Common.Behaviors;
+namespace E_Commerce.Application.Shared.Behaviors;
 
 public class PerformanceBehavior<TRequest, TResponse>(
     ILogger<TRequest> logger,

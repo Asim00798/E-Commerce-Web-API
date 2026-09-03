@@ -1,13 +1,13 @@
-﻿using E_Commerce.Application.Shared.Communication.Notifications.Models;
+﻿using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 
-namespace E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
+namespace E_Commerce.Application.Shared.Communication.Notifications.Channels;
 
 /// <summary>
-/// Sends a push notification to all active devices of a user.
-/// Implementations are expected to load user preferences, compose the
-/// message from a template, and deliver it through a push transport.
+/// Entry point for push notifications. Only models that implement
+/// <see cref="IPushNotificationModel"/> can be sent through this channel.
 /// </summary>
 public interface IPushChannel
 {
-    Task SendAsync(NotificationRequest<PushNotification> request, CancellationToken ct = default);
+    Task SendAsync<T>(NotificationRequest<T> request, CancellationToken ct = default)
+        where T : IPushNotificationModel;
 }

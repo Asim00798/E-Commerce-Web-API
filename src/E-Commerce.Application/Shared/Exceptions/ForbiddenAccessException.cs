@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Common.Exceptions;
+namespace E_Commerce.Application.Shared.Exceptions;
 
 public class ForbiddenAccessException : Exception
 {

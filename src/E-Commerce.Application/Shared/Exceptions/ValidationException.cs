@@ -1,6 +1,6 @@
 using FluentValidation.Results;
 
-namespace E_Commerce.Application.Common.Exceptions;
+namespace E_Commerce.Application.Shared.Exceptions;
 
 public class ValidationException : Exception
 {

@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Shared.Identity;
+namespace E_Commerce.Application.Shared.Security.Identity;
 
 public interface ICurrentUser
 {

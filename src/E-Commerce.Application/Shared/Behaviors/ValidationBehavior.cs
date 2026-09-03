@@ -1,8 +1,8 @@
 using FluentValidation;
 using MediatR;
-using ValidationException = E_Commerce.Application.Common.Exceptions.ValidationException;
+using ValidationException = E_Commerce.Application.Shared.Exceptions.ValidationException;
 
-namespace E_Commerce.Application.Common.Behaviors;
+namespace E_Commerce.Application.Shared.Behaviors;
 
 public class ValidationBehavior<TRequest, TResponse>(
     IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResponse>
