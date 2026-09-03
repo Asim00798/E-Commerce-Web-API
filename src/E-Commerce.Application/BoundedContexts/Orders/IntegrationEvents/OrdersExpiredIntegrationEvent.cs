@@ -2,23 +2,18 @@
 
 namespace E_Commerce.Application.BoundedContexts.Orders.IntegrationEvents;
 
-public class OrdersExpiredIntegrationEvent : IIntegrationEvent
+public sealed class OrdersExpiredIntegrationEvent : IIntegrationEvent
 {
-    public Guid EventId { get; }
-    public DateTime OccurredAt { get; }
-    public List<Guid> ExpiredOrderIds { get; }
-    public int ExpiredCount { get; }
-    public DateTime ExpiredAt { get; }
+    public Guid EventId { get; } = Guid.NewGuid();
+    public DateTime OccurredAt { get; } = DateTime.UtcNow;
+    public string? CorrelationId { get; init; }
 
-    public OrdersExpiredIntegrationEvent(
-        List<Guid> expiredOrderIds,
-        int expiredCount,
-        DateTime expiredAt)
+    public IReadOnlyList<Guid> ExpiredOrderIds { get; }
+
+    public OrdersExpiredIntegrationEvent(IReadOnlyList<Guid> expiredOrderIds
+        , DateTime expiredAt)
     {
-        EventId = Guid.NewGuid();
-        OccurredAt = DateTime.UtcNow;
         ExpiredOrderIds = expiredOrderIds;
-        ExpiredCount = expiredCount;
-        ExpiredAt = expiredAt;
+        OccurredAt = expiredAt;
     }
 }

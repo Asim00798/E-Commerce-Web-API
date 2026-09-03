@@ -1,6 +1,6 @@
-﻿using E_Commerce.Application.Shared.Models;
-using E_Commerce.Application.Shared.Communication.Notifications.Models;
+﻿using E_Commerce.Application.Shared.Communication.Notifications.Models;
 using E_Commerce.Application.Shared.Communication.Notifications.Persistence;
+using E_Commerce.Application.Shared.Models;
 using MediatR;
 
 namespace E_Commerce.Application.Modules.Notifications.Queries.GetNotifications;

@@ -1,26 +1,42 @@
-using MediatR;
-using E_Commerce.Domain.Catalog;
-using E_Commerce.Domain.Catalog.Repositories;
+using E_Commerce.Application.Shared.Models;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
+using E_Commerce.Domain.SharedKernel.Exceptions;
+using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
-using E_Commerce.Application.Common.Exceptions;
+using MediatR;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.AddProductVariant;
 
-public class AddProductVariantCommandHandler(
-    IProductRepository productRepository) : IRequestHandler<AddProductVariantCommand, Guid>
+public sealed class AddProductVariantCommandHandler : IRequestHandler<AddProductVariantCommand, Result<Guid>>
 {
-    public async Task<Guid> Handle(AddProductVariantCommand request, CancellationToken cancellationToken)
+    private readonly IProductRepository _productRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public AddProductVariantCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
     {
-        var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
-        
-        if (product == null)
-            throw new NotFoundException(nameof(product), request.ProductId);
+        _productRepository = productRepository;
+        _unitOfWork = unitOfWork;
+    }
 
-        var variant = new ProductVariant(request.ProductId, request.Name, request.Sku, new Money(request.Price, "USD"), request.StockQuantity);
-        
-        product.AddVariant(variant);
-        await productRepository.UpdateAsync(product, cancellationToken);
+    public async Task<Result<Guid>> Handle(AddProductVariantCommand command, CancellationToken ct)
+    {
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(command.ProductId, ct);
+            if (product is null) return Result<Guid>.Failure("Product not found.");
 
-        return variant.Id;
+            var money = new Money(command.PriceAmount, command.Currency);
+            product.AddVariant(command.Name, command.Sku, money, command.StockQuantity);
+
+            await _productRepository.UpdateAsync(product, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            var variantId = product.Variants.Last().Id;
+            return Result<Guid>.Success(variantId);
+        }
+        catch (DomainException ex)
+        {
+            return Result<Guid>.Failure(ex.Message);
+        }
     }
 }

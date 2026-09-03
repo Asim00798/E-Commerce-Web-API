@@ -1,11 +1,15 @@
-﻿using E_Commerce.Application.BoundedContexts.Catalog.Services;
-using E_Commerce.Application.Common.Behaviors;
+﻿using E_Commerce.Application.BoundedContexts.Catalog.Brands.Validation;
+using E_Commerce.Application.BoundedContexts.Catalog.Categories.Validation;
+using E_Commerce.Application.BoundedContexts.Catalog.Products.Validation;
+using E_Commerce.Application.BoundedContexts.Orders.Models;
 using E_Commerce.Application.Modules.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Behaviors;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Decorators;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Scrutor;// Install-Package Scrutor
+using System.Net.Http.Headers;
 using System.Reflection;
 
 namespace E_Commerce.Application;
@@ -21,15 +25,19 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
-            cfg.AddOpenBehavior(typeof(TransactionBehavior<,>));
-            cfg.AddOpenBehavior(typeof(AuthorizationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(RoleAuthorizationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(PermissionAuthorizationBehavior<,>));
         });
 
         //services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         //services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-        // Application services
-        services.AddScoped<CatalogSearchService>();
+        // ---------------------------------------------------------------
+        // Contexts Specific Validators
+        // ---------------------------------------------------------------
+        services.AddScoped<BrandLogoFileValidator>();
+        services.AddScoped<CategoryImageFileValidator>();
+        services.AddScoped<ProductImageFileValidator>();
 
         // ---------------------------------------------------------------
         // Integration Event Handlers – automatic registration & decoration
@@ -43,11 +51,15 @@ public static class DependencyInjection
             .AsImplementedInterfaces()
             .WithScopedLifetime());
 
-        // 2. Decorate every IIntegrationEventHandler<T> with the idempotency decorator.
-        //    This is a single line – no per-handler registration overhead.
+        // 2. First, wrap every handler with the idempotency decorator (innermost)
         services.Decorate(
             typeof(IIntegrationEventHandler<>),
             typeof(IdempotentIntegrationEventHandler<>));
+
+        // 3. Then, wrap the result with the correlation‑scope decorator (outermost)
+        services.Decorate(
+            typeof(IIntegrationEventHandler<>),
+            typeof(CorrelationScopeIntegrationEventHandler<>));
 
         // ---------------------------------------------------------------
         // Background Job Handlers – automatic registration

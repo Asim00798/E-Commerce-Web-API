@@ -1,20 +1,37 @@
-using MediatR;
-using AutoMapper;
-using E_Commerce.Domain.Catalog.Repositories;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.DTOs;
-using E_Commerce.Application.Common.Exceptions;
+using E_Commerce.Application.Shared.Models;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
+using MediatR;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Categories.Queries.GetCategoryById;
 
-public class GetCategoryByIdQueryHandler(
-    ICategoryRepository categoryRepository,
-    IMapper mapper) : IRequestHandler<GetCategoryByIdQuery, CategoryDto>
+public sealed class GetCategoryByIdQueryHandler
+    : IRequestHandler<GetCategoryByIdQuery, Result<CategoryDto>>
 {
-    public async Task<CategoryDto> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
-    {
-        var category = await categoryRepository.GetByIdAsync(request.Id, cancellationToken);
-        if (category == null) throw new NotFoundException(nameof(category), request.Id);
+    private readonly ICategoryRepository _categoryRepository;
 
-        return mapper.Map<CategoryDto>(category);
+    public GetCategoryByIdQueryHandler(ICategoryRepository categoryRepository)
+    {
+        _categoryRepository = categoryRepository;
+    }
+
+    public async Task<Result<CategoryDto>> Handle(
+        GetCategoryByIdQuery query,
+        CancellationToken ct)
+    {
+        var category = await _categoryRepository.GetByIdAsync(query.CategoryId, ct);
+        if (category is null)
+            return Result<CategoryDto>.Failure("Category not found.");
+
+        var dto = new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description,
+            ParentCategoryId = category.ParentCategoryId,
+            ImageFileIds = category.Images.Select(x => x.FileId).ToList()
+        };
+
+        return Result<CategoryDto>.Success(dto);
     }
 }

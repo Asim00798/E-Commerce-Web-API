@@ -1,47 +1,73 @@
-using AutoMapper;
-using E_Commerce.Application.BoundedContexts.Catalog.Brands.DTOs;
-using E_Commerce.Application.Common.Exceptions;
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors;
+using E_Commerce.Application.BoundedContexts.Catalog.Brands.Validation;
+using E_Commerce.Application.Shared.Files.Services;
+using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
+using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Brands.Commands.UpdateBrand;
 
-public class UpdateBrandCommandHandler : IRequestHandler<UpdateBrandCommand, BrandDto>
+public sealed class UpdateBrandCommandHandler
+    : IRequestHandler<UpdateBrandCommand, Result>
 {
-    private readonly IBrandRepository _repository;
+    private readonly IBrandRepository _brandRepository;
+    private readonly IFileService _fileService;
+    private readonly BrandLogoFileValidator _logoValidator;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-    private readonly ILogger<UpdateBrandCommandHandler> _logger;
 
     public UpdateBrandCommandHandler(
-        IBrandRepository repository,
-        IUnitOfWork unitOfWork,
-        IMapper mapper,
-        ILogger<UpdateBrandCommandHandler> logger)
+        IBrandRepository brandRepository,
+        IFileService fileService,
+        BrandLogoFileValidator logoValidator,
+        IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _brandRepository = brandRepository;
+        _fileService = fileService;
+        _logoValidator = logoValidator;
         _unitOfWork = unitOfWork;
-        _mapper = mapper;
-        _logger = logger;
     }
 
-    public async Task<BrandDto> Handle(UpdateBrandCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(
+        UpdateBrandCommand command,
+        CancellationToken ct)
     {
-        var brand = await _repository.GetByIdAsync(request.Id, cancellationToken);
-        if (brand == null)
-            throw new NotFoundException(nameof(Brand), request.Id);
+        try
+        {
+            var brand = await _brandRepository.GetByIdAsync(command.BrandId, ct);
+            if (brand is null)
+                return Result.Failure("Brand not found.");
 
-        // Call individual behavior methods on the aggregate
-        brand.UpdateDescription(new BrandDescription(request.Name, request.Description, request.LogoUrl));
+            if (!string.IsNullOrWhiteSpace(command.Name))
+                brand.UpdateName(command.Name);
 
-        await _repository.UpdateAsync(brand, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (!string.IsNullOrWhiteSpace(command.DescriptionText))
+                brand.UpdateDescription(command.DescriptionText);
 
-        _logger.LogInformation("Brand updated with ID {BrandId}", brand.Id);
-        return _mapper.Map<BrandDto>(brand);
+            if (command.NewLogo is not null)
+            {
+                var validation = await _logoValidator.ValidateAsync(command.NewLogo, ct);
+                if (!validation.Succeeded)
+                    return Result.Failure(validation.Errors);
+
+                var newFileId = await _fileService.UploadAsync(
+                    command.NewLogo.Content,
+                    command.NewLogo.FileName,
+                    command.NewLogo.ContentType,
+                    ct);
+
+                brand.UpdateLogo(new BrandLogo(newFileId));
+            }
+
+            await _brandRepository.UpdateAsync(brand, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            return Result.Success();
+        }
+        catch (DomainException ex)
+        {
+            return Result.Failure(ex.Message);
+        }
     }
 }

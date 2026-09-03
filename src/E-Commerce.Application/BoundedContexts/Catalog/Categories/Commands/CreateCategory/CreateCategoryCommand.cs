@@ -1,6 +1,12 @@
+using E_Commerce.Application.Shared.Models;
+using E_Commerce.Application.Shared.Security.Authorization.Attributes;
+using E_Commerce.Application.Shared.Security.Authorization.Permissions;
 using MediatR;
-using E_Commerce.Application.BoundedContexts.Catalog.Categories.DTOs;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.CreateCategory;
 
-public record CreateCategoryCommand(string Name) : IRequest<CategoryDto>;
+[AuthorizePermission(CatalogPermissions.ManageCategories)]
+public sealed record CreateCategoryCommand(
+    string Name,
+    string Description,
+    Guid? ParentCategoryId = null) : IRequest<Result<Guid>>;

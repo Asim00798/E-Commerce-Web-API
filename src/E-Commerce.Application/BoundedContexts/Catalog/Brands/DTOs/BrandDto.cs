@@ -1,9 +1,12 @@
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
-
 namespace E_Commerce.Application.BoundedContexts.Catalog.Brands.DTOs;
 
-public record BrandDto
+public sealed class BrandDto
 {
     public Guid Id { get; init; }
-    public BrandDescription Description { get; init; } = null!;
+
+    public string Name { get; init; } = string.Empty;
+
+    public string? DescriptionText { get; init; }
+
+    public Guid LogoFileId { get; init; }
 }

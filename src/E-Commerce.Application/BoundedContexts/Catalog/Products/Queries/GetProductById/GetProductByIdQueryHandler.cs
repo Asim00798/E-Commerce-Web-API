@@ -1,22 +1,66 @@
-using MediatR;
-using AutoMapper;
-using E_Commerce.Domain.Catalog.Repositories;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.DTOs;
-using E_Commerce.Application.Common.Exceptions;
+using E_Commerce.Application.Shared.Models;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Behaviors;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
+using MediatR;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Products.Queries.GetProductById;
 
-public class GetProductByIdQueryHandler(
-    IProductRepository productRepository,
-    IMapper mapper) : IRequestHandler<GetProductByIdQuery, ProductDto>
+public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Result<ProductDto>>
 {
-    public async Task<ProductDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
-    {
-        var product = await productRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (product == null)
-            throw new NotFoundException(nameof(product), request.Id);
+    private readonly IProductRepository _productRepository;
 
-        return mapper.Map<ProductDto>(product);
+    public GetProductByIdQueryHandler(IProductRepository productRepository)
+    {
+        _productRepository = productRepository;
+    }
+
+    public async Task<Result<ProductDto>> Handle(GetProductByIdQuery query, CancellationToken ct)
+    {
+        var product = await _productRepository.GetByIdAsync(query.ProductId, ct);
+        if (product is null) return Result<ProductDto>.Failure("Product not found.");
+
+        var dto = MapToDto(product);
+        return Result<ProductDto>.Success(dto);
+    }
+
+    private static ProductDto MapToDto(Product product)
+    {
+        return new ProductDto
+        {
+            Id = product.Id,
+            Description = new ProductDescriptionDto
+            {
+                Name = product.Description.Name,
+                ShortDescription = product.Description.ShortDescription,
+                LongDescription = product.Description.LongDescription,
+                Dimensions = product.Description.Dimensions?.ToString(),
+                Weight = product.Description.Weight?.ToString(),
+                DateOfManufacture = product.Description.DateOfManufacture,
+                DateOfExpiry = product.Description.DateOfExpiry,
+                Material = product.Description.Material,
+                Color = product.Description.Color
+            },
+            BrandId = product.BrandId,
+            CategoryId = product.CategoryId,
+            Status = product.Status.ToString(),
+            Tags = product.Tags.ToList(),
+            Images = product.Images.Select(img => new ProductImageDto
+            {
+                Id = img.Id,
+                FileId = img.FileId,
+                AltText = img.AltText,
+                IsMain = img.IsMain
+            }).ToList(),
+            Variants = product.Variants.Select(v => new ProductVariantDto
+            {
+                Id = v.Id,
+                Name = v.Name,
+                Sku = v.SKU,
+                PriceAmount = v.Price.Amount,
+                Currency = v.Price.Currency,
+                StockQuantity = v.StockQuantity
+            }).ToList()
+        };
     }
 }

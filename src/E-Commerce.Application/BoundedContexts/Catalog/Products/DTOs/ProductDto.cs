@@ -1,12 +1,13 @@
 namespace E_Commerce.Application.BoundedContexts.Catalog.Products.DTOs;
 
-public record ProductDto
+public sealed class ProductDto
 {
     public Guid Id { get; init; }
-    public string Name { get; init; } = string.Empty;
-    public decimal Price { get; init; }
-    public string Currency { get; init; } = "USD";
+    public ProductDescriptionDto Description { get; init; } = null!;
+    public Guid BrandId { get; init; }
     public Guid CategoryId { get; init; }
-    public Guid? BrandId { get; init; }
-    public IReadOnlyCollection<ProductVariantDto> Variants { get; init; } = Array.Empty<ProductVariantDto>();
+    public string Status { get; init; } = string.Empty;
+    public IReadOnlyList<string> Tags { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<ProductImageDto> Images { get; init; } = Array.Empty<ProductImageDto>();
+    public IReadOnlyList<ProductVariantDto> Variants { get; init; } = Array.Empty<ProductVariantDto>();
 }

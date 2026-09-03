@@ -1,29 +1,36 @@
-using AutoMapper;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.DTOs;
-using E_Commerce.Application.Common.Exceptions;
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors;
+using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using MediatR;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Brands.Queries.GetBrandById;
 
-public class GetBrandByIdQueryHandler : IRequestHandler<GetBrandByIdQuery, BrandDto>
+public sealed class GetBrandByIdQueryHandler
+    : IRequestHandler<GetBrandByIdQuery, Result<BrandDto>>
 {
-    private readonly IBrandRepository _repository;
-    private readonly IMapper _mapper;
+    private readonly IBrandRepository _brandRepository;
 
-    public GetBrandByIdQueryHandler(IBrandRepository repository, IMapper mapper)
+    public GetBrandByIdQueryHandler(IBrandRepository brandRepository)
     {
-        _repository = repository;
-        _mapper = mapper;
+        _brandRepository = brandRepository;
     }
 
-    public async Task<BrandDto> Handle(GetBrandByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<BrandDto>> Handle(
+        GetBrandByIdQuery query,
+        CancellationToken ct)
     {
-        var brand = await _repository.GetByIdAsync(request.Id, cancellationToken);
-        if (brand == null)
-            throw new NotFoundException(nameof(Brand), request.Id);
+        var brand = await _brandRepository.GetByIdAsync(query.BrandId, ct);
+        if (brand is null)
+            return Result<BrandDto>.Failure("Brand not found.");
 
-        return _mapper.Map<BrandDto>(brand);
+        var dto = new BrandDto
+        {
+            Id = brand.Id,
+            Name = brand.Name,
+            DescriptionText = brand.DescriptionText,
+            LogoFileId = brand.Logo.FileId
+        };
+
+        return Result<BrandDto>.Success(dto);
     }
 }

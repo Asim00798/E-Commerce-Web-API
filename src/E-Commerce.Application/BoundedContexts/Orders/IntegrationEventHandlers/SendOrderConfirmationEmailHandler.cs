@@ -1,22 +1,34 @@
 ﻿using E_Commerce.Application.BoundedContexts.Orders.IntegrationEvents;
+using E_Commerce.Application.BoundedContexts.Orders.Models;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
-using E_Commerce.Application.Shared.Communication.Notifications.Services;
+using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
+using E_Commerce.Application.Shared.Communication.Notifications.Channels;
 
-namespace E_Commerce.Application.BoundedContexts.Orders.IntegrationEventHandlers
+namespace E_Commerce.Application.BoundedContexts.Orders.IntegrationEventHandlers;
+
+public class SendOrderConfirmationEmailHandler : IIntegrationEventHandler<OrderPlacedIntegrationEvent>
 {
-    public class SendOrderConfirmationEmailHandler : IIntegrationEventHandler<OrderPlacedIntegrationEvent>
+    private readonly IEmailChannel _emailChannel;
+
+    public SendOrderConfirmationEmailHandler(IEmailChannel emailChannel)
     {
-        private readonly IEmailChannel _emailService;   
+        _emailChannel = emailChannel;
+    }
 
-        public SendOrderConfirmationEmailHandler(IEmailChannel emailService)
+    public async Task HandleAsync(OrderPlacedIntegrationEvent integrationEvent, CancellationToken cancellationToken)
+    {
+        var model = new OrderConfirmationEmail
         {
-            _emailService = emailService;
-        }
+            RecipientEmail = integrationEvent.CustomerEmail,
+            CustomerName = integrationEvent.CustomerName,
+            OrderId = integrationEvent.OrderId,
+            Total = integrationEvent.TotalAmount
+        };
 
-        public async Task HandleAsync(OrderPlacedIntegrationEvent integrationEvent, CancellationToken cancellationToken)
+        await _emailChannel.SendAsync(new NotificationRequest<OrderConfirmationEmail>
         {
-            // Execute the side effect
-            await _emailService.SendAsync(integrationEvent.OrderId, integrationEvent.CustomerId);         
-        }
+            UserId = integrationEvent.CustomerId,
+            Model = model
+        }, cancellationToken);
     }
 }

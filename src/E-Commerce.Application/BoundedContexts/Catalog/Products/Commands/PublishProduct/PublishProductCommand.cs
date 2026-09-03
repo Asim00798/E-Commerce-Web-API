@@ -1,5 +1,9 @@
+using E_Commerce.Application.Shared.Models;
+using E_Commerce.Application.Shared.Security.Authorization.Attributes;
+using E_Commerce.Application.Shared.Security.Authorization.Permissions;
 using MediatR;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.PublishProduct;
 
-public record PublishProductCommand(Guid Id) : IRequest<Unit>;
+[AuthorizePermission(CatalogPermissions.ManageProducts)]
+public sealed record PublishProductCommand(Guid ProductId) : IRequest<Result>;

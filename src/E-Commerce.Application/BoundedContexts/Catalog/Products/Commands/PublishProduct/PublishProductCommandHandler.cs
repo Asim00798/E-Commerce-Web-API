@@ -1,26 +1,39 @@
+using E_Commerce.Application.Shared.Models;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
+using E_Commerce.Domain.SharedKernel.Exceptions;
+using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using MediatR;
-using E_Commerce.Domain.Catalog.Repositories;
-using E_Commerce.Application.Common.Exceptions;
-using E_Commerce.Application.BoundedContexts.Catalog.Products.IntegrationEvents;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.PublishProduct;
 
-public class PublishProductCommandHandler(
-    IProductRepository productRepository,
-    IMediator mediator) : IRequestHandler<PublishProductCommand, Unit>
+public sealed class PublishProductCommandHandler : IRequestHandler<PublishProductCommand, Result>
 {
-    public async Task<Unit> Handle(PublishProductCommand request, CancellationToken cancellationToken)
+    private readonly IProductRepository _productRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public PublishProductCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
     {
-        var product = await productRepository.GetByIdAsync(request.Id, cancellationToken);
-        
-        if (product == null)
-            throw new NotFoundException(nameof(product), request.Id);
+        _productRepository = productRepository;
+        _unitOfWork = unitOfWork;
+    }
 
-        product.Publish();
-        await productRepository.UpdateAsync(product, cancellationToken);
+    public async Task<Result> Handle(PublishProductCommand command, CancellationToken ct)
+    {
+        try
+        {
+            var product = await _productRepository.GetByIdAsync(command.ProductId, ct);
+            if (product is null) return Result.Failure("Product not found.");
 
-        await mediator.Publish(new ProductPublishedIntegrationEvent(product.Id, product.Name), cancellationToken);
+            product.Publish();
 
-        return Unit.Value;
+            await _productRepository.UpdateAsync(product, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            return Result.Success();
+        }
+        catch (DomainException ex)
+        {
+            return Result.Failure(ex.Message);
+        }
     }
 }

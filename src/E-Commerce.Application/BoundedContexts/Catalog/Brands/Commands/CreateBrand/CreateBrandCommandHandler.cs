@@ -1,42 +1,66 @@
-using AutoMapper;
-using E_Commerce.Application.BoundedContexts.Catalog.Brands.DTOs;
+using E_Commerce.Application.BoundedContexts.Catalog.Brands.Validation;
+using E_Commerce.Application.Shared.Files.Services;
+using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
+using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using MediatR;
-using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.BoundedContexts.Catalog.Brands.Commands.CreateBrand;
 
-public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, BrandDto>
+public sealed class CreateBrandCommandHandler
+    : IRequestHandler<CreateBrandCommand, Result<Guid>>
 {
-    private readonly IBrandRepository _repository;
+    private readonly IBrandRepository _brandRepository;
+    private readonly IFileService _fileService;
+    private readonly BrandLogoFileValidator _logoValidator;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-    private readonly ILogger<CreateBrandCommandHandler> _logger;
 
     public CreateBrandCommandHandler(
-        IBrandRepository repository,
-        IUnitOfWork unitOfWork,
-        IMapper mapper,
-        ILogger<CreateBrandCommandHandler> logger)
+        IBrandRepository brandRepository,
+        IFileService fileService,
+        BrandLogoFileValidator logoValidator,
+        IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _brandRepository = brandRepository;
+        _fileService = fileService;
+        _logoValidator = logoValidator;
         _unitOfWork = unitOfWork;
-        _mapper = mapper;
-        _logger = logger;
     }
 
-    public async Task<BrandDto> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(
+        CreateBrandCommand command,
+        CancellationToken ct)
     {
-        var description = new BrandDescription(request.Name, request.Description, request.LogoUrl);
-        var brand = Brand.Create(description);
+        try
+        {
+            var validation = await _logoValidator.ValidateAsync(command.Logo, ct);
+            if (!validation.Succeeded)
+                return Result<Guid>.Failure(validation.Errors);
 
-        await _repository.AddAsync(brand, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+            var logoFileId = await _fileService.UploadAsync(
+                command.Logo.Content,
+                command.Logo.FileName,
+                command.Logo.ContentType,
+                ct);
 
-        _logger.LogInformation("Brand created with ID {BrandId}", brand.Id);
-        return _mapper.Map<BrandDto>(brand);
+            var logo = new BrandLogo(logoFileId);
+
+            var brand = Brand.Create(
+                command.Name,
+                command.DescriptionText,
+                logo);
+
+            await _brandRepository.AddAsync(brand, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+
+            return Result<Guid>.Success(brand.Id);
+        }
+        catch (DomainException ex)
+        {
+            return Result<Guid>.Failure(ex.Message);
+        }
     }
 }

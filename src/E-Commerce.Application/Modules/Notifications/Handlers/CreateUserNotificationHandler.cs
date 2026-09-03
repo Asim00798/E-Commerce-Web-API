@@ -1,9 +1,9 @@
-using Domain.Orders.Events;
 using Domain.SharedKernel.Events;
 using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
-using E_Commerce.Application.Shared.Communication.Notifications.Models;
+using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Application.Shared.Communication.Notifications.Persistence;
 using E_Commerce.Application.Shared.Communication.PostCommit;
+using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Events.Order;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
