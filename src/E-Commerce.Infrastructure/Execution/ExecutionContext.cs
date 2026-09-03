@@ -1,10 +1,10 @@
-using E_Commerce.Application.Common.Constants;
+using E_Commerce.Application.Shared.Constants;
 using E_Commerce.Application.Shared.Abstractions;
-using E_Commerce.Application.Shared.Identity;
+using E_Commerce.Application.Shared.Security.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 
-namespace E_Commerce.Infrastructure.Runtime;
+namespace E_Commerce.Infrastructure.Execution;
 
 public class ExecutionContext : IAppContext
 {

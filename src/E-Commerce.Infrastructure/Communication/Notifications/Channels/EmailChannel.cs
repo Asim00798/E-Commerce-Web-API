@@ -1,6 +1,6 @@
 ﻿using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
-using E_Commerce.Application.Shared.Communication.Notifications.Models;
-using E_Commerce.Application.Shared.Communication.Notifications.Services;
+using E_Commerce.Application.Shared.Communication.Notifications.Channels;
+using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
 using E_Commerce.Infrastructure.Communication.Notifications.External.Email.Composers;
 using E_Commerce.Infrastructure.Communication.Notifications.External.Email.Transport;
@@ -38,7 +38,7 @@ public sealed class EmailChannel : IEmailChannel
 
     /// <inheritdoc />
     public async Task SendAsync<T>(NotificationRequest<T> request, CancellationToken ct = default)
-        where T : INotificationModel
+        where T : IEmailNotificationModel
     {
         // 1. Respect user preferences
         var preferences = await _preferencesRepo.GetByUserIdAsync(request.UserId, ct);

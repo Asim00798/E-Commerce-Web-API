@@ -1,7 +1,8 @@
 using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
-using E_Commerce.Infrastructure.Communication.Notifications.Entities;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Sms.Composers;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Sms.Transport;
+using E_Commerce.Application.Shared.Communication.Notifications.Channels;
+using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Composers;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Transport;
 
 namespace E_Commerce.Infrastructure.Communication.Notifications.Channels;
 
@@ -9,19 +10,26 @@ public sealed class SmsChannel : ISmsChannel
 {
     private readonly SmsComposer _composer;
     private readonly ISmsTransport _transport;
+    private readonly INotificationPreferencesRepository _preferencesRepo;
 
-    public SmsChannel(SmsComposer composer, ISmsTransport transport)
+    public SmsChannel(
+        SmsComposer composer,
+        ISmsTransport transport,
+        INotificationPreferencesRepository preferencesRepo)
     {
         _composer = composer;
         _transport = transport;
+        _preferencesRepo = preferencesRepo;
     }
 
-    public async Task SendAsync<T>(T model, NotificationPreferences preferences, CancellationToken cancellationToken)
-        where T : INotificationModel
+    public async Task SendAsync<T>(NotificationRequest<T> request, CancellationToken ct = default)
+        where T : ISmsNotificationModel
     {
-        if (!preferences.AllowSms) return;
+        var preferences = await _preferencesRepo.GetByUserIdAsync(request.UserId, ct);
+        if (preferences?.AllowSms is false)
+            return;   // SMS disabled – nothing to do
 
-        var smsMessage = await _composer.ComposeAsync(model, cancellationToken);
-        await _transport.SendAsync(smsMessage, cancellationToken);
+        var smsMessage = await _composer.ComposeAsync(request.Model, ct);
+        await _transport.SendAsync(smsMessage, ct);
     }
 }

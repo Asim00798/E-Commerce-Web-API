@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
-using E_Commerce.Application.Shared.Communication.Notifications.Models;
+using E_Commerce.Application.Shared.Communication.Notifications.Channels;
+using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
 using E_Commerce.Infrastructure.Communication.Notifications.External.Push.Composers;
 using E_Commerce.Infrastructure.Communication.Notifications.External.Push.Transport;
@@ -39,7 +40,8 @@ public sealed class PushChannel : IPushChannel
     }
 
     /// <inheritdoc />
-    public async Task SendAsync(NotificationRequest<PushNotification> request, CancellationToken ct = default)
+    public async Task SendAsync<T>(NotificationRequest<T> request, CancellationToken ct = default)
+        where T : IPushNotificationModel
     {
         // 1. Respect user preferences
         var preferences = await _preferencesRepo.GetByUserIdAsync(request.UserId, ct);

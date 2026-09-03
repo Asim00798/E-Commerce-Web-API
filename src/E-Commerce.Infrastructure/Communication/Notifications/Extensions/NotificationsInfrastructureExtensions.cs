@@ -1,12 +1,11 @@
 ﻿using E_Commerce.Application.Shared.Communication.Notifications.Services;
-using E_Commerce.Infrastructure.Communication.Notifications.Channels;
 using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Email.Composers;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Email.Transport;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Push.Composers;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Push.Transport;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Sms.Composers;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Sms.Transport;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Composers;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Transport;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Push.Composers;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Push.Transport;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Composers;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Transport;
 using E_Commerce.Infrastructure.Communication.Notifications.Options;
 using E_Commerce.Infrastructure.Communication.Notifications.Rendering;
 using E_Commerce.Infrastructure.Communication.Notifications.Services;
@@ -20,7 +19,9 @@ public static class NotificationsInfrastructureExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         // Options
-        services.Configure<EmailOptions>(configuration.GetSection("Email"));
+        services.AddOptions<EmailOptions>()
+                .Bind(configuration.GetSection(EmailOptions.SectionName))
+                .ValidateOnStart();   // triggers Validate() automatically
         services.Configure<SmsOptions>(configuration.GetSection("Sms"));
         services.Configure<PushOptions>(configuration.GetSection("Push"));
 

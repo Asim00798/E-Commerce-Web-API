@@ -1,4 +1,4 @@
-﻿using E_Commerce.Application.Shared.Identity;
+﻿using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Extensions;
@@ -103,7 +103,7 @@ public static class ServiceCollectionExtensions
         // Provides the current user context for audit and authorization
         // without coupling the Application layer to ASP.NET Core.
         // -----------------------------------------------------------------
-        services.AddScoped<ICurrentUser, CurrentUserService>();
+        services.AddScoped<ICurrentUser, CurrentUser>();
 
         return services;
     }

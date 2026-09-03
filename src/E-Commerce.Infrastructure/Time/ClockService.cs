@@ -1,13 +1,13 @@
+using E_Commerce.Domain.SharedKernel.Services;
+
 namespace E_Commerce.Infrastructure.Time;
 
 /// <summary>
-/// Infrastructure implementation of IDateTime / clock abstraction.
-/// Returns UTC time, allowing easy substitution in tests.
+/// Default implementation of <see cref="IClock"/> that delegates
+/// to the real system clock.
 /// </summary>
-public sealed class ClockService
+public sealed class ClockService : IClock
 {
-    /// <summary>Returns the current UTC date and time.</summary>
-    public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
-
-    // TODO: Implement IDateTime interface from Application layer
+    /// <inheritdoc />
+    public DateTime UtcNow => DateTime.UtcNow;
 }

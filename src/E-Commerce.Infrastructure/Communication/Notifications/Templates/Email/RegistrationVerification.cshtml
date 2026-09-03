@@ -1,0 +1,18 @@
+﻿@model E_Commerce.Application.BoundedContexts.Onboarding.Models.RegistrationVerificationEmail
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.Subject</title>
+</head>
+<body>
+    <h2>Welcome to Our E-Commerce Store</h2>
+    <p>Thank you for registering. To complete your account, please use the following verification code:</p>
+    <div style="font-size: 24px; font-weight: bold; margin: 20px 0;">
+        @Model.VerificationCode
+    </div>
+    <p>This code is valid for 5 minutes.</p>
+    <p>If you did not request this registration, please ignore this email.</p>
+</body>
+</html>

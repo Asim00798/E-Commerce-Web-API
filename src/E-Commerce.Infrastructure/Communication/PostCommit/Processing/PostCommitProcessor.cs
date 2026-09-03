@@ -2,13 +2,9 @@
 
 namespace E_Commerce.Infrastructure.Communication.PostCommit.Processing;
 
-/// <summary>
-/// Scoped implementation of <see cref="IPostCommitProcessor"/>.
-/// Stores callbacks that will be executed after the current UnitOfWork transaction commits.
-/// </summary>
 internal sealed class PostCommitProcessor : IPostCommitProcessor
 {
-    private readonly List<Func<IServiceProvider, Task>> _callbacks = new();
+    private readonly Queue<Func<IServiceProvider, CancellationToken, Task>> _callbacks = new();
     private readonly ILogger<PostCommitProcessor> _logger;
 
     public PostCommitProcessor(ILogger<PostCommitProcessor> logger)
@@ -16,22 +12,34 @@ internal sealed class PostCommitProcessor : IPostCommitProcessor
         _logger = logger;
     }
 
-    public void Enqueue(Func<IServiceProvider, Task> callback)
+    public void Enqueue(Func<IServiceProvider, CancellationToken, Task> callback)
     {
-        _callbacks.Add(callback);
+        _callbacks.Enqueue(callback);
     }
 
-    public async Task InvokeAsync(IServiceProvider serviceProvider)
+    public async Task InvokeAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
     {
-        foreach (var callback in _callbacks)
+        if (_callbacks.Count == 0) return;
+
+        _logger.LogDebug("Invoking {Count} post‑commit callback(s).", _callbacks.Count);
+
+        while (_callbacks.TryDequeue(out var callback))
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogDebug("Post‑commit callback execution cancelled.");
+                break;
+            }
+
             try
             {
-                await callback(serviceProvider);
+                _logger.LogDebug("Executing post‑commit callback ({Remaining} remaining).",
+                    _callbacks.Count + 1); // +1 because we already dequeued it
+                await callback(serviceProvider, cancellationToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Post‑commit application event callback failed.");
+                _logger.LogError(ex, "Post‑commit callback failed.");
             }
         }
     }
