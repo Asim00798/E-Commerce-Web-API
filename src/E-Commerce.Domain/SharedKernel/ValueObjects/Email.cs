@@ -1,5 +1,5 @@
-﻿using System.Text.RegularExpressions;
-using E_Commerce.Domain.Exceptions;
+﻿using E_Commerce.Domain.SharedKernel.Exceptions;
+using System.Text.RegularExpressions;
 
 namespace E_Commerce.Domain.SharedKernel.ValueObjects
 {

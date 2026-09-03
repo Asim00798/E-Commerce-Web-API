@@ -1,4 +1,4 @@
-﻿using E_Commerce.Domain.Exceptions;
+﻿using E_Commerce.Domain.SharedKernel.Exceptions;
 
 namespace E_Commerce.Domain.SharedKernel.ValueObjects
 {
