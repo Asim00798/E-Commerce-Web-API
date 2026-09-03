@@ -1,18 +1,14 @@
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.Exceptions;
+using E_Commerce.Domain.SharedKernel.Exceptions;
 
-namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Exceptions
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Exceptions;
+
+public sealed class CategoryException : DomainException
 {
-    /// <summary>
-    /// Base exception for all exceptions related to the Category aggregate root.
-    /// </summary>
-    public class CategoryException : CatalogException
+    public CategoryException(string message) : base(message)
     {
-        protected CategoryException() { }
+    }
 
-        public CategoryException(string message)
-            : base(message) { }
-
-        public CategoryException(string message, Exception inner)
-            : base(message, inner) { }
+    public CategoryException(string message, Exception innerException) : base(message, innerException)
+    {
     }
 }

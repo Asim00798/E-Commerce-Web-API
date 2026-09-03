@@ -1,40 +1,39 @@
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Entities;
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Events;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Exceptions;
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.ValueObjects;
 using E_Commerce.Domain.SharedKernel.Abstractions;
 
-namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors;
+
+public sealed partial class Category : BaseEntity, IAggregateRoot
 {
-    public partial class Category : BaseEntity, IAggregateRoot
+    private readonly List<CategoryImage> _images = new();
+
+    public string Name { get; private set; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
+    public Guid? ParentCategoryId { get; private set; }
+
+    public IReadOnlyCollection<CategoryImage> Images => _images.AsReadOnly();
+
+    private Category()
     {
-        private readonly List<CategoryHierarchy> _hierarchies = new();
-        private readonly List<CategoryImage> _images = new();
-        private readonly List<CategoryAttribute> _attributes = new();
-        private readonly List<Guid> _productIds = new();
+        // EF Core
+    }
 
-        public CategoryInfo Info { get; private set; }
-        public Guid OwnerId { get; private set; }
+    private Category(string name, string description, Guid? parentCategoryId = null)
+    {
+        Name = name;
+        Description = description;
+        ParentCategoryId = parentCategoryId;
+    }
 
-        public IReadOnlyCollection<CategoryHierarchy> Hierarchies => _hierarchies.AsReadOnly();
-        public IReadOnlyCollection<CategoryImage> Images => _images.AsReadOnly();
-        public IReadOnlyCollection<CategoryAttribute> Attributes => _attributes.AsReadOnly();
-        public IReadOnlyCollection<Guid> ProductIds => _productIds.AsReadOnly();
+    public static Category Create(string name, string description, Guid? parentCategoryId = null)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new CategoryException("Category name is required.");
 
-        public Category(CategoryInfo info, Guid ownerId)
-        {
-            Info = info ?? throw new ArgumentNullException(nameof(info));
-            OwnerId = ownerId;
+        if (string.IsNullOrWhiteSpace(description))
+            throw new CategoryException("Category description is required.");
 
-            AddDomainEvent(new CategoryCreatedEvent(Id, Info.Name.Value));
-        }
-
-        public static Category Create(string name, Guid ownerId, string? description = null)
-        {
-            if (string.IsNullOrWhiteSpace(name)) throw new CategoryException("Category name is required.");
-            var categoryName = new CategoryName(name);
-            var categoryInfo = new CategoryInfo(categoryName, description);
-            return new Category(categoryInfo, ownerId);
-        }
+        return new Category(name, description, parentCategoryId);
     }
 }

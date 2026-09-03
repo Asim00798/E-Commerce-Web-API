@@ -1,40 +1,44 @@
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Events;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Exceptions;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
-using E_Commerce.Domain.BoundedContexts.Core.Compliance.Evaluation;
 using E_Commerce.Domain.SharedKernel.Abstractions;
-using E_Commerce.Domain.SharedKernel.ValueObjects;
 
-namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors;
+
+public sealed partial class Brand : BaseEntity, IAggregateRoot
 {
-    public partial class Brand : BaseEntity, IAggregateRoot, IComplianceTarget
+    public string Name { get; private set; } = null!;
+    public string? DescriptionText { get; private set; }
+    public BrandLogo Logo { get; private set; } = null!;
+
+    private Brand()
     {
-        private readonly List<BrandLogo> _logos = new();
-        private readonly List<BrandSocialLink> _socialLinks = new();
-        private readonly List<Contact> _contacts = new();
+        // EF Core
+    }
 
-        public BrandDescription Description { get; private set; }
+    private Brand(string name, string descriptionText, BrandLogo logo)
+    {
+        Name = name;
+        DescriptionText = descriptionText;
+        Logo = logo;
+    }
 
-        public IReadOnlyCollection<BrandLogo> Logos => _logos.AsReadOnly();
-        public IReadOnlyCollection<BrandSocialLink> SocialLinks => _socialLinks.AsReadOnly();
-        public IReadOnlyCollection<Contact> Contacts => _contacts.AsReadOnly();
+    public static Brand Create(
+        string name,
+        string descriptionText,
+        BrandLogo logo)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new BrandException("Brand name is required.");
 
-        private Brand(BrandDescription description)
-        {
-            Description = description ?? throw new ArgumentNullException(nameof(description));
+        if (string.IsNullOrWhiteSpace(descriptionText))
+            throw new BrandException("Description cannot be null or whitespace.");
 
-            AddDomainEvent(new BrandCreatedEvent(Id, Description.Name));
-        }
+        if (descriptionText.Length > 500)
+            throw new BrandException("Description cannot exceed 500 characters.");
 
-        public static Brand Create(BrandDescription description)
-        {
-            if (description == null)
-                throw new ArgumentNullException(nameof(description));
+        if (logo is null)
+            throw new BrandException("Logo cannot be null.");
 
-            // Factory-level invariants (redundant with VO but safe for Aggregate Root integrity)
-            if (string.IsNullOrWhiteSpace(description.Name))
-                throw new ArgumentException("Brand name is required.", nameof(description));
-
-            return new Brand(description);
-        }
+        return new Brand(name, descriptionText, logo);
     }
 }

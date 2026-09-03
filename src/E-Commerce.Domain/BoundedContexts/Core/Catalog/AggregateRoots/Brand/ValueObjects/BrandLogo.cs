@@ -1,30 +1,25 @@
-namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects
+using E_Commerce.Domain.SharedKernel.Exceptions;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Exceptions;
+
+namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.ValueObjects;
+
+public sealed record BrandLogo
 {
-    public sealed record BrandLogo
+    public Guid FileId { get; init; }
+
+    public BrandLogo(Guid fileId)
     {
-        // File ID is referenced in the storage system (e.g., blob storage)
-        // where the logo is stored.
-        // It can be used to retrieve or manage the file.
-        public Guid FileId { get; init; } 
-        public bool IsPrimary { get; init; }
+        FileId = ValidateFileId(fileId);
+    }
 
-        public BrandLogo(Guid fileId, bool isPrimary = false)
-        {
-            IsPrimary = isPrimary;
-            if (fileId == Guid.Empty)
-                throw new Exceptions.BrandException("Logo File ID cannot be empty.", nameof(fileId));
-        }
+    public BrandLogo WithFileId(Guid fileId) =>
+        this with { FileId = ValidateFileId(fileId) };
 
-        internal BrandLogo SetPrimary() => this with { IsPrimary = true };
+    private static Guid ValidateFileId(Guid fileId)
+    {
+        if (fileId == Guid.Empty)
+            throw new BrandException("Logo File ID cannot be empty.", nameof(fileId));
 
-        internal BrandLogo UnsetPrimary() => this with { IsPrimary = false };
-
-        public BrandLogo ChangeFileId(Guid newFileId)
-        {
-            if (newFileId == Guid.Empty)
-                throw new Exceptions.BrandException("Logo File ID cannot be empty.", nameof(newFileId));
-
-            return this with { FileId = newFileId };
-        }
+        return fileId;
     }
 }

@@ -1,4 +1,3 @@
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.Exceptions;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 
 namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Exceptions
