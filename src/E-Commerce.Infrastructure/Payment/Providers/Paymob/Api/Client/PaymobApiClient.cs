@@ -1,8 +1,7 @@
-using E_Commerce.Application.Shared.Time;
+using E_Commerce.Domain.SharedKernel.Services;
 using E_Commerce.Infrastructure.Payment.Configuration;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Api.Models;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Exceptions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Headers;
@@ -17,24 +16,22 @@ public sealed class PaymobApiClient
     private readonly HttpClient _httpClient;
     private readonly PaymobOptions _options;
     private readonly ILogger<PaymobApiClient> _logger;
-    private readonly IDateTime _dateTime;
-
+    private readonly IClock _clock;
     private readonly SemaphoreSlim _tokenLock = new(1, 1);
     private string? _cachedToken;
     private DateTimeOffset _tokenExpiresAt = DateTimeOffset.MinValue;
-
     private const int TokenExpiryBufferSeconds = 60;
 
     public PaymobApiClient(
         HttpClient httpClient,
         IOptions<PaymobOptions> options,
         ILogger<PaymobApiClient> logger,
-        IDateTime dateTime)
+        IClock clock)
     {
         _httpClient = httpClient;
         _options = options.Value;
         _logger = logger;
-        _dateTime = dateTime;
+        _clock = clock;
 
         _httpClient.BaseAddress = new Uri(_options.BaseUrl.TrimEnd('/') + "/");
     }
@@ -145,7 +142,7 @@ public sealed class PaymobApiClient
 
         try
         {
-            if (_cachedToken is null || _dateTime.UtcNow >= _tokenExpiresAt)
+            if (_cachedToken is null || _clock.UtcNow >= _tokenExpiresAt)
             {
                 await RefreshTokenAsync(ct);
             }
@@ -180,7 +177,7 @@ public sealed class PaymobApiClient
             : 3600;
 
         _cachedToken = auth.Token;
-        _tokenExpiresAt = _dateTime.UtcNow.AddSeconds(
+        _tokenExpiresAt = _clock.UtcNow.AddSeconds(
             Math.Max(lifetimeSeconds - TokenExpiryBufferSeconds, 30));
     }
 
