@@ -1,3 +1,4 @@
+using E_Commerce.Api.Attributes;
 using E_Commerce.Api.DTOs.Catalog.Categories.Requests;
 using E_Commerce.Api.DTOs.Catalog.Categories.Responses;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.AddCategoryImage;
@@ -147,6 +148,7 @@ public sealed class CategoriesController : BaseApiController
     [HttpGet]
     [Authorize]
     [ProducesResponseType(typeof(IReadOnlyList<CategoryResponse>), StatusCodes.Status200OK)]
+    [CacheControl(Public = true, MaxAge = 1800)]
     public async Task<IActionResult> ListCategories(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,

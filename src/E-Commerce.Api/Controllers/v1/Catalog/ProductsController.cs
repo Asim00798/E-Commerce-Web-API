@@ -42,7 +42,7 @@ public class ProductsController : BaseApiController
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, UpdateProductCommand command)
+    public async Task<IActionResult> Update(Guid id, UpdateProductDescriptionCommand command)
     {
         if (id != command.Id) return BadRequest();
         await Mediator.Send(command);

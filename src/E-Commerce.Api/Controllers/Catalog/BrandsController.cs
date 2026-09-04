@@ -1,3 +1,4 @@
+using E_Commerce.Api.Attributes;
 using E_Commerce.Api.DTOs.Catalog.Brands.Requests;
 using E_Commerce.Api.DTOs.Catalog.Brands.Responses;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Commands.CreateBrand;
@@ -92,6 +93,7 @@ public sealed class BrandsController : BaseApiController
     [Authorize]
     [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [CacheControl(Public = true, MaxAge = 1800)]
     public async Task<IActionResult> GetBrandById(
         Guid brandId,
         CancellationToken ct)
@@ -115,6 +117,7 @@ public sealed class BrandsController : BaseApiController
     [HttpGet]
     [Authorize]
     [ProducesResponseType(typeof(IReadOnlyList<BrandResponse>), StatusCodes.Status200OK)]
+    [CacheControl(Public = true, MaxAge = 1800)]
     public async Task<IActionResult> ListBrands(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,

@@ -1,3 +1,4 @@
+using E_Commerce.Api.Attributes;
 using E_Commerce.Api.DTOs.Catalog.Products.Requests;
 using E_Commerce.Api.DTOs.Catalog.Products.Responses;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.AddProductImage;
@@ -321,6 +322,7 @@ public sealed class ProductsController : BaseApiController
     [Authorize]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [CacheControl(Public = true, MaxAge = 600)]
     public async Task<IActionResult> GetProductById(
         Guid productId,
         CancellationToken ct)
