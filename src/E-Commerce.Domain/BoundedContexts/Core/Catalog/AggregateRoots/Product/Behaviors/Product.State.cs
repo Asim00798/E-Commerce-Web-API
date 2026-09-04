@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Entities;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Enums;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.Exceptions;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.ValueObjects;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
 
@@ -150,5 +151,11 @@ public sealed partial class Product
     public void RemoveTag(string tag)
     {
         _tags.RemoveAll(x => x.Equals(tag, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void UpdateDescription(ProductDescription newDescription)
+    {
+        EnsureIsDraft();
+        Description = newDescription;
     }
 }
