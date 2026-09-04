@@ -27,6 +27,7 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
             cfg.AddOpenBehavior(typeof(RoleAuthorizationBehavior<,>));
             cfg.AddOpenBehavior(typeof(PermissionAuthorizationBehavior<,>));
+            cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
         });
 
         //services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());

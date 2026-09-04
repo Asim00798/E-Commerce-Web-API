@@ -1,11 +1,10 @@
-﻿using System.Net.Http;
-using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
+﻿using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
 using E_Commerce.Application.BoundedContexts.Finance.Models;
 using E_Commerce.Application.Shared.Models;
-using E_Commerce.Application.Shared.Time;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Enums;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
+using E_Commerce.Domain.SharedKernel.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
@@ -18,20 +17,20 @@ public sealed class ReconcilePaymentsCommandHandler
     private readonly IPaymentRepository _paymentRepository;
     private readonly IPaymentGateway _paymentGateway;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IDateTime _dateTime;
+    private readonly IClock _clock;
     private readonly ILogger<ReconcilePaymentsCommandHandler> _logger;
 
     public ReconcilePaymentsCommandHandler(
         IPaymentRepository paymentRepository,
         IPaymentGateway paymentGateway,
         IUnitOfWork unitOfWork,
-        IDateTime dateTime,
+        IClock clock,
         ILogger<ReconcilePaymentsCommandHandler> logger)
     {
         _paymentRepository = paymentRepository;
         _paymentGateway = paymentGateway;
         _unitOfWork = unitOfWork;
-        _dateTime = dateTime;
+        _clock = clock;
         _logger = logger;
     }
 
@@ -58,7 +57,7 @@ public sealed class ReconcilePaymentsCommandHandler
 
     private DateTime CalculateReconciliationCutoff()
     {
-        return _dateTime.UtcNow.AddMinutes(-30);
+        return _clock.UtcNow.AddMinutes(-30);
     }
 
     private async Task ReconcilePaymentAsync(

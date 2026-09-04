@@ -1,14 +1,13 @@
-﻿using System.Net.Http;
-using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
+﻿using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
 using E_Commerce.Application.BoundedContexts.Finance.Models;
 using E_Commerce.Application.Shared.Models;
-using E_Commerce.Application.Shared.Time;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using RefundAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Refund.Behaviors.Refund;
 using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
+using E_Commerce.Domain.SharedKernel.Services;
 
 namespace E_Commerce.Application.BoundedContexts.Finance.Commands.ReconcileRefunds;
 
@@ -19,7 +18,7 @@ public sealed class ReconcileRefundsCommandHandler
     private readonly IPaymentRepository _paymentRepository;
     private readonly IPaymentGateway _paymentGateway;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IDateTime _dateTime;
+    private readonly IClock _clock;
     private readonly ILogger<ReconcileRefundsCommandHandler> _logger;
 
     public ReconcileRefundsCommandHandler(
@@ -27,14 +26,14 @@ public sealed class ReconcileRefundsCommandHandler
         IPaymentRepository paymentRepository,
         IPaymentGateway paymentGateway,
         IUnitOfWork unitOfWork,
-        IDateTime dateTime,
+        IClock clock,
         ILogger<ReconcileRefundsCommandHandler> logger)
     {
         _refundRepository = refundRepository;
         _paymentRepository = paymentRepository;
         _paymentGateway = paymentGateway;
         _unitOfWork = unitOfWork;
-        _dateTime = dateTime;
+        _clock = clock;
         _logger = logger;
     }
 
@@ -60,7 +59,7 @@ public sealed class ReconcileRefundsCommandHandler
 
     private DateTime CalculateRefundReconciliationCutoff()
     {
-        return _dateTime.UtcNow.AddMinutes(-15);
+        return _clock.UtcNow.AddMinutes(-15);
     }
 
     private async Task ReconcileRefundAsync(
