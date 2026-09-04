@@ -1,4 +1,5 @@
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Validation;
+using E_Commerce.Application.Shared.Caching;
 using E_Commerce.Application.Shared.Files.Services;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
@@ -14,17 +15,19 @@ public sealed class AddProductImageCommandHandler : IRequestHandler<AddProductIm
     private readonly IFileService _fileService;
     private readonly ProductImageFileValidator _imageValidator;
     private readonly IUnitOfWork _unitOfWork;
-
+    private readonly ICache _cache;
     public AddProductImageCommandHandler(
         IProductRepository productRepository,
         IFileService fileService,
         ProductImageFileValidator imageValidator,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICache cache)
     {
         _productRepository = productRepository;
         _fileService = fileService;
         _imageValidator = imageValidator;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<Result<Guid>> Handle(AddProductImageCommand command, CancellationToken ct)
@@ -47,6 +50,9 @@ public sealed class AddProductImageCommandHandler : IRequestHandler<AddProductIm
 
             await _productRepository.UpdateAsync(product, ct);
             await _unitOfWork.SaveChangesAsync(ct);
+
+            // Invalidate cache after successful commit
+            await _cache.RemoveAsync($"catalog:product:{command.ProductId}", ct);
 
             return Result<Guid>.Success(fileId);
         }

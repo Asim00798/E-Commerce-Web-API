@@ -1,3 +1,4 @@
+using E_Commerce.Application.Shared.Caching;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using E_Commerce.Domain.SharedKernel.Exceptions;
@@ -10,11 +11,14 @@ public sealed class RemoveProductTagCommandHandler : IRequestHandler<RemoveProdu
 {
     private readonly IProductRepository _productRepository;
     private readonly IUnitOfWork _unitOfWork;
-
-    public RemoveProductTagCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
+    private readonly ICache _cache;
+    public RemoveProductTagCommandHandler(IProductRepository productRepository,
+        IUnitOfWork unitOfWork,
+        ICache cache)
     {
         _productRepository = productRepository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<Result> Handle(RemoveProductTagCommand command, CancellationToken ct)
@@ -28,6 +32,9 @@ public sealed class RemoveProductTagCommandHandler : IRequestHandler<RemoveProdu
 
             await _productRepository.UpdateAsync(product, ct);
             await _unitOfWork.SaveChangesAsync(ct);
+
+            // Invalidate cache after successful commit
+            await _cache.RemoveAsync($"catalog:product:{command.ProductId}", ct);
 
             return Result.Success();
         }

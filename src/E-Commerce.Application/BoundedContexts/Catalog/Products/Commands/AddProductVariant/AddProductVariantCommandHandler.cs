@@ -1,3 +1,4 @@
+using E_Commerce.Application.Shared.Caching;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using E_Commerce.Domain.SharedKernel.Exceptions;
@@ -11,11 +12,14 @@ public sealed class AddProductVariantCommandHandler : IRequestHandler<AddProduct
 {
     private readonly IProductRepository _productRepository;
     private readonly IUnitOfWork _unitOfWork;
-
-    public AddProductVariantCommandHandler(IProductRepository productRepository, IUnitOfWork unitOfWork)
+    private readonly ICache _cache;
+    public AddProductVariantCommandHandler(IProductRepository productRepository, 
+        IUnitOfWork unitOfWork,
+        ICache cache)
     {
         _productRepository = productRepository;
         _unitOfWork = unitOfWork;
+        _cache = cache;
     }
 
     public async Task<Result<Guid>> Handle(AddProductVariantCommand command, CancellationToken ct)
@@ -32,6 +36,10 @@ public sealed class AddProductVariantCommandHandler : IRequestHandler<AddProduct
             await _unitOfWork.SaveChangesAsync(ct);
 
             var variantId = product.Variants.Last().Id;
+
+            // Invalidate cache after successful commit
+            await _cache.RemoveAsync($"catalog:product:{command.ProductId}", ct);
+
             return Result<Guid>.Success(variantId);
         }
         catch (DomainException ex)
