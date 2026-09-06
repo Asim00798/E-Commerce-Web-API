@@ -1,8 +1,8 @@
 using E_Commerce.ReadModel.BoundedContexts.Catalog.Projections;
 using E_Commerce.ReadModel.BoundedContexts.Catalog.Services;
 using E_Commerce.ReadModel.DbContext;
+using E_Commerce.ReadModel.HealthChecks;
 using E_Commerce.ReadModel.Infrastructure.Caching;
-using E_Commerce.ReadModel.Infrastructure.HealthChecks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

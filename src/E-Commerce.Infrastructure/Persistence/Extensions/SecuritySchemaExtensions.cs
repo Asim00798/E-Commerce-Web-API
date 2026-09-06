@@ -1,7 +1,7 @@
-﻿
-using E_Commerce.Infrastructure.Identity.Entities;
-using E_Commerce.Infrastructure.Security.Authorization.Entities;
+﻿using E_Commerce.Infrastructure.Security.Authorization.Entities;
+using E_Commerce.Infrastructure.Security.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
+using StackExchange.Redis;
 
 namespace E_Commerce.Infrastructure.Persistence.Extensions
 {

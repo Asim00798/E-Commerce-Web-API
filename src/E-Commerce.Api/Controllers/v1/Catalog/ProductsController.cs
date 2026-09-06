@@ -1,12 +1,10 @@
-using E_Commerce.Api.Controllers;
+using Asp.Versioning;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.CreateProduct;
-using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.UpdateProduct;
-using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.DeleteProduct;
+using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.UpdateProductDescription;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Queries.GetProductById;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Queries.ListProducts;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Queries.SearchProducts;
 using Microsoft.AspNetCore.Mvc;
-using Asp.Versioning;
 
 namespace E_Commerce.Api.Controllers.v1.Catalog;
 
@@ -38,21 +36,13 @@ public class ProductsController : BaseApiController
     public async Task<IActionResult> Create(CreateProductCommand command)
     {
         var result = await Mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return Ok(result);
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateProductDescriptionCommand command)
     {
-        if (id != command.Id) return BadRequest();
         await Mediator.Send(command);
-        return NoContent();
-    }
-
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        await Mediator.Send(new DeleteProductCommand(id));
         return NoContent();
     }
 }

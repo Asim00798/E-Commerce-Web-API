@@ -1,4 +1,5 @@
 using E_Commerce.Application.Shared.Models;
+using E_Commerce.Application.Shared.Observability.Metrics;
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Application.Shared.Shipping.Models;
 using E_Commerce.Application.Shared.Shipping.Services;
@@ -25,7 +26,7 @@ public sealed class PlaceOrderCommandHandler
     private readonly IShippingFeeCalculator _shippingFeeCalculator;
     private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _unitOfWork;
-
+    private readonly OrderMetrics _metrics;
     public PlaceOrderCommandHandler(
         ICartRepository cartRepository,
         IOrderRepository orderRepository,
@@ -33,7 +34,8 @@ public sealed class PlaceOrderCommandHandler
         IStockService stockService,
         IShippingFeeCalculator shippingFeeCalculator,
         ICurrentUser currentUser,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        OrderMetrics metrics)
     {
         _cartRepository = cartRepository;
         _orderRepository = orderRepository;
@@ -42,6 +44,7 @@ public sealed class PlaceOrderCommandHandler
         _shippingFeeCalculator = shippingFeeCalculator;
         _currentUser = currentUser;
         _unitOfWork = unitOfWork;
+        _metrics = metrics; 
     }
 
     public async Task<Result<Guid>> Handle(
@@ -79,6 +82,10 @@ public sealed class PlaceOrderCommandHandler
         await _orderRepository.AddAsync(order, ct);
         cart.Clear();
         await _cartRepository.UpdateAsync(cart, ct);
+
+        // Record order creation metric ,
+        // before saving changes to ensure it is counted even if the save fails
+        _metrics.RecordCreated(customerTier: "standard");
 
         await _unitOfWork.SaveChangesAsync(ct);
 

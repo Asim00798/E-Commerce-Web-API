@@ -1,4 +1,3 @@
-using Application.BoundedContexts.Ordering.Dtos;
 
 namespace E_Commerce.Application.BoundedContexts.Orders.Dtos;
 

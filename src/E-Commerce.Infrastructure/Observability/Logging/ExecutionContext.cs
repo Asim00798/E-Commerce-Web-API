@@ -4,7 +4,7 @@ using E_Commerce.Application.Shared.Security.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 
-namespace E_Commerce.Infrastructure.Execution;
+namespace E_Commerce.Infrastructure.Observability.Logging;
 
 public class ExecutionContext : IAppContext
 {

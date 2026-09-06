@@ -8,6 +8,7 @@ public sealed class OrderPlacedDomainEvent : DomainEvent
     public Guid OrderId { get; }
     public Guid CustomerId { get; }
     public Money TotalAmount { get; }
+    public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
 
     public OrderPlacedDomainEvent(Guid orderId, Guid customerId
         , Money totalAmount)

@@ -2,7 +2,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using E_Commerce.ReadModel.DbContext;
 
-namespace E_Commerce.ReadModel.Infrastructure.HealthChecks;
+namespace E_Commerce.ReadModel.HealthChecks;
 
 public class ReadDbContextHealthCheck : IHealthCheck
 {

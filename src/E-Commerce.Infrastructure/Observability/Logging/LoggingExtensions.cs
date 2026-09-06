@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Serilog;
 
-namespace E_Commerce.Infrastructure.Extensions;
+namespace E_Commerce.Infrastructure.Observability.Logging;
 
 public static class LoggingExtensions
 {

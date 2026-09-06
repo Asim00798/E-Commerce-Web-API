@@ -1,4 +1,4 @@
-using E_Commerce.Application.Common.Models;
+using E_Commerce.Application.Shared.Models;
 using E_Commerce.ReadModel.BoundedContexts.Catalog.Entities;
 using E_Commerce.ReadModel.BoundedContexts.Catalog.Queries;
 using E_Commerce.ReadModel.DbContext;

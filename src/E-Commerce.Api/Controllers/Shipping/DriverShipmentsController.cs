@@ -6,7 +6,7 @@ using E_Commerce.Application.BoundedContexts.Shipping.Commands.RecordDeliveryAtt
 using E_Commerce.Application.BoundedContexts.Shipping.Commands.RetryDelivery;
 using E_Commerce.Application.BoundedContexts.Shipping.Commands.StartDelivery;
 using E_Commerce.Application.BoundedContexts.Shipping.Queries.GetDriverShipments;
-using E_Commerce.Infrastructure.Identity.Services;
+using E_Commerce.Application.Shared.Security.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,10 +21,11 @@ public sealed class DriverShipmentsController : BaseApiController
     private const string DeliverPolicy = "Permission:Shipments.Deliver";
 
     private readonly ISender _sender;
-
-    public DriverShipmentsController(ISender sender)
+    private readonly ICurrentUser _currentUser;
+    public DriverShipmentsController(ISender sender, ICurrentUser currentUser)
     {
         _sender = sender;
+        _currentUser = currentUser;
     }
 
     [HttpGet]
@@ -32,7 +33,7 @@ public sealed class DriverShipmentsController : BaseApiController
     [ProducesResponseType(typeof(IReadOnlyList<ShipmentResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyShipments(CancellationToken ct)
     {
-        var driverId = CurrentUserId;
+        var driverId = _currentUser.UserId;
         if (driverId is null)
             return Unauthorized();
 

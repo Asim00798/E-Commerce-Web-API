@@ -1,9 +1,8 @@
 ﻿using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Application.Shared.Communication.Notifications.Channels;
-using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Email.Composers;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Email.Transport;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Composers;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Transport;
 
 namespace E_Commerce.Infrastructure.Communication.Notifications.Channels;
 

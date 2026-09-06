@@ -6,7 +6,9 @@ using E_Commerce.Infrastructure.Identity.Services;
 using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
 using E_Commerce.Infrastructure.Persistence.Interceptors;
-using E_Commerce.Infrastructure.Persistence.Modules.Catalog.Repositories;
+using E_Commerce.Infrastructure.Persistence.Modules.Catalog.Brand.Repository;
+using E_Commerce.Infrastructure.Persistence.Modules.Catalog.Category.Repository;
+using E_Commerce.Infrastructure.Persistence.Modules.Catalog.Product.Repository;
 
 namespace E_Commerce.Infrastructure.Extensions;
 

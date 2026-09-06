@@ -1,4 +1,3 @@
-using E_Commerce.Api.Controllers;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.CreateCategory;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.UpdateCategory;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Queries.GetCategoryById;
@@ -29,13 +28,12 @@ public class CategoriesController : BaseApiController
     public async Task<IActionResult> Create(CreateCategoryCommand command)
     {
         var result = await Mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        return Ok(result);
     }
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateCategoryCommand command)
     {
-        if (id != command.Id) return BadRequest();
         await Mediator.Send(command);
         return NoContent();
     }

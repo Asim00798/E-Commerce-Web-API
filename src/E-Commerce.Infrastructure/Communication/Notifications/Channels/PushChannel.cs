@@ -1,10 +1,9 @@
 ﻿using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Application.Shared.Communication.Notifications.Channels;
-using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Push.Composers;
-using E_Commerce.Infrastructure.Communication.Notifications.External.Push.Transport;
 using E_Commerce.Infrastructure.Communication.Notifications.Messages;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Push.Composers;
+using E_Commerce.Infrastructure.Communication.Notifications.Providers.Push.Transport;
 
 namespace E_Commerce.Infrastructure.Communication.Notifications.Channels;
 

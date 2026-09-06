@@ -28,6 +28,8 @@ public static class DependencyInjection
             cfg.AddOpenBehavior(typeof(RoleAuthorizationBehavior<,>));
             cfg.AddOpenBehavior(typeof(PermissionAuthorizationBehavior<,>));
             cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(TelemetryBehavior<,>));
+            cfg.AddOpenBehavior(typeof(TracingBehavior<,>));
         });
 
         //services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());

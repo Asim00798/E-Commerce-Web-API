@@ -1,5 +1,4 @@
 using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
-using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Infrastructure.Communication.Notifications.Messages;
 using E_Commerce.Infrastructure.Communication.Notifications.Rendering;
 

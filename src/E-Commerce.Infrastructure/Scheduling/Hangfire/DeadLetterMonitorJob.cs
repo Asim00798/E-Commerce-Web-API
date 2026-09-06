@@ -1,5 +1,4 @@
 ﻿using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Contracts;
-using E_Commerce.Infrastructure.Observability.Abstractions;
 
 namespace E_Commerce.Infrastructure.Scheduling.Hangfire
 {
@@ -9,16 +8,16 @@ namespace E_Commerce.Infrastructure.Scheduling.Hangfire
     public class DeadLetterMonitorJob
     {
         private readonly IDeadLetterRepository _deadLetterRepo;
-        private readonly IAlertService _alertService;   // replace with your own notification infrastructure
+        /*private readonly IAlertService _alertService;*/   // replace with your own notification infrastructure
         private readonly ILogger<DeadLetterMonitorJob> _logger;
 
         public DeadLetterMonitorJob(
             IDeadLetterRepository deadLetterRepo,
-            IAlertService alertService,
+            /*IAlertService alertService,*/
             ILogger<DeadLetterMonitorJob> logger)
         {
             _deadLetterRepo = deadLetterRepo;
-            _alertService = alertService;
+            /*_alertService = alertService;*/
             _logger = logger;
         }
 
@@ -29,7 +28,7 @@ namespace E_Commerce.Infrastructure.Scheduling.Hangfire
             if (deadMessages.Count > 0)
             {
                 _logger.LogWarning("Dead‑lettered messages detected: {Count}", deadMessages.Count);
-                await _alertService.SendAsync($"Dead‑lettered messages: {deadMessages.Count}");
+                /*await _alertService.SendAsync($"Dead‑lettered messages: {deadMessages.Count}");*/
             }
         }
     }

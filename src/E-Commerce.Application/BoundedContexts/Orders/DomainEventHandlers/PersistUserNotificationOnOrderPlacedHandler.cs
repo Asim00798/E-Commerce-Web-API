@@ -6,6 +6,7 @@ using E_Commerce.Application.Shared.Communication.Notifications.Persistence;
 using E_Commerce.Application.Shared.Communication.PostCommit;
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Events;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.Modules.Notifications.Handlers;
 
@@ -19,13 +20,16 @@ public class PersistUserNotificationOnOrderPlacedHandler
 {
     private readonly IUserNotificationRepository _userNotificationRepo;
     private readonly IPostCommitProcessor _postCommitProcessor;
+    private readonly ILogger<PersistUserNotificationOnOrderPlacedHandler> _logger;
 
     public PersistUserNotificationOnOrderPlacedHandler(
         IUserNotificationRepository userNotificationRepo,
-        IPostCommitProcessor postCommitProcessor)
+        IPostCommitProcessor postCommitProcessor,
+        ILogger<PersistUserNotificationOnOrderPlacedHandler> logger)
     {
         _userNotificationRepo = userNotificationRepo;
         _postCommitProcessor = postCommitProcessor;
+        _logger = logger;
     }
 
     public async Task Handle(OrderPlacedDomainEvent domainEvent, CancellationToken cancellationToken)
@@ -40,6 +44,7 @@ public class PersistUserNotificationOnOrderPlacedHandler
         };
 
         await _userNotificationRepo.AddAsync(dto, cancellationToken);
+        LogNotificationCreated(dto);
 
         // Enqueue a post‑commit action to send a real‑time notification hint to the user.
         // This is a best‑effort notification; if the transaction fails, the user will not receive it.
@@ -53,5 +58,14 @@ public class PersistUserNotificationOnOrderPlacedHandler
                 Payload = new { type = "OrderPlaced" }
             }, ct);
         });
+    }
+
+    /// <summary>
+    /// Logs the creation of the in‑app notification.
+    /// </summary>
+    private void LogNotificationCreated(UserNotificationDto dto)
+    {
+        _logger.LogDebug("In‑app notification {NotificationId} for order {OrderId} enqueued",
+            dto.Id, dto.SourceEventId);
     }
 }

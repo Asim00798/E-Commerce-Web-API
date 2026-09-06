@@ -1,46 +1,16 @@
-using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Enums;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
+using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
-using Microsoft.EntityFrameworkCore;
+using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Finance.Repositories;
 
-public sealed class PaymentRepository : IPaymentRepository
+public sealed class PaymentRepository : Repository<PaymentAggregate>, IPaymentRepository
 {
-    private readonly AppDbContext _dbContext;
 
-    public PaymentRepository(AppDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
-    public async Task<PaymentAggregate?> GetByIdAsync(Guid id, CancellationToken ct = default)
-    {
-        return await _dbContext.Payments
-            .FirstOrDefaultAsync(x => x.Id == id, ct);
-    }
-
-    public async Task AddAsync(PaymentAggregate aggregate, CancellationToken ct = default)
-    {
-        await _dbContext.Payments.AddAsync(aggregate, ct);
-    }
-
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken ct = default)
-    {
-        return await _dbContext.Payments.AnyAsync(x => x.Id == id, ct);
-    }
-
-    public Task UpdateAsync(PaymentAggregate aggregate, CancellationToken ct = default)
-    {
-        _dbContext.Payments.Update(aggregate);
-        return Task.CompletedTask;
-    }
-
-    public void Remove(PaymentAggregate aggregate)
-    {
-        _dbContext.Payments.Remove(aggregate);
-    }
+    public PaymentRepository(AppDbContext dbContext) : base(dbContext)
+    {}
 
     public async Task<PaymentAggregate?> GetByOrderIdAsync(Guid orderId, CancellationToken ct = default)
     {

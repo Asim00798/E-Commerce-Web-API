@@ -1,7 +1,6 @@
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Infrastructure.Extensions;
-using E_Commerce.Infrastructure.Identity.Services;
-using E_Commerce.Infrastructure.Scheduling.Extensions;
+using E_Commerce.Infrastructure.Security.Identity.Services;
 
 namespace E_Commerce.Infrastructure;
 
@@ -19,7 +18,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddInfrastructureServices(configuration);
-        SchedulingInfrastructureExtensions.AddSchedulingInfrastructure(services, configuration.GetConnectionString("Hangfire"));
+        //SchedulingInfrastructureExtensions.AddSchedulingInfrastructure(services, configuration.GetConnectionString("Hangfire"));
         // TODO: Wire up other infrastructure registrations (security, messaging, etc.)
         services.AddScoped<IIdentityService, IdentityService>();
         return services;

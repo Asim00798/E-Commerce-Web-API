@@ -1,7 +1,4 @@
 ﻿using E_Commerce.Application.BoundedContexts.Orders.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Extensions;
 
@@ -19,7 +16,7 @@ public static class ConfigurationOptionsExtension
     {
         // Ordering
         services.RegisterOptions<OrderingOptions>(configuration, "Ordering");
-
+        
         // Add other options here as the system grows.
         // services.RegisterOptions<ShippingOptions>(configuration, "Shipping");
         // services.RegisterOptions<PaymentOptions>(configuration, "Payment");
