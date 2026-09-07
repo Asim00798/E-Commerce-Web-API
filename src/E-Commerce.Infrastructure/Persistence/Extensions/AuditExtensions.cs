@@ -1,80 +1,104 @@
-﻿using E_Commerce.Domain.BoundedContexts.SystemOperations.Audit.Entities;
-using E_Commerce.Domain.BoundedContexts.SystemOperations.Audit.Enums;
+﻿using System.Text.Json;
+using E_Commerce.Infrastructure.Persistence.Audit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System.Text.Json;
 
-namespace E_Commerce.Infrastructure.Persistence.Extensions
+namespace E_Commerce.Infrastructure.Persistence.Extensions;
+
+public static class DbContextAuditExtensions
 {
-    public static class DbContextAuditExtensions
+    /// <summary>
+    /// Applies audit logging for entity changes.
+    /// Original deleted entries are preserved as Deleted audit actions
+    /// even when soft-delete has converted their EF state to Modified.
+    /// </summary>
+    public static void ApplyAuditLogging(
+        this DbContext context,
+        Guid? currentUserId,
+        IReadOnlySet<EntityEntry>? originallyDeletedEntries = null,
+        string? ipAddress = null,
+        Guid? correlationId = null)
     {
-        /// <summary>
-        /// Applies audit logging for all entity changes (Created, Updated, Deleted).
-        /// Captures the current user performing the action and property-level changes.
-        /// Supports any primary key type (single or composite) as string.
-        /// </summary>
-        /// <param name="context">DbContext instance</param>
-        /// <param name="currentUserId">Current user performing the action</param>
-        public static void ApplyAuditLogging(this DbContext context, Guid? currentUserId)
+        var now = DateTime.UtcNow;
+
+        var entries = context.ChangeTracker
+            .Entries()
+            .Where(e =>
+                e.State == EntityState.Added ||
+                e.State == EntityState.Modified ||
+                e.State == EntityState.Deleted)
+            .ToList();
+
+        if (entries.Count == 0)
+            return;
+
+        var auditLogs = new List<AuditLog>();
+
+        foreach (var entry in entries)
         {
+            // Prevent auditing the audit records themselves.
+            if (entry.Entity is AuditLog)
+                continue;
 
-            var now = DateTime.UtcNow;
+            var entityType = entry.Entity.GetType();
 
-            var entries = context.ChangeTracker.Entries()
-                .Where(e => e.State == EntityState.Added ||
-                            e.State == EntityState.Modified ||
-                            e.State == EntityState.Deleted)
-                .ToList();
+            var keyProperties = context.Model
+                .FindEntityType(entry.Entity.GetType())?
+                .FindPrimaryKey()?
+                .Properties;
 
-            if (!entries.Any())
-                return;
+            var entityId = "null";
 
-            var auditLogs = new List<AuditLog>();
-
-            foreach (var entry in entries)
+            if (keyProperties is not null && keyProperties.Any())
             {
-                if (entry.Entity is AuditLog)
-                    continue; // Prevent recursion
+                var keyValues = new List<string>();
 
-                var entityType = entry.Entity.GetType();
-
-                // Determine the primary key dynamically from EF metadata
-                var keyProperties = context.Model
-                    .FindEntityType(entry.Entity.GetType())?
-                    .FindPrimaryKey()?
-                    .Properties;
-
-                string entityId = "null";
-
-                if (keyProperties != null && keyProperties.Any())
+                foreach (var keyProperty in keyProperties)
                 {
-                    var keyValues = new List<string>();
+                    object? value = null;
 
-                    foreach (var keyProp in keyProperties)
+                    try
                     {
-                        object? value = null;
-
-                        // Try EF-tracked property first
-                        var propEntry = entry.Property(keyProp.Name);
-                        if (propEntry != null)
-                            value = propEntry.CurrentValue;
-                        else
-                        {
-                            // Fallback to reflection (handles inherited or shadow properties)
-                            value = entry.Entity.GetType().GetProperty(keyProp.Name)?.GetValue(entry.Entity);
-                        }
-
-                        // Convert any datatype to string
-                        string valueStr = value != null ? Convert.ToString(value) ?? "null" : "null";
-                        keyValues.Add(valueStr);
+                        value = entry.Property(keyProperty.Name).CurrentValue;
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // Fall back to reflection for properties that
+                        // cannot be accessed directly through Property().
                     }
 
-                    // Join multiple key values for composite keys
-                    entityId = string.Join(",", keyValues);
+                    if (value is null)
+                    {
+                        value = entry.Entity
+                            .GetType()
+                            .GetProperty(keyProperty.Name)?
+                            .GetValue(entry.Entity);
+                    }
+
+                    var valueString =
+                        value is not null
+                            ? Convert.ToString(value) ?? "null"
+                            : "null";
+
+                    keyValues.Add(valueString);
                 }
 
+                entityId = string.Join(",", keyValues);
+            }
 
+            /*
+             * Soft-delete changes:
+             *
+             *     Deleted → Modified
+             *
+             * Therefore, the original state must be checked first.
+             */
+            var wasOriginallyDeleted =
+                originallyDeletedEntries?.Contains(entry) == true;
 
-                var action = entry.State switch
+            var action = wasOriginallyDeleted
+                ? AuditActionType.Deleted
+                : entry.State switch
                 {
                     EntityState.Added => AuditActionType.Created,
                     EntityState.Modified => AuditActionType.Updated,
@@ -82,49 +106,62 @@ namespace E_Commerce.Infrastructure.Persistence.Extensions
                     _ => AuditActionType.Unknown
                 };
 
-                string? changes = action == AuditActionType.Updated ? GetChangesAsJson(entry) : null;
+            var changes =
+                action == AuditActionType.Updated
+                    ? GetChangesAsJson(entry)
+                    : null;
 
-                var auditLog = new AuditLog
-                {
-                    Id = Guid.NewGuid(),
-                    EntityName = entityType.Name,
-                    EntityId = entityId,
-                    ActionType = action,
-                    ActionPerformedByUserId = currentUserId,
-                    ActionPerformedAt = now,
-                    Changes = changes
-                };
+            var auditLog = new AuditLog(
+                entityName: entityType.Name,
+                entityId: entityId,
+                actionType: action,
+                actionPerformedByUserId: currentUserId,
+                actionPerformedAt: now,
+                changes: changes,
+                ipAddress: ipAddress,
+                correlationId: correlationId);
 
-                auditLogs.Add(auditLog);
-            }
-
-            if (auditLogs.Any())
-            {
-                context.Set<AuditLog>().AddRange(auditLogs);
-            }
+            auditLogs.Add(auditLog);
         }
 
-        /// <summary>
-        /// Serializes property changes to JSON for audit purposes.
-        /// Excludes timestamps, soft-delete, and audit-related properties.
-        /// </summary>
-        public static string? GetChangesAsJson(EntityEntry entry)
+        if (auditLogs.Count > 0)
         {
-            var excludedProps = new[]
-            {
-                "CreatedAt", "UpdatedAt", "DeletedAt",
-                "CreatedBy", "UpdatedBy", "DeletedBy",
-                "IsDeleted"
-            };
-
-            var changesDict = entry.Properties
-                .Where(p => p.IsModified && !excludedProps.Contains(p.Metadata.Name))
-                .ToDictionary(
-                    p => p.Metadata.Name,
-                    p => new { Original = p.OriginalValue, Current = p.CurrentValue }
-                );
-
-            return changesDict.Count > 0 ? JsonSerializer.Serialize(changesDict) : null;
+            context.Set<AuditLog>().AddRange(auditLogs);
         }
+    }
+
+    /// <summary>
+    /// Serializes modified property values into JSON.
+    /// Audit-related and lifecycle properties are excluded.
+    /// </summary>
+    public static string? GetChangesAsJson(EntityEntry entry)
+    {
+        var excludedProps = new HashSet<string>(
+            StringComparer.OrdinalIgnoreCase)
+        {
+            "CreatedAt",
+            "UpdatedAt",
+            "DeletedAt",
+            "CreatedBy",
+            "UpdatedBy",
+            "DeletedBy",
+            "IsDeleted"
+        };
+
+        var changesDictionary = entry.Properties
+            .Where(property =>
+                property.IsModified &&
+                !excludedProps.Contains(property.Metadata.Name))
+            .ToDictionary(
+                property => property.Metadata.Name,
+                property => new
+                {
+                    Original = property.OriginalValue,
+                    Current = property.CurrentValue
+                });
+
+        return changesDictionary.Count > 0
+            ? JsonSerializer.Serialize(changesDictionary)
+            : null;
     }
 }

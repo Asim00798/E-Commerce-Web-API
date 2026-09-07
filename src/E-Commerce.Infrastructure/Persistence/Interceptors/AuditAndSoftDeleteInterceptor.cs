@@ -1,36 +1,104 @@
 ﻿using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Infrastructure.Persistence.Extensions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace E_Commerce.Infrastructure.Persistence.Interceptors
+namespace E_Commerce.Infrastructure.Persistence.Interceptors;
+
+public sealed class AuditAndSoftDeleteInterceptor : SaveChangesInterceptor
 {
-    public class AuditAndSoftDeleteInterceptor : SaveChangesInterceptor
+    private const string CorrelationIdHeader = "X-Correlation-ID";
+
+    private readonly ICurrentUser? _currentUser;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public AuditAndSoftDeleteInterceptor(
+        IHttpContextAccessor httpContextAccessor,
+        ICurrentUser? currentUser = null)
     {
-        private readonly ICurrentUser? _currentUser;
+        _httpContextAccessor = httpContextAccessor;
+        _currentUser = currentUser;
+    }
 
-        public AuditAndSoftDeleteInterceptor(ICurrentUser? currentUser = null)
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken cancellationToken = default)
+    {
+        var context = eventData.Context;
+
+        if (context is null)
         {
-            _currentUser = currentUser;
+            return base.SavingChangesAsync(
+                eventData,
+                result,
+                cancellationToken);
         }
 
-        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
-            DbContextEventData eventData,
-            InterceptionResult<int> result,
-            CancellationToken cancellationToken = default)
-        {
-            var context = eventData.Context;
-            if (context is null)
-                return base.SavingChangesAsync(eventData, result, cancellationToken);
+        /*
+         * Capture the original Deleted state BEFORE soft-delete
+         * changes Deleted → Modified.
+         */
+        var originallyDeletedEntries = context.ChangeTracker
+            .Entries()
+            .Where(entry => entry.State == EntityState.Deleted)
+            .ToHashSet();
 
-            // Step 1 – Soft‑delete (must come before audit)
-            context.ApplySoftDelete();
+        /*
+         * Convert physical DELETE requests into soft deletes.
+         */
+        context.ApplySoftDelete();
 
-            // Step 2 – Audit (now captures soft‑deletes as 'Updated')
-            context.ApplyAuditLogging(_currentUser?.UserId);
+        /*
+         * Capture request metadata.
+         */
+        var ipAddress = GetIpAddress();
 
-            return base.SavingChangesAsync(eventData, result, cancellationToken);
-        }
+        var correlationId = GetCorrelationId();
+
+        /*
+         * Create audit records.
+         *
+         * Soft-deleted entities remain semantically Deleted
+         * even though EF ultimately persists them using UPDATE.
+         */
+        context.ApplyAuditLogging(
+            currentUserId: _currentUser?.UserId,
+            originallyDeletedEntries: originallyDeletedEntries,
+            ipAddress: ipAddress,
+            correlationId: correlationId);
+
+        return base.SavingChangesAsync(
+            eventData,
+            result,
+            cancellationToken);
+    }
+
+    private string? GetIpAddress()
+    {
+        return _httpContextAccessor.HttpContext?
+            .Connection
+            .RemoteIpAddress?
+            .ToString();
+    }
+
+    private Guid? GetCorrelationId()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+
+        if (httpContext is null)
+            return null;
+
+        var correlationIdValue =
+            httpContext.Request.Headers[CorrelationIdHeader]
+                .FirstOrDefault();
+
+        return Guid.TryParse(
+            correlationIdValue,
+            out var correlationId)
+                ? correlationId
+                : null;
     }
 }
-
-

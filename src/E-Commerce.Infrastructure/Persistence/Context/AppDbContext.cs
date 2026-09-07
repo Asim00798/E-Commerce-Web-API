@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using System.Reflection;
 
 namespace E_Commerce.Infrastructure.Persistence.Context;
+
 /// <summary>
 /// Unified EF Core DbContext for all write-side operations.
 /// Ensures strong consistency and a single transaction boundary across bounded contexts.
@@ -23,8 +24,5 @@ public partial class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
 
         // Apply soft-delete filters for all BaseEntity-derived entities
         modelBuilder.ApplySoftDeleteFilter();
-
-        // Rename Identity Tables
-        modelBuilder.RenameSecurityTables();
     }
 }

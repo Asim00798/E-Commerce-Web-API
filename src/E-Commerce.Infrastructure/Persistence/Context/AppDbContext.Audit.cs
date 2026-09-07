@@ -1,11 +1,9 @@
-﻿
-using E_Commerce.Domain.BoundedContexts.SystemOperations.Audit.Entities;
+﻿using E_Commerce.Infrastructure.Persistence.Audit;
 
 namespace E_Commerce.Infrastructure.Persistence.Context
 {
     public partial class AppDbContext
     {
-        // Auditlog
-        public DbSet<AuditLog> AuditLog { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
     }
 }
