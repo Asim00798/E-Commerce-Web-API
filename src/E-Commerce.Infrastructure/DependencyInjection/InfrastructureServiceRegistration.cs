@@ -2,12 +2,12 @@ using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Infrastructure.Extensions;
 using E_Commerce.Infrastructure.Security.Identity.Services;
 
-namespace E_Commerce.Infrastructure;
+namespace E_Commerce.Infrastructure.DependencyInjection;
 
 /// <summary>
 /// Entry point for registering all Infrastructure services into the DI container.
 /// </summary>
-public static class DependencyInjection
+public static class InfrastructureServiceRegistration
 {
     /// <summary>
     /// Registers DbContexts, repositories, services, caching, security, messaging,

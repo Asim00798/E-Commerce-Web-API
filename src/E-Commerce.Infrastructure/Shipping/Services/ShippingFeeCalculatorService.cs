@@ -27,23 +27,8 @@ public sealed class ShippingFeeCalculatorService : IShippingFeeCalculator
         ShippingFeeCalculationRequest request,
         CancellationToken ct = default)
     {
-        if (request is null)
-            throw new ArgumentNullException(nameof(request));
-
-        if (string.IsNullOrWhiteSpace(request.FullName))
-            throw new ArgumentException("Full name is required.", nameof(request));
-
-        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
-            throw new ArgumentException("Phone number is required.", nameof(request));
-
-        if (string.IsNullOrWhiteSpace(request.Street))
-            throw new ArgumentException("Street is required.", nameof(request));
-
-        if (string.IsNullOrWhiteSpace(request.City))
-            throw new ArgumentException("City is required.", nameof(request));
-
-        if (string.IsNullOrWhiteSpace(request.LocationMapUrl))
-            throw new ArgumentException("Location map URL is required.", nameof(request));
+        //Apply validation to ShippingFeeCalculationRequest
+        request = Validate(request);
 
         var deliveryAddress = new DeliveryAddressSnapshot(
             request.FullName,
@@ -65,5 +50,23 @@ public sealed class ShippingFeeCalculatorService : IShippingFeeCalculator
             DistanceKm = domainResult.Distance.Kilometers,
             CalculationBasis = domainResult.CalculationBasis
         };
+    }
+
+    private static ShippingFeeCalculationRequest Validate(ShippingFeeCalculationRequest request)
+    {
+        if (request is null)
+            throw new ArgumentNullException(nameof(request));
+        if (string.IsNullOrWhiteSpace(request.FullName))
+            throw new ArgumentException("Full name is required.", nameof(request));
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+            throw new ArgumentException("Phone number is required.", nameof(request));
+        if (string.IsNullOrWhiteSpace(request.Street))
+            throw new ArgumentException("Street is required.", nameof(request));
+        if (string.IsNullOrWhiteSpace(request.City))
+            throw new ArgumentException("City is required.", nameof(request));
+        if (string.IsNullOrWhiteSpace(request.LocationMapUrl))
+            throw new ArgumentException("Location map URL is required.", nameof(request));
+
+        return request;
     }
 }

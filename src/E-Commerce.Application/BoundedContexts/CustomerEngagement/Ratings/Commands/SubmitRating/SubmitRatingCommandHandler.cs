@@ -29,21 +29,60 @@ public sealed class SubmitRatingCommandHandler
         SubmitRatingCommand command,
         CancellationToken ct)
     {
-        var customerId = _currentUser.UserId!.Value;
+        var customerId = GetCustomerId();
 
-        // Business rule: one active rating per customer per product.
-        var existing = await _ratingRepository.GetByCustomerAndProductAsync(
-            customerId, command.ProductId, ct);
+        var existing = await GetExistingRatingAsync(
+            customerId,
+            command.ProductId,
+            ct);
 
         if (existing is not null)
         {
-            // Update existing rating
-            existing.UpdateStarRating(new StarRating(command.StarRating));
-            await _ratingRepository.UpdateAsync(existing, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
+            await UpdateExistingRatingAsync(existing, command, ct);
             return Result<Guid>.Success(existing.Id);
         }
 
+        var ratingId = await CreateNewRatingAsync(
+            customerId,
+            command,
+            ct);
+
+        return Result<Guid>.Success(ratingId);
+    }
+
+    private Guid GetCustomerId()
+    {
+        return _currentUser.UserId!.Value;
+    }
+
+    private async Task<Rating?> GetExistingRatingAsync(
+        Guid customerId,
+        Guid productId,
+        CancellationToken ct)
+    {
+        return await _ratingRepository.GetByCustomerAndProductAsync(
+            customerId,
+            productId,
+            ct);
+    }
+
+    private async Task UpdateExistingRatingAsync(
+        Rating existing,
+        SubmitRatingCommand command,
+        CancellationToken ct)
+    {
+        existing.UpdateStarRating(
+            new StarRating(command.StarRating));
+
+        await _ratingRepository.UpdateAsync(existing, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
+    }
+
+    private async Task<Guid> CreateNewRatingAsync(
+        Guid customerId,
+        SubmitRatingCommand command,
+        CancellationToken ct)
+    {
         var rating = Rating.Create(
             customerId,
             command.ProductId,
@@ -52,6 +91,6 @@ public sealed class SubmitRatingCommandHandler
         await _ratingRepository.AddAsync(rating, ct);
         await _unitOfWork.SaveChangesAsync(ct);
 
-        return Result<Guid>.Success(rating.Id);
+        return rating.Id;
     }
 }

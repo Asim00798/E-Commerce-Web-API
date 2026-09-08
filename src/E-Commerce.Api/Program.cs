@@ -1,8 +1,8 @@
 using E_Commerce.Api.Extensions;
-using E_Commerce.Application;
+using E_Commerce.Application.DependencyInjection;
 using E_Commerce.Application.Modules.Scheduling.Abstractions;
-using E_Commerce.Infrastructure;
 using E_Commerce.Infrastructure.Communication.Realtime.Hubs;
+using E_Commerce.Infrastructure.DependencyInjection;
 using E_Commerce.Infrastructure.Observability.Logging;
 using E_Commerce.Infrastructure.Scheduling.Extensions;
 using Serilog;

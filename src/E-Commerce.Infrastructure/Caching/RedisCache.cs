@@ -11,10 +11,11 @@ namespace E_Commerce.Infrastructure.Caching;
 public sealed class RedisCache : ICache
 {
     private readonly IDatabase _db;
-
-    public RedisCache(IConnectionMultiplexer redis)
+    private readonly ILogger<RedisCache> _logger;
+    public RedisCache(IConnectionMultiplexer redis, ILogger<RedisCache> logger)
     {
         _db = redis.GetDatabase();
+        _logger = logger;
     }
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken ct = default)
@@ -55,6 +56,13 @@ public sealed class RedisCache : ICache
         catch (Exception ex) when (ex is RedisException or RedisTimeoutException or RedisConnectionException)
         {
             throw new CacheException($"Failed to remove cache key {key}", ex);
+        }
+        catch (CacheException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Cache removal failed for key {Key}",
+                key);
         }
     }
 }

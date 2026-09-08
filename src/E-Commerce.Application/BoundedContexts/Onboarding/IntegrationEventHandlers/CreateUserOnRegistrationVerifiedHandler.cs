@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Application.BoundedContexts.Onboarding.IntegrationEvents;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Application.Shared.Security.Identity;
+using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.Behaviors;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.Repositories;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using Microsoft.Extensions.Logging;
@@ -36,14 +37,30 @@ public sealed class CreateUserOnRegistrationVerifiedHandler
         RegistrationFullyVerifiedIntegrationEvent evt,
         CancellationToken ct)
     {
-        var registration = await _registrationRepo.GetByIdAsync(evt.RegistrationId, ct);
-
-        // Already processed or registration no longer exists.
+        var registration = await GetRegistrationAsync(evt.RegistrationId, ct);
         if (registration is null)
-            return;
+            return; // already processed or removed
 
-        // Create the ASP.NET Core Identity user.
-        // The password is already hashed and stored in the registration aggregate.
+        // Create the Identity user with the pre-hashed password
+        var userId = await CreateIdentityUserAsync(evt, registration, ct);
+        // Remove the registration after successfully creating the user
+        await RemoveRegistrationAsync(registration, ct);
+        // Log the successful provisioning
+        LogProvisioningSuccess(evt.RegistrationId, userId);
+    }
+
+    private async Task<Registration?> GetRegistrationAsync(
+        Guid registrationId,
+        CancellationToken ct)
+    {
+        return await _registrationRepo.GetByIdAsync(registrationId, ct);
+    }
+
+    private async Task<Guid> CreateIdentityUserAsync(
+        RegistrationFullyVerifiedIntegrationEvent evt,
+        Registration registration,
+        CancellationToken ct)
+    {
         var createRequest = new CreateIdentityUserRequest
         {
             Email = evt.Email,
@@ -52,17 +69,22 @@ public sealed class CreateUserOnRegistrationVerifiedHandler
             PasswordHash = registration.PasswordHash.Value
         };
 
-        var userId = await _identityService.CreateUserWithPrehashedPasswordAsync(createRequest, ct);
+        return await _identityService.CreateUserWithPrehashedPasswordAsync(createRequest, ct);
+    }
 
-        // Remove the registration — it has fulfilled its purpose.
+    private async Task RemoveRegistrationAsync(
+        Registration registration,
+        CancellationToken ct)
+    {
         _registrationRepo.Remove(registration);
-
-        // Save the removal.
         await _unitOfWork.SaveChangesAsync(ct);
+    }
 
+    private void LogProvisioningSuccess(Guid registrationId, Guid userId)
+    {
         _logger.LogInformation(
             "Account provisioned for registration {RegistrationId}, user {UserId}",
-            evt.RegistrationId,
+            registrationId,
             userId);
     }
 }

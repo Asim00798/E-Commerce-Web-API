@@ -37,6 +37,7 @@ public sealed class CancelOrderCommandHandler
         if (order is null)
             return Result.Failure("Order not found.");
 
+        // resource-based authorization: check if the current user is the owner of the order 
         bool isOwner = _currentUser.UserId == order.CustomerId;
         bool canManage = await _permissionService.HasPermissionAsync(
             _currentUser.UserId!.Value,

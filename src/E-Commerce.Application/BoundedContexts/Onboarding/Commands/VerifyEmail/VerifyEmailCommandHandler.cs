@@ -38,16 +38,44 @@ public sealed class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailComma
 
     public async Task<Result> Handle(VerifyEmailCommand command, CancellationToken ct)
     {
-        var registration = await _registrationRepo.GetByIdAsync(command.RegistrationId, ct);
+        var registration = await GetRegistrationAsync(command.RegistrationId, ct);
         if (registration is null)
             return Result.Failure(new[] { "Registration not found." });
 
         // Idempotent: already verified
-        if (registration.EmailVerification.IsVerified)
+        if (IsEmailAlreadyVerified(registration))
             return Result.Success();
 
-        var isValid = _verificationService.VerifyCode(command.Code, registration.EmailVerification.CodeHash!);
+        var isValid = ValidateEmailCode(registration, command.Code);
 
+        return await VerifyAndSaveAsync(registration, isValid, command.RegistrationId, ct);
+    }
+
+    private async Task<Registration?> GetRegistrationAsync(
+        Guid registrationId,
+        CancellationToken ct)
+    {
+        return await _registrationRepo.GetByIdAsync(registrationId, ct);
+    }
+
+    private static bool IsEmailAlreadyVerified(Registration registration)
+    {
+        return registration.EmailVerification.IsVerified;
+    }
+
+    private bool ValidateEmailCode(Registration registration, string code)
+    {
+        return _verificationService.VerifyCode(
+            code,
+            registration.EmailVerification.CodeHash!);
+    }
+
+    private async Task<Result> VerifyAndSaveAsync(
+        Registration registration,
+        bool isValid,
+        Guid registrationId,
+        CancellationToken ct)
+    {
         try
         {
             registration.VerifyEmail(isValid, _clock.UtcNow);
@@ -56,7 +84,10 @@ public sealed class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailComma
         }
         catch (DomainException ex)
         {
-            _logger.LogWarning(ex, "Email verification failed for registration {Id}", command.RegistrationId);
+            _logger.LogWarning(
+                ex,
+                "Email verification failed for registration {Id}",
+                registrationId);
             return Result.Failure(new[] { ex.Message });
         }
         // Concurrency exceptions propagate to the global middleware

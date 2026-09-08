@@ -1,3 +1,4 @@
+#region Using Directives
 using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
 using E_Commerce.Application.BoundedContexts.Finance.Models;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
@@ -10,7 +11,7 @@ using E_Commerce.Infrastructure.Payment.Providers.Paymob.Mapping;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
-
+#endregion
 namespace E_Commerce.Infrastructure.Payment.Providers.Paymob.Gateway;
 
 public sealed class PaymobPaymentGateway : IPaymentGateway

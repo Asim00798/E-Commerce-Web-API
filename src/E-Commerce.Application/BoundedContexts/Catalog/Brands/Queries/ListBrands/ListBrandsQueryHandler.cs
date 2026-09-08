@@ -1,5 +1,6 @@
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.DTOs;
 using E_Commerce.Application.Shared.Models;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Brand.Behaviors;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using MediatR;
 
@@ -19,26 +20,47 @@ public sealed class ListBrandsQueryHandler
         ListBrandsQuery query,
         CancellationToken ct)
     {
-        var pageNumber = query.PageNumber > 0 ? query.PageNumber : 1;
-        var pageSize = query.PageSize > 0 ? query.PageSize : 20;
+        var paging = NormalizePaging(query.PageNumber, query.PageSize);
 
-        var brands = await _brandRepository.GetPagedAsync(pageNumber, pageSize, ct);
+        var brands = await _brandRepository.GetPagedAsync(paging.PageNumber, paging.PageSize, ct);
         var totalCount = await _brandRepository.GetTotalCountAsync(ct);
 
-        var dtos = brands.Select(brand => new BrandDto
+        var dtos = brands.Select(MapToDto).ToList();
+        var pagedList = BuildPagedList(dtos, totalCount, paging);
+
+        return Result<PagedList<BrandDto>>.Success(pagedList);
+    }
+
+    private static (int PageNumber, int PageSize) NormalizePaging(
+        int pageNumber,
+        int pageSize)
+    {
+        var normalizedPageNumber = pageNumber > 0 ? pageNumber : 1;
+        var normalizedPageSize = pageSize > 0 ? pageSize : 20;
+
+        return (normalizedPageNumber, normalizedPageSize);
+    }
+
+    private static BrandDto MapToDto(Brand brand)
+    {
+        return new BrandDto
         {
             Id = brand.Id,
             Name = brand.Name,
             DescriptionText = brand.DescriptionText,
             LogoFileId = brand.Logo.FileId
-        }).ToList();
+        };
+    }
 
-        var pagedList = new PagedList<BrandDto>(
+    private static PagedList<BrandDto> BuildPagedList(
+        IReadOnlyList<BrandDto> dtos,
+        int totalCount,
+        (int PageNumber, int PageSize) paging)
+    {
+        return new PagedList<BrandDto>(
             dtos,
             totalCount,
-            pageNumber,
-            pageSize);
-
-        return Result<PagedList<BrandDto>>.Success(pagedList);
+            paging.PageNumber,
+            paging.PageSize);
     }
 }

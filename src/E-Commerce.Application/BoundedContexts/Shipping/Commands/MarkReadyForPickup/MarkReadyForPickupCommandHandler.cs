@@ -1,5 +1,4 @@
 using E_Commerce.Application.Shared.Models;
-using E_Commerce.Domain.BoundedContexts.Core.Shipping.AggregateRoots.Shipment.Behaviors;
 using E_Commerce.Domain.BoundedContexts.Core.Shipping.Repositories;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;

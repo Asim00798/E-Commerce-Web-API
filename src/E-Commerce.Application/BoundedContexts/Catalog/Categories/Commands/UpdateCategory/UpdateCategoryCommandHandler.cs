@@ -1,4 +1,5 @@
 using E_Commerce.Application.Shared.Models;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
@@ -26,33 +27,59 @@ public sealed class UpdateCategoryCommandHandler
     {
         try
         {
-            var category = await _categoryRepository.GetByIdAsync(command.CategoryId, ct);
+            var category = await GetCategoryAsync(command.CategoryId, ct);
             if (category is null)
                 return Result.Failure("Category not found.");
 
-            if (!string.IsNullOrWhiteSpace(command.Name))
-                category.UpdateName(command.Name);
+            UpdateCategoryDetails(category, command);
+            UpdateParentCategory(category, command);
 
-            if (!string.IsNullOrWhiteSpace(command.Description))
-                category.UpdateDescription(command.Description);
-
-            if (command.ClearParent)
-            {
-                category.ClearParent();
-            }
-            else if (command.ParentCategoryId.HasValue)
-            {
-                category.AssignParent(command.ParentCategoryId.Value);
-            }
-
-            await _categoryRepository.UpdateAsync(category, ct);
-            await _unitOfWork.SaveChangesAsync(ct);
-
+            await SaveCategoryAsync(category, ct);
             return Result.Success();
         }
         catch (DomainException ex)
         {
             return Result.Failure(ex.Message);
         }
+    }
+
+    private async Task<Category?> GetCategoryAsync(
+        Guid categoryId,
+        CancellationToken ct)
+    {
+        return await _categoryRepository.GetByIdAsync(categoryId, ct);
+    }
+
+    private static void UpdateCategoryDetails(
+        Category category,
+        UpdateCategoryCommand command)
+    {
+        if (!string.IsNullOrWhiteSpace(command.Name))
+            category.UpdateName(command.Name);
+
+        if (!string.IsNullOrWhiteSpace(command.Description))
+            category.UpdateDescription(command.Description);
+    }
+
+    private static void UpdateParentCategory(
+        Category category,
+        UpdateCategoryCommand command)
+    {
+        if (command.ClearParent)
+        {
+            category.ClearParent();
+        }
+        else if (command.ParentCategoryId.HasValue)
+        {
+            category.AssignParent(command.ParentCategoryId.Value);
+        }
+    }
+
+    private async Task SaveCategoryAsync(
+        Category category,
+        CancellationToken ct)
+    {
+        await _categoryRepository.UpdateAsync(category, ct);
+        await _unitOfWork.SaveChangesAsync(ct);
     }
 }

@@ -4,6 +4,7 @@ using E_Commerce.Application.Shared.Communication.Notifications.Constants;
 using E_Commerce.Application.Shared.Communication.Notifications.Models;
 using E_Commerce.Application.Shared.Communication.Notifications.Persistence;
 using E_Commerce.Application.Shared.Communication.PostCommit;
+using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -40,7 +41,7 @@ public class PersistUserNotificationOnOrderPlacedHandler
             Type = "OrderPlaced",
             SourceEventId = domainEvent.OrderId,
             Message = $"Your order #{domainEvent.OrderId} has been placed.",
-            CreatedAtUtc = DateTime.UtcNow   
+            CreatedAtUtc = DateTime.UtcNow
         };
 
         await _userNotificationRepo.AddAsync(dto, cancellationToken);
@@ -48,12 +49,20 @@ public class PersistUserNotificationOnOrderPlacedHandler
 
         // Enqueue a post‑commit action to send a real‑time notification hint to the user.
         // This is a best‑effort notification; if the transaction fails, the user will not receive it.
+        EnqueueRealtimeNotification(domainEvent.CustomerId);
+    }
+
+    /// <summary>
+    /// Enqueues a post-commit action that publishes a real-time SignalR hint.
+    /// </summary>
+    private void EnqueueRealtimeNotification(Guid customerId)
+    {
         _postCommitProcessor.Enqueue(async (serviceProvider, ct) =>
         {
             var publisher = serviceProvider.GetRequiredService<IRealtimeEventPublisher>();
             await publisher.PublishAsync(new RealTimeMessage
             {
-                UserId = domainEvent.CustomerId,
+                UserId = customerId,
                 Method = RealTimeEvents.NewNotification,
                 Payload = new { type = "OrderPlaced" }
             }, ct);

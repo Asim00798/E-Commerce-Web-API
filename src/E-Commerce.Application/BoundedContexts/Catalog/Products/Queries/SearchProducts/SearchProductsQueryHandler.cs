@@ -17,21 +17,27 @@ public sealed class SearchProductsQueryHandler : IRequestHandler<SearchProductsQ
 
     public async Task<Result<PagedList<ProductListDto>>> Handle(SearchProductsQuery query, CancellationToken ct)
     {
+        // Validate the page number and page size
         var pageNumber = query.PageNumber > 0 ? query.PageNumber : 1;
         var pageSize = query.PageSize > 0 ? query.PageSize : 20;
 
-        // Requires IProductRepository.SearchProductsAsync
+        // Ensure the search term is not null or empty
+        var searchTerm = string.IsNullOrWhiteSpace(query.SearchTerm) ? string.Empty : query.SearchTerm;
+        // Perform the search using the repository
         var products = await _productRepository.SearchProductsAsync(
-            query.SearchTerm,
+            searchTerm,
             pageNumber,
             pageSize,
             ct);
 
-        var totalCount = await _productRepository.GetSearchTotalCountAsync(query.SearchTerm, ct);
-
+        // Get the total count of products matching the search term
+        var totalCount = await _productRepository.GetSearchTotalCountAsync(searchTerm, ct);
+        
+        // Map the products to ProductListDto
         var dtos = products.Select(MapToListDto).ToList();
-
+        // Create a PagedList<ProductListDto> and return the result
         var pagedList = new PagedList<ProductListDto>(dtos, totalCount, pageNumber, pageSize);
+        
         return Result<PagedList<ProductListDto>>.Success(pagedList);
     }
 

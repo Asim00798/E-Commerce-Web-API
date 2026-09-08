@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Application.Shared.Models;
 using E_Commerce.Application.Shared.Security.Verification;
+using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.Behaviors;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.Repositories;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
@@ -37,15 +38,43 @@ public sealed class VerifyPhoneCommandHandler : IRequestHandler<VerifyPhoneComma
 
     public async Task<Result> Handle(VerifyPhoneCommand command, CancellationToken ct)
     {
-        var registration = await _registrationRepo.GetByIdAsync(command.RegistrationId, ct);
+        var registration = await GetRegistrationAsync(command.RegistrationId, ct);
         if (registration is null)
             return Result.Failure(new[] { "Registration not found." });
 
-        if (registration.PhoneVerification.IsVerified)
+        if (IsPhoneAlreadyVerified(registration))
             return Result.Success();
 
-        var isValid = _verificationService.VerifyCode(command.Code, registration.PhoneVerification.CodeHash!);
+        var isValid = ValidatePhoneCode(registration, command.Code);
 
+        return await VerifyAndSaveAsync(registration, isValid, command.RegistrationId, ct);
+    }
+
+    private async Task<Registration?> GetRegistrationAsync(
+        Guid registrationId,
+        CancellationToken ct)
+    {
+        return await _registrationRepo.GetByIdAsync(registrationId, ct);
+    }
+
+    private static bool IsPhoneAlreadyVerified(Registration registration)
+    {
+        return registration.PhoneVerification.IsVerified;
+    }
+
+    private bool ValidatePhoneCode(Registration registration, string code)
+    {
+        return _verificationService.VerifyCode(
+            code,
+            registration.PhoneVerification.CodeHash!);
+    }
+
+    private async Task<Result> VerifyAndSaveAsync(
+        Registration registration,
+        bool isValid,
+        Guid registrationId,
+        CancellationToken ct)
+    {
         try
         {
             registration.VerifyPhone(isValid, _clock.UtcNow);
@@ -54,7 +83,10 @@ public sealed class VerifyPhoneCommandHandler : IRequestHandler<VerifyPhoneComma
         }
         catch (DomainException ex)
         {
-            _logger.LogWarning(ex, "Phone verification failed for registration {Id}", command.RegistrationId);
+            _logger.LogWarning(
+                ex,
+                "Phone verification failed for registration {Id}",
+                registrationId);
             return Result.Failure(new[] { ex.Message });
         }
     }

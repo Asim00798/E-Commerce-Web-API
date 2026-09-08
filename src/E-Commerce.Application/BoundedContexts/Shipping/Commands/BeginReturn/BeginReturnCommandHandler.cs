@@ -31,7 +31,7 @@ public sealed class BeginReturnCommandHandler
     {
         try
         {
-            var userId = _currentUser.UserId;
+            var userId = GetUserId();
             if (userId is null)
                 return Result.Failure("User is not authenticated.");
 
@@ -39,8 +39,9 @@ public sealed class BeginReturnCommandHandler
             if (shipment is null)
                 return Result.Failure("Shipment not found.");
 
-            if (shipment.AssignedDriverId != userId.Value)
-                return Result.Failure("Driver is not assigned to this shipment.");
+            var driverCheck = EnsureDriverAssigned(shipment, userId.Value);
+            if (!driverCheck.Succeeded)
+                return driverCheck;
 
             shipment.BeginReturn();
 
@@ -54,4 +55,20 @@ public sealed class BeginReturnCommandHandler
             return Result.Failure(ex.Message);
         }
     }
+
+    private Guid? GetUserId()
+    {
+        return _currentUser.UserId;
+    }
+
+    private static Result EnsureDriverAssigned(
+        Shipment shipment,
+        Guid userId)
+    {
+        if (shipment.AssignedDriverId != userId)
+            return Result.Failure("Driver is not assigned to this shipment.");
+
+        return Result.Success();
+    }
+
 }

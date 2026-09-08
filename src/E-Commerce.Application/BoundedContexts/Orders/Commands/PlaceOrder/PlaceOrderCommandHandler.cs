@@ -10,6 +10,7 @@ using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Entit
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.Repositories;
 using E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots.Person.Behaviors;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Registration.Repositories;
+using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
 using MediatR;
@@ -27,6 +28,7 @@ public sealed class PlaceOrderCommandHandler
     private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWork _unitOfWork;
     private readonly OrderMetrics _metrics;
+
     public PlaceOrderCommandHandler(
         ICartRepository cartRepository,
         IOrderRepository orderRepository,
@@ -44,55 +46,98 @@ public sealed class PlaceOrderCommandHandler
         _shippingFeeCalculator = shippingFeeCalculator;
         _currentUser = currentUser;
         _unitOfWork = unitOfWork;
-        _metrics = metrics; 
+        _metrics = metrics;
     }
 
     public async Task<Result<Guid>> Handle(
         PlaceOrderCommand request,
         CancellationToken ct)
     {
-        var customerId = _currentUser.UserId!.Value;
+        var customerId = GetCustomerId();
+        if (customerId is null)
+            return Result<Guid>.Failure("Customer not found.");
 
+        return await ExecuteOrderPlacementAsync(customerId.Value, ct);
+    }
+
+    #region Private Methods
+    private Guid? GetCustomerId()
+    {
+        return _currentUser.UserId;
+    }
+
+    private async Task<Result<Guid>> ExecuteOrderPlacementAsync(
+        Guid customerId,
+        CancellationToken ct)
+    {
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync(ct);
+
+            var preparationResult = await PrepareOrderAsync(customerId, ct);
+            if (!preparationResult.Succeeded)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return Result<Guid>.Failure(preparationResult.Errors);
+            }
+
+            var order = preparationResult.Data!.Order;
+            var cart = preparationResult.Data.Cart;
+
+            await PersistOrderAsync(order, cart, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
+            await _unitOfWork.CommitTransactionAsync(ct);
+
+            RecordOrderCreatedMetric();
+
+            return Result<Guid>.Success(order.Id);
+        }
+        catch (DomainException ex)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            return Result<Guid>.Failure(ex.Message);
+        }
+        catch (Exception)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
+    }
+
+    private async Task<Result<OrderPreparationResult>> PrepareOrderAsync(
+        Guid customerId,
+        CancellationToken ct)
+    {
         var cartResult = await LoadCartAsync(customerId, ct);
         if (!cartResult.Succeeded)
-            return Result<Guid>.Failure(cartResult.Errors);
-
+            return Result<OrderPreparationResult>.Failure(cartResult.Errors);
         var cart = cartResult.Data!;
 
         var personResult = await LoadPersonAsync(customerId, ct);
         if (!personResult.Succeeded)
-            return Result<Guid>.Failure(personResult.Errors);
-
+            return Result<OrderPreparationResult>.Failure(personResult.Errors);
         var person = personResult.Data!;
 
         var shippingFeeResult = await CalculateShippingFeeAsync(person, ct);
         if (!shippingFeeResult.Succeeded)
-            return Result<Guid>.Failure(shippingFeeResult.Errors);
-
+            return Result<OrderPreparationResult>.Failure(shippingFeeResult.Errors);
         var shippingFee = shippingFeeResult.Data!;
 
         var orderItems = BuildOrderItems(cart);
 
         var stockResult = await DecreaseStockAsync(orderItems, ct);
         if (!stockResult.Succeeded)
-            return Result<Guid>.Failure(stockResult.Errors);
+            return Result<OrderPreparationResult>.Failure(stockResult.Errors);
 
-        var order = Order.Place(customerId, orderItems, shippingFee);
+        var order = CreateOrder(customerId, orderItems, shippingFee);
 
-        await _orderRepository.AddAsync(order, ct);
-        cart.Clear();
-        await _cartRepository.UpdateAsync(cart, ct);
-
-        // Record order creation metric ,
-        // before saving changes to ensure it is counted even if the save fails
-        _metrics.RecordCreated(customerTier: "standard");
-
-        await _unitOfWork.SaveChangesAsync(ct);
-
-        return Result<Guid>.Success(order.Id);
+        return Result<OrderPreparationResult>.Success(
+            new OrderPreparationResult(order, cart));
     }
 
-    private async Task<Result<Cart>> LoadCartAsync(Guid customerId, CancellationToken ct)
+    private async Task<Result<Cart>> LoadCartAsync(
+        Guid customerId,
+        CancellationToken ct)
     {
         var cart = await _cartRepository.GetByCustomerIdAsync(customerId, ct);
         if (cart is null || cart.Items.Count == 0)
@@ -101,11 +146,14 @@ public sealed class PlaceOrderCommandHandler
         return Result<Cart>.Success(cart);
     }
 
-    private async Task<Result<Person>> LoadPersonAsync(Guid customerId, CancellationToken ct)
+    private async Task<Result<Person>> LoadPersonAsync(
+        Guid customerId,
+        CancellationToken ct)
     {
         var person = await _personRepository.GetByIdentityUserIdAsync(customerId, ct);
         if (person is null)
-            return Result<Person>.Failure("Customer profile not found. Complete personal data before ordering.");
+            return Result<Person>.Failure(
+                "Customer profile not found. Complete personal data before ordering.");
 
         if (person.HomeAddress is null)
             return Result<Person>.Failure("Delivery address is missing.");
@@ -113,7 +161,9 @@ public sealed class PlaceOrderCommandHandler
         return Result<Person>.Success(person);
     }
 
-    private async Task<Result<Money>> CalculateShippingFeeAsync(Person person, CancellationToken ct)
+    private async Task<Result<Money>> CalculateShippingFeeAsync(
+        Person person,
+        CancellationToken ct)
     {
         var shippingRequest = new ShippingFeeCalculationRequest
         {
@@ -132,20 +182,23 @@ public sealed class PlaceOrderCommandHandler
         return Result<Money>.Success(shippingFee);
     }
 
-    private List<OrderItem> BuildOrderItems(Cart cart)
+    private static List<OrderItem> BuildOrderItems(Cart cart)
     {
-        return cart.Items.Select(cartItem => new OrderItem(
-            productId: cartItem.ProductId,
-            productVariantId: cartItem.ProductVariantId,
-            sku: cartItem.Sku,
-            productName: cartItem.ProductName,
-            variantName: cartItem.VariantName,
-            unitPrice: cartItem.UnitPrice,
-            quantity: cartItem.Quantity
-        )).ToList();
+        return cart.Items
+            .Select(cartItem => new OrderItem(
+                productId: cartItem.ProductId,
+                productVariantId: cartItem.ProductVariantId,
+                sku: cartItem.Sku,
+                productName: cartItem.ProductName,
+                variantName: cartItem.VariantName,
+                unitPrice: cartItem.UnitPrice,
+                quantity: cartItem.Quantity))
+            .ToList();
     }
 
-    private async Task<Result> DecreaseStockAsync(List<OrderItem> orderItems, CancellationToken ct)
+    private async Task<Result> DecreaseStockAsync(
+        List<OrderItem> orderItems,
+        CancellationToken ct)
     {
         foreach (var item in orderItems)
         {
@@ -156,9 +209,37 @@ public sealed class PlaceOrderCommandHandler
                 ct);
 
             if (!stockResult.Succeeded)
-                return Result.Failure($"Insufficient stock for product {item.ProductName}.");
+                return Result.Failure(
+                    $"Insufficient stock for product {item.ProductName}.");
         }
 
         return Result.Success();
     }
+
+    private static Order CreateOrder(
+        Guid customerId,
+        List<OrderItem> orderItems,
+        Money shippingFee)
+    {
+        return Order.Place(customerId, orderItems, shippingFee);
+    }
+
+    private async Task PersistOrderAsync(
+        Order order,
+        Cart cart,
+        CancellationToken ct)
+    {
+        await _orderRepository.AddAsync(order, ct);
+        cart.Clear();
+        await _cartRepository.UpdateAsync(cart, ct);
+    }
+
+    private void RecordOrderCreatedMetric()
+    {
+        _metrics.RecordCreated(customerTier: "standard");
+    }
+
+    private sealed record OrderPreparationResult(Order Order, Cart Cart);
+
+    #endregion
 }

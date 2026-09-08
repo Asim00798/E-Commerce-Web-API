@@ -1,5 +1,6 @@
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.DTOs;
 using E_Commerce.Application.Shared.Models;
+using E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Category.Behaviors;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using MediatR;
 
@@ -19,11 +20,24 @@ public sealed class GetCategoryByIdQueryHandler
         GetCategoryByIdQuery query,
         CancellationToken ct)
     {
-        var category = await _categoryRepository.GetByIdAsync(query.CategoryId, ct);
+        var category = await GetCategoryAsync(query.CategoryId, ct);
         if (category is null)
             return Result<CategoryDto>.Failure("Category not found.");
 
-        var dto = new CategoryDto
+        var dto = MapToDto(category);
+        return Result<CategoryDto>.Success(dto);
+    }
+
+    private async Task<Category?> GetCategoryAsync(
+        Guid categoryId,
+        CancellationToken ct)
+    {
+        return await _categoryRepository.GetByIdAsync(categoryId, ct);
+    }
+
+    private static CategoryDto MapToDto(Category category)
+    {
+        return new CategoryDto
         {
             Id = category.Id,
             Name = category.Name,
@@ -31,7 +45,5 @@ public sealed class GetCategoryByIdQueryHandler
             ParentCategoryId = category.ParentCategoryId,
             ImageFileIds = category.Images.Select(x => x.FileId).ToList()
         };
-
-        return Result<CategoryDto>.Success(dto);
     }
 }

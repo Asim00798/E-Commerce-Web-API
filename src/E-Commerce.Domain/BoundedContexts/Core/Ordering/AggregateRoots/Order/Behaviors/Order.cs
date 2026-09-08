@@ -4,7 +4,6 @@ using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Event
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Exceptions;
 using E_Commerce.Domain.SharedKernel.Abstractions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
-using System.Runtime.CompilerServices;
 
 namespace E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Behaviors;
 

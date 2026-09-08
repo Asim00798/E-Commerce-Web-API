@@ -12,9 +12,9 @@ using Scrutor;// Install-Package Scrutor
 using System.Net.Http.Headers;
 using System.Reflection;
 
-namespace E_Commerce.Application;
+namespace E_Commerce.Application.DependencyInjection;
 
-public static class DependencyInjection
+public static class ApplicationServiceRegistration
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {

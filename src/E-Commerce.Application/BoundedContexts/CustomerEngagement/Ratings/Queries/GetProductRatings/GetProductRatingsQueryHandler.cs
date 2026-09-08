@@ -19,9 +19,11 @@ public sealed class GetProductRatingsQueryHandler
         GetProductRatingsQuery query,
         CancellationToken ct)
     {
+        // Retrieve the product ratings summary from the repository
         var summary = await _ratingRepository.GetProductRatingsSummaryAsync(
             query.ProductId, ct);
 
+        // If no ratings exist for the product, return a default summary with zero values
         if (summary is null)
         {
             return Result<ProductRatingsSummaryDto>.Success(new ProductRatingsSummaryDto
@@ -33,6 +35,7 @@ public sealed class GetProductRatingsQueryHandler
             });
         }
 
+        // Map the summary to the DTO and return it
         var dto = new ProductRatingsSummaryDto
         {
             ProductId = query.ProductId,
