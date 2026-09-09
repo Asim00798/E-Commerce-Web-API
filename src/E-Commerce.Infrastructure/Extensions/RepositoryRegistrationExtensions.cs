@@ -7,6 +7,13 @@ namespace E_Commerce.Infrastructure.Extensions;
 
 public static class RepositoryRegistrationExtensions
 {
+    /// <summary>
+    ///     Registers all repository classes and the generic repository in the dependency injection container.
+    /// </summary>
+    /// <param name="services">The service collection to add the repositories to.</param>
+    /// <param name="infrastructureAssembly">The assembly containing the repository implementations.</param>
+    /// <returns>The updated service collection.</returns>
+    
     public static IServiceCollection AddRepositories(
         this IServiceCollection services,
         Assembly infrastructureAssembly)

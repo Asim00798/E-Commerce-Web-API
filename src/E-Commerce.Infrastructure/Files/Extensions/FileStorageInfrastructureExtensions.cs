@@ -2,7 +2,6 @@
 using E_Commerce.Infrastructure.Files.Configuration;
 using E_Commerce.Infrastructure.Files.Services;
 using E_Commerce.Infrastructure.Files.Storage;
-using E_Commerce.Infrastructure.Persistence.Modules.Files.Repositories;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Files.Extensions;
@@ -37,10 +36,14 @@ public static class FileStorageInfrastructureExtensions
         }
 
         services.AddScoped<IFileService, FileService>();
-        services.AddScoped<StoredFileRepository>();
         services.AddScoped<FileStorageCleanupService>();
 
         services.AddScoped<IFileContentInspector, FileContentInspector>();
+
+        /// <summary>
+        /// Repositories registration are handled by the automatic registration <see cref="RepositoryRegistrationExtensions"/>  
+        /// so no need to register for example <see cref="StoredFileRepository"/>
+        /// </summary>
 
         return services;
     }

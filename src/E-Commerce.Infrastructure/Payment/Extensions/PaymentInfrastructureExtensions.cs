@@ -42,8 +42,11 @@ public static class PaymentInfrastructureExtensions
 
         services.AddScoped<IPaymentWebhookProcessor, PaymobWebhookProcessor>();
 
-        services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IRefundRepository, RefundRepository>();
+        /// <summary>
+        /// Repositories registration for the Finance bounded context.
+        /// Such as <see cref="IPaymentRepository"/> and <see cref="IRefundRepository"/>
+        /// They are handled by automatic assembly scanning in <see cref="RepositoryRegistrationExtensions"/>
+        /// </summary>
 
         return services;
     }

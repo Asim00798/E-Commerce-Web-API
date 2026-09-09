@@ -50,8 +50,13 @@ public static class NotificationsInfrastructureExtensions
 
         // Ensure the transport also receives IPushDeviceRepository (already wired)
         services.AddScoped<IPushTransport, FirebasePushTransport>();
+        
         // Push device repository
-        services.AddScoped<IPushDeviceRepository, PushDeviceRepository>();
+        /// <summary>
+        /// Repositories auto registration handled by <see cref="RepositoryRegistrationExtensions"/>
+        /// services.AddScoped<IPushDeviceRepository, PushDeviceRepository>(); 
+        /// is handled there, so no need to register it again here.
+        /// </summary>
 
         // Push registration service (bridging module to infrastructure)
         services.AddScoped<IPushDeviceRegistrationService, PushDeviceRegistrationService>();

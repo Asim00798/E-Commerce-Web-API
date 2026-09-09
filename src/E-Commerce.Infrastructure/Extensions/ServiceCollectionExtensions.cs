@@ -6,9 +6,6 @@ using E_Commerce.Infrastructure.Identity.Services;
 using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
 using E_Commerce.Infrastructure.Persistence.Interceptors;
-using E_Commerce.Infrastructure.Persistence.Modules.Catalog.Brand.Repository;
-using E_Commerce.Infrastructure.Persistence.Modules.Catalog.Category.Repository;
-using E_Commerce.Infrastructure.Persistence.Modules.Catalog.Product.Repository;
 
 namespace E_Commerce.Infrastructure.Extensions;
 
@@ -71,16 +68,11 @@ public static class ServiceCollectionExtensions
 
         // -----------------------------------------------------------------
         // 4. Repositories
-        // Generic repository for simple CRUD needs, and concrete domain
-        // repositories that inherit from it while adding specialised queries.
-        // All are registered against their abstractions to keep the
-        // Application layer decoupled from Infrastructure.
+        // auto‑registers all generic and domain‑specific repositories using reflection.
         // -----------------------------------------------------------------
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));      // generic
-        services.AddScoped<IProductRepository, ProductRepository>();          // catalog
-        services.AddScoped<IBrandRepository, BrandRepository>();
-        services.AddScoped<ICategoryRepository, CategoryRepository>();
-        // Additional bounded‑context repositories go here...
+        /// <summary>
+        /// Repositories auto registration handled by <see cref="RepositoryRegistrationExtensions"/>
+        /// </summary>
 
         // -----------------------------------------------------------------
         // 5. Unit of Work

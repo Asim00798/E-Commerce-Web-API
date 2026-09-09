@@ -1,15 +1,11 @@
 ﻿using E_Commerce.Application.BoundedContexts.Catalog.Brands.Validation;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Validation;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Validation;
-using E_Commerce.Application.BoundedContexts.Orders.Models;
 using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Application.Shared.Behaviors;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Decorators;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Scrutor;// Install-Package Scrutor
-using System.Net.Http.Headers;
 using System.Reflection;
 
 namespace E_Commerce.Application.DependencyInjection;

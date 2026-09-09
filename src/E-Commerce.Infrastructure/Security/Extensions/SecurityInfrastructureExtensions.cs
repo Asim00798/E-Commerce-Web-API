@@ -7,12 +7,9 @@ using E_Commerce.Application.Shared.Security.Authorization.Services;
 using E_Commerce.Application.Shared.Security.Cryptography;
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Application.Shared.Security.Verification;
-using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.Repositories;
 using E_Commerce.Infrastructure.Identity.Services;
-using E_Commerce.Infrastructure.Persistence.Modules.Onboarding.Repositories;
 using E_Commerce.Infrastructure.Persistence.Modules.Onboarding.Services;
 using E_Commerce.Infrastructure.Persistence.Modules.Security.Authentication.Repositories;
-using E_Commerce.Infrastructure.Persistence.Modules.Security.Authorization.Repositories;
 using E_Commerce.Infrastructure.Security.Authentication.Services;
 using E_Commerce.Infrastructure.Security.Authentication.Tokens.Jwt;
 using E_Commerce.Infrastructure.Security.Authentication.Tokens.Refresh;
@@ -72,7 +69,6 @@ public static class SecurityInfrastructureExtensions
     private static void AddRegistrationServices(
         IServiceCollection services)
     {
-        services.AddScoped<IRegistrationRepository, RegistrationRepository>();
         services.AddScoped<IRegistrationCleanupService, RegistrationCleanupService>();
     }
 
@@ -227,9 +223,6 @@ public static class SecurityInfrastructureExtensions
 
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IUserRoleService, UserRoleService>();
-
-        services.AddScoped<PermissionRepository>();
-        services.AddScoped<RolePermissionRepository>();
 
         // Optional management services
         services.AddScoped<IRoleManagementService, RoleManagementService>();

@@ -13,9 +13,9 @@ public static class OrderingInfrastructureExtensions
     /// </summary>
     public static IServiceCollection AddOrderingInfrastructure(this IServiceCollection services)
     {
-        // Repositories
-        services.AddScoped<ICartRepository, CartRepository>();
-        services.AddScoped<IOrderRepository, OrderRepository>();
+        /// <summary>
+        /// Repositories auto registration handled by <see cref="RepositoryRegistrationExtensions"/>
+        /// </summary>
 
         // Application services implemented in Infrastructure
         services.AddScoped<IPendingOrderCleanupService, PendingOrderCleanupService>();

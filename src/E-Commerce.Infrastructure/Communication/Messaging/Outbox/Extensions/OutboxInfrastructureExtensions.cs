@@ -16,13 +16,17 @@ public static class OutboxInfrastructureExtensions
 {
     public static IServiceCollection AddOutboxMessaging(this IServiceCollection services)
     {
-        services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();  // OutboxRepository will be created in Persistence
+        /// <summary>
+        /// Repositories auto registration handled by <see cref="RepositoryRegistrationExtensions"/>
+        ///services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
+        ///services.AddScoped<IProcessedEventRepository, ProcessedEventRepository>();
+        ///Those repositories are registered in the <see cref="RepositoryRegistrationExtensions"/> class, so we don't need to register them here.
+        /// </summary>
         services.AddScoped<IOutboxMessageWriter, OutboxMessageWriter>();
         services.AddSingleton<OutboxSerializer>();
         services.AddScoped<OutboxDispatchService>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-        services.AddScoped<IIntegrationEventDispatcher, IntegrationEventDispatcher>();
-        services.AddScoped<IProcessedEventRepository, ProcessedEventRepository>();
+        services.AddScoped<IIntegrationEventDispatcher, IntegrationEventDispatcher>();        
         services.AddScoped<IDeadLetterRepository, DeadLetterRepository>();
         // Apply the enrichment decorator (using Scrutor or manual)
         services.TryDecorate<IOutboxMessageWriter, EnrichedOutboxMessageWriter>();
