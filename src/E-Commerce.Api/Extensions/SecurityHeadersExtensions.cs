@@ -11,20 +11,10 @@ public static class SecurityHeadersExtensions
         {
             var headers = context.Response.Headers;
 
-            // Prevent MIME‑type sniffing
             headers["X-Content-Type-Options"] = "nosniff";
-
-            // Prevent clickjacking
             headers["X-Frame-Options"] = "DENY";
-
-            // Strict referrer policy
             headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-
-            // Disable browser features not used by the application
-            headers["Permissions-Policy"] =
-                "camera=(), microphone=(), geolocation=()";
-
-            // Content Security Policy – adjust to your front‑end needs
+            headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
             headers["Content-Security-Policy"] =
                 "default-src 'self'; " +
                 "script-src 'self'; " +

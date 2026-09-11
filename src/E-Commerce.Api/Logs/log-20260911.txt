@@ -1,0 +1,63 @@
+2026-09-11 01:48:09.079 +04:00 [INF] Starting web host
+2026-09-11 01:48:21.152 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 01:48:22.383 +04:00 [INF] Now listening on: https://[::]:5001
+2026-09-11 01:48:23.518 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-11 01:48:23.521 +04:00 [INF] Hosting environment: Development
+2026-09-11 01:48:23.679 +04:00 [INF] Content root path: C:\Users\HP GHH\Desktop\E-Commerce Web API\src\E-Commerce.Api
+2026-09-11 01:49:32.733 +04:00 [INF] HTTP GET / responded 404 in 61.4272 ms
+2026-09-11 01:58:20.123 +04:00 [INF] HTTP GET / responded 404 in 2.8671 ms
+2026-09-11 01:58:23.894 +04:00 [INF] HTTP GET / responded 404 in 3.3515 ms
+2026-09-11 01:58:25.556 +04:00 [INF] HTTP GET / responded 404 in 0.1021 ms
+2026-09-11 01:58:43.179 +04:00 [INF] HTTP GET / responded 404 in 0.1705 ms
+2026-09-11 01:58:45.419 +04:00 [INF] HTTP GET / responded 404 in 0.0633 ms
+2026-09-11 01:58:46.323 +04:00 [INF] HTTP GET / responded 404 in 0.0785 ms
+2026-09-11 01:58:46.770 +04:00 [INF] HTTP GET / responded 404 in 0.0519 ms
+2026-09-11 01:58:46.928 +04:00 [INF] HTTP GET / responded 404 in 0.0765 ms
+2026-09-11 01:58:47.099 +04:00 [INF] HTTP GET / responded 404 in 0.0807 ms
+2026-09-11 01:58:47.307 +04:00 [INF] HTTP GET / responded 404 in 0.0645 ms
+2026-09-11 01:59:10.444 +04:00 [INF] Starting web host
+2026-09-11 01:59:10.636 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 01:59:10.671 +04:00 [INF] Now listening on: https://[::]:5001
+2026-09-11 01:59:10.763 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-11 01:59:10.767 +04:00 [INF] Hosting environment: Development
+2026-09-11 01:59:10.768 +04:00 [INF] Content root path: C:\Users\HP GHH\Desktop\E-Commerce Web API\src\E-Commerce.Api
+2026-09-11 01:59:39.898 +04:00 [INF] HTTP GET / responded 404 in 5.3592 ms
+2026-09-11 02:01:14.913 +04:00 [INF] Starting web host
+2026-09-11 02:01:15.115 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 02:01:15.157 +04:00 [INF] Now listening on: https://[::]:5001
+2026-09-11 02:01:15.270 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-11 02:01:15.273 +04:00 [INF] Hosting environment: Development
+2026-09-11 02:01:15.274 +04:00 [INF] Content root path: C:\Users\HP GHH\Desktop\E-Commerce Web API\src\E-Commerce.Api
+2026-09-11 02:01:16.245 +04:00 [INF] HTTP GET / responded 404 in 26.6714 ms
+2026-09-11 02:41:25.168 +04:00 [INF] Starting web host
+2026-09-11 02:41:25.359 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 02:41:25.395 +04:00 [INF] Now listening on: https://[::]:5001
+2026-09-11 02:41:25.489 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-11 02:41:25.493 +04:00 [INF] Hosting environment: Development
+2026-09-11 02:41:25.494 +04:00 [INF] Content root path: C:\Users\HP GHH\Desktop\E-Commerce Web API\src\E-Commerce.Api
+2026-09-11 02:41:29.346 +04:00 [INF] HTTP GET / responded 404 in 5.3779 ms
+2026-09-11 02:42:58.569 +04:00 [INF] Starting web host
+2026-09-11 02:42:58.753 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 02:42:58.788 +04:00 [INF] Now listening on: https://[::]:5001
+2026-09-11 02:42:58.922 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-11 02:42:58.926 +04:00 [INF] Hosting environment: Development
+2026-09-11 02:42:58.927 +04:00 [INF] Content root path: C:\Users\HP GHH\Desktop\E-Commerce Web API\src\E-Commerce.Api
+2026-09-11 02:43:01.920 +04:00 [INF] HTTP GET / responded 404 in 13.9423 ms
+2026-09-11 04:27:49.760 +04:00 [INF] Starting web host
+2026-09-11 04:28:31.370 +04:00 [INF] Starting web host
+2026-09-11 04:28:31.871 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 04:28:31.923 +04:00 [INF] Now listening on: https://[::]:5001
+2026-09-11 04:28:32.055 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-11 04:28:32.058 +04:00 [INF] Hosting environment: Development
+2026-09-11 04:28:32.061 +04:00 [INF] Content root path: C:\Users\HP GHH\Desktop\E-Commerce Web API\src\E-Commerce.Api
+2026-09-11 04:28:57.385 +04:00 [INF] HTTP GET / responded 404 in 110.5286 ms
+2026-09-11 04:30:59.423 +04:00 [INF] Starting web host
+2026-09-11 04:30:59.650 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 04:30:59.694 +04:00 [INF] Now listening on: https://[::]:5001
+2026-09-11 04:31:00.031 +04:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-11 04:31:00.034 +04:00 [INF] Hosting environment: Development
+2026-09-11 04:31:00.036 +04:00 [INF] Content root path: C:\Users\HP GHH\Desktop\E-Commerce Web API\src\E-Commerce.Api
+2026-09-11 04:31:04.197 +04:00 [INF] HTTP GET / responded 404 in 7.2962 ms
+2026-09-11 04:34:08.683 +04:00 [INF] Starting web host
+2026-09-11 04:34:09.111 +04:00 [WRN] Overriding address(es) 'https://*:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+2026-09-11 04:34:20.982 +04:00 [INF] HTTP GET / responded 404 in 20.5234 ms

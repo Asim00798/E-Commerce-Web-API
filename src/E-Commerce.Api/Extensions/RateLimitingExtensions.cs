@@ -1,23 +1,60 @@
-﻿using Microsoft.AspNetCore.RateLimiting;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Threading.RateLimiting;
+using E_Commerce.Api.Configuration;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Api.Extensions;
 
 public static class RateLimitingExtensions
 {
-    public static IServiceCollection AddProductionRateLimiting(this IServiceCollection services)
+    public static IServiceCollection AddProductionRateLimiting(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        services.AddRateLimiter(options =>
+        var options = configuration
+            .GetSection(RateLimitingOptions.SectionName)
+            .Get<RateLimitingOptions>()
+            ?? new RateLimitingOptions();
+
+        services.AddRateLimiter(limiter =>
         {
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-            options.AddPolicy("ip-fixed-window", CreateIpPolicy);
-            options.AddPolicy("user-sliding-window", CreateUserPolicy);
+            limiter.AddPolicy("ip-fixed-window", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: GetIp(context),
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = options.Ip.PermitLimit,
+                        Window = TimeSpan.FromSeconds(options.Ip.WindowSeconds),
+                        QueueLimit = options.Ip.QueueLimit,
+                        AutoReplenishment = true
+                    }));
 
-            options.GlobalLimiter = CreateGlobalLimiter();
+            limiter.AddPolicy("user-sliding-window", context =>
+                RateLimitPartition.GetSlidingWindowLimiter(
+                    partitionKey: GetUserId(context),
+                    factory: _ => new SlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = options.User.PermitLimit,
+                        Window = TimeSpan.FromSeconds(options.User.WindowSeconds),
+                        SegmentsPerWindow = options.User.SegmentsPerWindow,
+                        QueueLimit = options.User.QueueLimit
+                    }));
 
-            options.OnRejected = HandleRejection;
+            limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
+                RateLimitPartition.GetConcurrencyLimiter(
+                    partitionKey: "global",
+                    factory: _ => new ConcurrencyLimiterOptions
+                    {
+                        PermitLimit = options.Global.PermitLimit,
+                        QueueLimit = options.Global.QueueLimit,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+                    }));
+
+            limiter.OnRejected = HandleRejection;
         });
 
         return services;
@@ -28,90 +65,36 @@ public static class RateLimitingExtensions
         return app.UseRateLimiter();
     }
 
-    // =========================
-    // Policies
-    // =========================
-
-    private static RateLimitPartition<string> CreateIpPolicy(HttpContext httpContext)
+    private static async ValueTask HandleRejection(
+        OnRejectedContext context,
+        CancellationToken cancellationToken)
     {
-        var ip = GetIp(httpContext);
-
-        return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: ip,
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 100,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-                AutoReplenishment = true
-            });
-    }
-
-    private static RateLimitPartition<string> CreateUserPolicy(HttpContext httpContext)
-    {
-        var userId = GetUserId(httpContext);
-
-        return RateLimitPartition.GetSlidingWindowLimiter(
-            partitionKey: userId,
-            factory: _ => new SlidingWindowRateLimiterOptions
-            {
-                PermitLimit = 50,
-                Window = TimeSpan.FromMinutes(1),
-                SegmentsPerWindow = 4,
-                QueueLimit = 0
-            });
-    }
-
-    private static PartitionedRateLimiter<HttpContext> CreateGlobalLimiter()
-    {
-        return PartitionedRateLimiter.Create<HttpContext, string>(_ =>
-        {
-            return RateLimitPartition.GetConcurrencyLimiter(
-                partitionKey: "global",
-                factory: _ => new ConcurrencyLimiterOptions
-                {
-                    PermitLimit = 500,
-                    QueueLimit = 50,
-                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst
-                });
-        });
-    }
-
-    // =========================
-    // Rejection Handler
-    // =========================
-
-    private static async ValueTask HandleRejection(OnRejectedContext context, CancellationToken cancellationToken)
-    {
-        var logger = GetLogger(context);
-
-        var ip = GetIp(context.HttpContext);
-        var userId = GetUserId(context.HttpContext);
-        var path = context.HttpContext.Request.Path;
+        var http = context.HttpContext;
+        var logger = http.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("RateLimiting");
 
         logger.LogWarning(
             "Rate limit triggered | IP: {IP} | User: {User} | Path: {Path}",
-            ip, userId, path);
+            GetIp(http),
+            GetUserId(http),
+            http.Request.Path);
 
-        context.HttpContext.Response.ContentType = "application/json";
+        http.Response.ContentType = "application/problem+json";
+        http.Response.StatusCode = StatusCodes.Status429TooManyRequests;
 
-        await context.HttpContext.Response.WriteAsync(
-            """{"error":"Too many requests","status":429}""",
-            cancellationToken);
+        await http.Response.WriteAsJsonAsync(new
+        {
+            type = "https://tools.ietf.org/html/rfc6585#section-4",
+            title = "Too Many Requests",
+            status = 429,
+            detail = "Rate limit exceeded. Please try again later."
+        }, cancellationToken);
     }
-
-    // =========================
-    // Helpers
-    // =========================
 
     private static string GetIp(HttpContext context)
         => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
     private static string GetUserId(HttpContext context)
         => context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
-
-    private static ILogger GetLogger(OnRejectedContext context)
-        => context.HttpContext.RequestServices
-            .GetRequiredService<ILoggerFactory>()
-            .CreateLogger("RateLimiting");
 }

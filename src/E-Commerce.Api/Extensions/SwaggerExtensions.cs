@@ -1,36 +1,46 @@
+using E_Commerce.Api.Configuration;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 namespace E_Commerce.Api.Extensions;
 
 public static class SwaggerExtensions
 {
-    public static void AddSwaggerExtension(this IServiceCollection services)
+    public static IServiceCollection AddSwaggerConfiguration(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        services.AddSwaggerGen(c =>
+        var swagger = configuration
+            .GetSection(SwaggerConfiguration.SectionName)
+            .Get<SwaggerConfiguration>()
+            ?? throw new InvalidOperationException("Swagger configuration is missing.");
+
+        services.AddSwaggerGen(options =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo
+            options.SwaggerDoc(swagger.Version, new OpenApiInfo
             {
-                Version = "v1",
-                Title = "E-Commerce Web API",
-                Description = "This API handles E-Commerce operations.",
+                Version = swagger.Version,
+                Title = swagger.Title,
+                Description = swagger.Description,
                 Contact = new OpenApiContact
                 {
-                    Name = "Admin",
-                    Email = "admin@ecommerce.com"
+                    Name = swagger.ContactName,
+                    Email = swagger.ContactEmail
                 }
             });
 
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
                 In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
                 BearerFormat = "JWT",
-                Description = "Input your Bearer token in this format: Bearer {your token here}"
+                Description = "Enter your JWT access token. Example: Bearer {your token}"
             });
 
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
             {
                 {
                     new OpenApiSecurityScheme
@@ -41,9 +51,33 @@ public static class SwaggerExtensions
                             Id = "Bearer"
                         }
                     },
-                    new string[] {}
+                    Array.Empty<string>()
                 }
             });
         });
+
+        return services;
+    }
+
+    public static WebApplication UseDevelopmentSwagger(this WebApplication app)
+    {
+        if (!app.Environment.IsDevelopment())
+            return app;
+
+        var swagger = app.Configuration
+            .GetSection(SwaggerConfiguration.SectionName)
+            .Get<SwaggerConfiguration>()
+            ?? throw new InvalidOperationException("Swagger configuration is missing.");
+
+        app.UseSwagger();
+
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint(
+                $"/swagger/{swagger.Version}/swagger.json",
+                $"{swagger.Title} {swagger.Version}");
+        });
+
+        return app;
     }
 }

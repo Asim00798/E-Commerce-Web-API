@@ -1,24 +1,34 @@
 ﻿using Domain.SharedKernel.Events;
 using E_Commerce.Application.Shared.Communication.PostCommit;
+using E_Commerce.Application.Shared.Exceptions;
 using E_Commerce.Domain.SharedKernel.Abstractions;
+using E_Commerce.Domain.SharedKernel.Events;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace E_Commerce.Infrastructure.Persistence.Common.Implementation;
+
 /// <summary>
 /// How it works:
-/// Automatic mode (default): Most handlers call only SaveChangesAsync(). The method starts a transaction, performs the two-phase save/dispatch/save, commits, and then runs post-commit callbacks. If any exception occurs, it rolls back.
+/// Automatic mode (default): Most handlers call only SaveChangesAsync(). The method starts
+/// a transaction, performs the two-phase save/dispatch/save, commits, and then runs
+/// post-commit callbacks. If any exception occurs, it rolls back.
 ///
-/// Manual mode: If a caller explicitly calls BeginTransactionAsync() first, SaveChangesAsync() detects an existing transaction and does not commit or run post-commit callbacks. The caller must later call CommitTransactionAsync() to commit and execute the callbacks, or RollbackTransactionAsync() on failure.
+/// Manual mode: If a caller explicitly calls BeginTransactionAsync() first, SaveChangesAsync()
+/// detects an existing transaction and does not commit or run post-commit callbacks. The caller
+/// must later call CommitTransactionAsync() to commit and execute the callbacks, or
+/// RollbackTransactionAsync() on failure.
 ///
-/// Idempotent: Calling SaveChangesAsync() multiple times within the same unit of work is safe; domain events are cleared after each dispatch.
+/// Idempotent: Calling SaveChangesAsync() multiple times within the same unit of work is safe;
+/// domain events are cleared after each dispatch.
 /// </summary>
-public class UnitOfWork : IUnitOfWork, IAsyncDisposable
+public sealed class UnitOfWork : IUnitOfWork, IAsyncDisposable
 {
     private readonly AppDbContext _dbContext;
     private readonly IDomainEventDispatcher _domainEventDispatcher;
-    private readonly IPostCommitProcessor _applicationEventDispatcher;
+    private readonly IPostCommitProcessor _postCommitProcessor;
     private readonly IServiceProvider _serviceProvider;
     private IDbContextTransaction? _currentTransaction;
     private bool _disposed;
@@ -26,83 +36,71 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public UnitOfWork(
         AppDbContext dbContext,
         IDomainEventDispatcher domainEventDispatcher,
-        IPostCommitProcessor applicationEventDispatcher,
+        IPostCommitProcessor postCommitProcessor,
         IServiceProvider serviceProvider)
     {
         _dbContext = dbContext;
         _domainEventDispatcher = domainEventDispatcher;
-        _applicationEventDispatcher = applicationEventDispatcher;
+        _postCommitProcessor = postCommitProcessor;
         _serviceProvider = serviceProvider;
     }
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        _currentTransaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        if (_currentTransaction is not null)
+            throw new InvalidOperationException("A transaction is already active.");
+
+        _currentTransaction = await _dbContext.Database
+            .BeginTransactionAsync(cancellationToken);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Determine if this call owns the transaction lifecycle.
         bool ownsTransaction = _currentTransaction is null;
 
         if (ownsTransaction)
         {
-            _currentTransaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+            _currentTransaction = await _dbContext.Database
+                .BeginTransactionAsync(cancellationToken);
         }
 
         try
         {
-            // Collect domain events from tracked aggregates.
-            var domainEvents = _dbContext.ChangeTracker
-                .Entries<BaseEntity>()
-                .SelectMany(entry => entry.Entity.DomainEvents)
-                .ToList();
+            var domainEvents = CollectDomainEvents();
 
-            // First save: persist business state and any existing outbox messages.
-            int result = await _dbContext.SaveChangesAsync(cancellationToken);
+            // First save: persist business state and any pre-existing outbox messages.
+            int affected = await SaveChangesInternalAsync(cancellationToken);
 
-            // Dispatch domain events if any. Handlers may add outbox messages or enqueue post-commit callbacks.
+            // Dispatch domain events (handlers may add outbox messages or enqueue callbacks).
             if (domainEvents.Count > 0)
             {
                 await _domainEventDispatcher.DispatchAsync(domainEvents, cancellationToken);
-
-                // Clear domain events after they have been handled.
-                foreach (var entry in _dbContext.ChangeTracker.Entries<BaseEntity>())
-                {
-                    entry.Entity.ClearDomainEvents();
-                }
-
-                // Second save: persist any new outbox messages or state changes produced by handlers.
-                result += await _dbContext.SaveChangesAsync(cancellationToken);
             }
-            else
+
+            ClearDomainEvents();
+
+            // Second save only if there were domain events (handlers may have added entities).
+            if (domainEvents.Count > 0)
             {
-                // Even if no domain events, clear any (safety).
-                foreach (var entry in _dbContext.ChangeTracker.Entries<BaseEntity>())
-                {
-                    entry.Entity.ClearDomainEvents();
-                }
+                affected += await SaveChangesInternalAsync(cancellationToken);
             }
 
-            // If we started the transaction, commit it and then execute post-commit callbacks.
             if (ownsTransaction)
             {
                 await _currentTransaction!.CommitAsync(cancellationToken);
                 await _currentTransaction.DisposeAsync();
                 _currentTransaction = null;
 
-                // Post-commit callbacks (e.g., SignalR hints) run only after successful commit.
-                await _applicationEventDispatcher.InvokeAsync(_serviceProvider, cancellationToken);
+                await InvokePostCommitCallbacksAsync(cancellationToken);
             }
 
-            return result;
+            return affected;
         }
         catch
         {
-            // If we own the transaction, roll it back and clean up.
             if (ownsTransaction && _currentTransaction is not null)
             {
-                await _currentTransaction.RollbackAsync();
+                await _currentTransaction.RollbackAsync(cancellationToken);
                 await _currentTransaction.DisposeAsync();
                 _currentTransaction = null;
             }
@@ -119,8 +117,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         await _currentTransaction.DisposeAsync();
         _currentTransaction = null;
 
-        // Execute post-commit callbacks (e.g., SignalR hints, cache invalidation).
-        await _applicationEventDispatcher.InvokeAsync(_serviceProvider, cancellationToken);
+        await InvokePostCommitCallbacksAsync(cancellationToken);
     }
 
     public async Task RollbackTransactionAsync()
@@ -135,11 +132,71 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (!_disposed)
+        if (_disposed)
+            return;
+
+        if (_currentTransaction is not null)
         {
-            if (_currentTransaction is not null)
-                await RollbackTransactionAsync();
-            _disposed = true;
+            await RollbackTransactionAsync();
+        }
+
+        _disposed = true;
+    }
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
+
+    private List<IDomainEvent> CollectDomainEvents()
+    {
+        return _dbContext.ChangeTracker
+            .Entries<BaseEntity>()
+            .SelectMany(entry => entry.Entity.DomainEvents)
+            .ToList();
+    }
+
+    private void ClearDomainEvents()
+    {
+        foreach (var entry in _dbContext.ChangeTracker.Entries<BaseEntity>())
+        {
+            entry.Entity.ClearDomainEvents();
+        }
+    }
+
+    /// <summary>
+    /// Saves changes and translates EF Core's concurrency exception into the
+    /// application-level <see cref="ConcurrencyException"/> so upper layers do not
+    /// depend on EF Core.
+    /// </summary>
+    private async Task<int> SaveChangesInternalAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConcurrencyException(
+                "The resource was modified by another request. Please refresh and try again.",
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Runs post-commit callbacks. Failures here must not surface as business errors
+    /// because the DB transaction has already been committed successfully.
+    /// </summary>
+    private async Task InvokePostCommitCallbacksAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _postCommitProcessor.InvokeAsync(_serviceProvider, cancellationToken);
+        }
+        catch
+        {
+            // Post-commit callbacks are best-effort. The PostCommitProcessor already
+            // logs individual failures; this is a final safety net so the caller
+            // does not see a business failure after a successful commit.
         }
     }
 }

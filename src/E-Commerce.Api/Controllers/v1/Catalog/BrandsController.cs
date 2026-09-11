@@ -1,40 +1,144 @@
+using E_Commerce.Api.Attributes;
+using E_Commerce.Api.Controllers.Common;
+using E_Commerce.Api.DTOs.v1.Catalog.Brands.Requests;
+using E_Commerce.Api.DTOs.v1.Catalog.Brands.Responses;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Commands.CreateBrand;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Commands.UpdateBrand;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Queries.GetBrandById;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Queries.ListBrands;
+using E_Commerce.Application.Shared.Files.Models;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Asp.Versioning;
 
 namespace E_Commerce.Api.Controllers.v1.Catalog;
 
-[ApiVersion("1.0")]
-public class BrandsController : BaseApiController
+[ApiController]
+[Route("api/catalog/brands")]
+public sealed class BrandsController : BaseApiController
 {
-    [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] ListBrandsQuery query)
-    {
-        var result = await Mediator.Send(query);
-        return Ok(result);
-    }
+    private readonly ISender _sender;
 
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public BrandsController(ISender sender)
     {
-        var result = await Mediator.Send(new GetBrandByIdQuery(id));
-        return Ok(result);
+        _sender = sender;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateBrandCommand command)
+    [Authorize(Roles = "CatalogManager,Administrator")]
+    [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateBrand(
+        [FromForm] CreateBrandRequest request,
+        CancellationToken ct)
     {
-        var result = await Mediator.Send(command);
-        return Ok(result);
+        var logo = new FileUpload(
+            request.Logo.OpenReadStream(),
+            request.Logo.FileName,
+            request.Logo.ContentType);
+
+        var command = new CreateBrandCommand(
+            request.Name,
+            request.Description,
+            logo);
+
+        var result = await _sender.Send(command, ct);
+
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        var response = new BrandResponse
+        {
+            Id = result.Data,
+            Name = request.Name,
+            DescriptionText = request.Description
+        };
+
+        return CreatedAtAction(nameof(GetBrandById), new { id = result.Data }, response);
     }
 
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, UpdateBrandCommand command)
+    [HttpPut("{brandId:guid}")]
+    [Authorize(Roles = "CatalogManager,Administrator")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateBrand(
+        Guid brandId,
+        [FromForm] UpdateBrandRequest request,
+        CancellationToken ct)
     {
-        await Mediator.Send(command);
+        FileUpload? newLogo = null;
+
+        if (request.Logo is not null)
+        {
+            newLogo = new FileUpload(
+                request.Logo.OpenReadStream(),
+                request.Logo.FileName,
+                request.Logo.ContentType);
+        }
+
+        var command = new UpdateBrandCommand(
+            brandId,
+            request.Name,
+            request.Description,
+            newLogo);
+
+        var result = await _sender.Send(command, ct);
+
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
         return NoContent();
+    }
+
+    [HttpGet("{brandId:guid}")]
+    [Authorize]
+    [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [CacheControl(Public = true, MaxAge = 1800)]
+    public async Task<IActionResult> GetBrandById(
+        Guid brandId,
+        CancellationToken ct)
+    {
+        var query = new GetBrandByIdQuery(brandId);
+        var result = await _sender.Send(query, ct);
+
+        if (!result.Succeeded)
+            return NotFound(result.Errors);
+
+        var response = new BrandResponse
+        {
+            Id = result.Data!.Id,
+            Name = result.Data.Name,
+            DescriptionText = result.Data.DescriptionText
+        };
+
+        return Ok(response);
+    }
+
+    [HttpGet]
+    [Authorize]
+    [ProducesResponseType(typeof(IReadOnlyList<BrandResponse>), StatusCodes.Status200OK)]
+    [CacheControl(Public = true, MaxAge = 1800)]
+    public async Task<IActionResult> ListBrands(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var query = new ListBrandsQuery(pageNumber, pageSize);
+        var result = await _sender.Send(query, ct);
+
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        var responses = result.Data!.Items
+            .Select(brand => new BrandResponse
+            {
+                Id = brand.Id,
+                Name = brand.Name,
+                DescriptionText = brand.DescriptionText
+            })
+            .ToList();
+
+        return Ok(responses);
     }
 }

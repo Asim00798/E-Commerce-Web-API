@@ -1,9 +1,10 @@
-﻿namespace E_Commerce.Api.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+namespace E_Commerce.Api.Extensions;
 
 public static class HttpsExtensions
 {
-    public static IServiceCollection AddHttpsConfiguration(
-        this IServiceCollection services)
+    public static IServiceCollection AddHttpsConfiguration(this IServiceCollection services)
     {
         services.AddHsts(options =>
         {

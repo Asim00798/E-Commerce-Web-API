@@ -1,7 +1,6 @@
+using System.Net;
 using E_Commerce.Application.Shared.Exceptions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace E_Commerce.Api.Middleware;
 
@@ -9,16 +8,13 @@ public sealed class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
-    private readonly IExceptionResponseMapper _responseMapper;
 
     public GlobalExceptionMiddleware(
         RequestDelegate next,
-        ILogger<GlobalExceptionMiddleware> logger,
-        IExceptionResponseMapper responseMapper)
+        ILogger<GlobalExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;
-        _responseMapper = responseMapper;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -29,7 +25,7 @@ public sealed class GlobalExceptionMiddleware
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
         {
-            // Let ASP.NET Core handle client cancellation naturally.
+            // Client cancelled the request; let ASP.NET Core handle it naturally.
             throw;
         }
         catch (Exception ex)
@@ -50,6 +46,7 @@ public sealed class GlobalExceptionMiddleware
     private void LogException(Exception exception, HttpContext context)
     {
         var logLevel = GetLogLevel(exception);
+
         _logger.Log(
             logLevel,
             exception,
@@ -60,7 +57,7 @@ public sealed class GlobalExceptionMiddleware
 
     private static LogLevel GetLogLevel(Exception exception) => exception switch
     {
-        DbUpdateConcurrencyException => LogLevel.Warning,
+        ConcurrencyException => LogLevel.Warning,
         ValidationException => LogLevel.Warning,
         UnauthorizedAccessException => LogLevel.Warning,
         ForbiddenAccessException => LogLevel.Warning,
@@ -70,7 +67,7 @@ public sealed class GlobalExceptionMiddleware
 
     private async Task WriteErrorResponseAsync(HttpContext context, Exception exception)
     {
-        var (statusCode, title, errors) = _responseMapper.Map(exception);
+        var (statusCode, title, errors) = MapException(exception);
         var problemDetails = BuildProblemDetails(context, statusCode, title, exception, errors);
 
         context.Response.StatusCode = (int)statusCode;
@@ -78,6 +75,28 @@ public sealed class GlobalExceptionMiddleware
 
         await context.Response.WriteAsJsonAsync(problemDetails);
     }
+
+    private static (HttpStatusCode StatusCode, string Title, IDictionary<string, string[]>? Errors)
+        MapException(Exception exception) => exception switch
+        {
+            ValidationException validationEx =>
+                (HttpStatusCode.BadRequest, "Validation Error", validationEx.Errors),
+
+            NotFoundException notFoundEx =>
+                (HttpStatusCode.NotFound, notFoundEx.Message, null),
+
+            ForbiddenAccessException =>
+                (HttpStatusCode.Forbidden, "Forbidden Access", null),
+
+            UnauthorizedAccessException =>
+                (HttpStatusCode.Unauthorized, "Unauthorized", null),
+
+            ConcurrencyException =>
+                (HttpStatusCode.Conflict, "Concurrency Conflict", null),
+
+            _ =>
+                (HttpStatusCode.InternalServerError, "Internal Server Error", null)
+        };
 
     private static ProblemDetails BuildProblemDetails(
         HttpContext context,
@@ -92,13 +111,24 @@ public sealed class GlobalExceptionMiddleware
         {
             Status = (int)statusCode,
             Title = title,
+            // Never leak internal exception messages to the client for 500s.
+            // For validation errors, errors dictionary already carries details.
             Detail = isInternalServerError
                 ? "An unexpected error occurred."
-                : exception.Message,
+                : (errors is null ? exception.Message : null),
             Instance = context.Request.Path
         };
 
-        problem.Extensions["traceId"] = context.TraceIdentifier;
+        // Prefer OpenTelemetry trace id when available, else fall back to request id.
+        var traceId = System.Diagnostics.Activity.Current?.TraceId.ToString();
+        if (!string.IsNullOrWhiteSpace(traceId))
+        {
+            problem.Extensions["traceId"] = traceId;
+        }
+        else
+        {
+            problem.Extensions["traceId"] = context.TraceIdentifier;
+        }
 
         if (errors is not null)
         {

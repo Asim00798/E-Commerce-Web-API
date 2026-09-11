@@ -17,11 +17,6 @@ public static class LoggingExtensions
             .Enrich.WithProperty("AppName", appName)
             .Enrich.WithProperty("Environment", environment)
             .Enrich.WithProperty("Version", version)
-            .WriteTo.Console()                                      // Console sink
-            .WriteTo.File("logs/ecommerce-.log",
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 7,
-                fileSizeLimitBytes: 10 * 1024 * 1024)
             .CreateLogger();
 
         builder.Host.UseSerilog();

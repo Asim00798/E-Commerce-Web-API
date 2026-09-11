@@ -29,6 +29,9 @@ public static class RepositoryRegistrationExtensions
         // Register generic repository
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+        // 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         return services;
     }
 }

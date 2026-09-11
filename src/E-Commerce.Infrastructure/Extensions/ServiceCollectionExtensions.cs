@@ -30,74 +30,8 @@ public static class ServiceCollectionExtensions
         // -----------------------------------------------------------------
         // 1. Database connection string
         // -----------------------------------------------------------------
-        var connectionString = configuration["Database:ConnectionString"]
-            ?? throw new InvalidOperationException("Database connection string is missing.");
-
-        // -----------------------------------------------------------------
-        // 2. EF Core interceptors (cross‑cutting persistence logic)
-        // Registered as scoped so they can consume other scoped services
-        // (e.g., ICurrentUser inside AuditAndSoftDeleteInterceptor).
-        // Execution order is important and is enforced when they are added
-        // to the options pipeline below.
-        // -----------------------------------------------------------------
-        services.AddScoped<ValidationInterceptor>();          // entity validation
-        services.AddScoped<TimestampInterceptor>();           // CreatedAt / UpdatedAt
-        services.AddScoped<AuditAndSoftDeleteInterceptor>(); // soft‑delete + audit
-
-        // -----------------------------------------------------------------
-        // 3. DbContext
-        // A single AppDbContext for all write‑side bounded contexts.
-        // Interceptors are attached in the desired order:
-        //   1. Validation (fail fast before any other work)
-        //   2. Timestamps (accurate CreatedAt / UpdatedAt for audit)
-        //   3. Audit + Soft‑Delete (captures final state)
-        //   4. Logging (last, to capture the final state after all changes)
-        // The migration history table is explicitly placed in the 'dbo' schema.
-        // -----------------------------------------------------------------
-        services.AddDbContext<AppDbContext>((sp, options) =>
-        {
-            options.UseSqlServer(connectionString, sqlOptions =>
-                sqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "dbo"));
-            options.AddInterceptors(
-                sp.GetRequiredService<ValidationInterceptor>(),//1
-                sp.GetRequiredService<TimestampInterceptor>(), //2
-                sp.GetRequiredService<AuditAndSoftDeleteInterceptor>(), //3
-                sp.GetRequiredService<LoggingInterceptor>() //4
-            );
-        });
-
-        // -----------------------------------------------------------------
-        // 4. Repositories
-        // auto‑registers all generic and domain‑specific repositories using reflection.
-        // -----------------------------------------------------------------
-        /// <summary>
-        /// Repositories auto registration handled by <see cref="RepositoryRegistrationExtensions"/>
-        /// </summary>
-
-        // -----------------------------------------------------------------
-        // 5. Unit of Work
-        // Coordinates transaction boundaries and domain‑event dispatching
-        // within a single atomic scope. It depends on IDomainEventDispatcher,
-        // which is registered as part of the Outbox subsystem.
-        // -----------------------------------------------------------------
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-        // -----------------------------------------------------------------
-        // 6. Outbox & Messaging
-        // Registers:
-        //   - IDomainEventDispatcher  &  IIntegrationEventDispatcher
-        //   - IOutboxMessageWriter
-        //   - OutboxProcessor (BackgroundService)
-        //   - Serialization, repository, and dispatch services
-        // -----------------------------------------------------------------
-        services.AddOutboxMessaging();
-
-        // -----------------------------------------------------------------
-        // 7. Identity & current user
-        // Provides the current user context for audit and authorization
-        // without coupling the Application layer to ASP.NET Core.
-        // -----------------------------------------------------------------
-        services.AddScoped<ICurrentUser, CurrentUser>();
+        //var connectionString = configuration["Database:ConnectionString"]
+        //    ?? throw new InvalidOperationException("Database connection string is missing.");
 
         return services;
     }
