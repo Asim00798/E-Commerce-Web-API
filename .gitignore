@@ -47,7 +47,6 @@ TestResults/
 ##################################
 # Secrets / Config
 ##################################
-appsettings.Development.json
 appsettings.Local.json
 secrets.json
 
