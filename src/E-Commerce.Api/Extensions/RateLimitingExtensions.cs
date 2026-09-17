@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using System.Threading.RateLimiting;
+﻿using System.Threading.RateLimiting;
 using E_Commerce.Api.Configuration;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +6,17 @@ using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Api.Extensions;
 
+/// <summary>
+/// Configures HTTP rate limiting for the API.
+///
+/// Rate limiting runs before authentication — this is intentional. HTTP-layer
+/// rate limiting protects the authentication pipeline from abuse and partitions
+/// by signals available pre-auth (IP, endpoint path). It cannot partition by
+/// user identity, because authentication has not yet run.
+///
+/// Per-user quotas — if needed — belong at the business layer (inside handlers),
+/// where <c>ICurrentUser</c> is populated. Do not attempt to enforce them here.
+/// </summary>
 public static class RateLimitingExtensions
 {
     public static IServiceCollection AddProductionRateLimiting(
@@ -31,17 +41,6 @@ public static class RateLimitingExtensions
                         Window = TimeSpan.FromSeconds(options.Ip.WindowSeconds),
                         QueueLimit = options.Ip.QueueLimit,
                         AutoReplenishment = true
-                    }));
-
-            limiter.AddPolicy("user-sliding-window", context =>
-                RateLimitPartition.GetSlidingWindowLimiter(
-                    partitionKey: GetUserId(context),
-                    factory: _ => new SlidingWindowRateLimiterOptions
-                    {
-                        PermitLimit = options.User.PermitLimit,
-                        Window = TimeSpan.FromSeconds(options.User.WindowSeconds),
-                        SegmentsPerWindow = options.User.SegmentsPerWindow,
-                        QueueLimit = options.User.QueueLimit
                     }));
 
             limiter.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
@@ -75,9 +74,8 @@ public static class RateLimitingExtensions
             .CreateLogger("RateLimiting");
 
         logger.LogWarning(
-            "Rate limit triggered | IP: {IP} | User: {User} | Path: {Path}",
+            "Rate limit triggered | IP: {IP} | Path: {Path}",
             GetIp(http),
-            GetUserId(http),
             http.Request.Path);
 
         http.Response.ContentType = "application/problem+json";
@@ -94,7 +92,4 @@ public static class RateLimitingExtensions
 
     private static string GetIp(HttpContext context)
         => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-
-    private static string GetUserId(HttpContext context)
-        => context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous";
 }

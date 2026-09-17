@@ -2,23 +2,33 @@ using E_Commerce.Api.Attributes;
 using E_Commerce.Api.Controllers.Common;
 using E_Commerce.Api.DTOs.v1.Catalog.Categories.Requests;
 using E_Commerce.Api.DTOs.v1.Catalog.Categories.Responses;
+using E_Commerce.Api.DTOs.v1.Shared;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.AddCategoryImage;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.CreateCategory;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.RemoveCategoryImage;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Commands.UpdateCategory;
+using E_Commerce.Application.BoundedContexts.Catalog.Categories.DTOs;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Queries.GetCategoryById;
 using E_Commerce.Application.BoundedContexts.Catalog.Categories.Queries.ListCategories;
 using E_Commerce.Application.Shared.Files.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace E_Commerce.Api.Controllers.v1.Catalog;
 
+/// <summary>
+/// Manages category resources.
+/// Reads are available to any authenticated user.
+/// Writes require the CatalogManager or Administrator role.
+/// </summary>
 [ApiController]
 [Route("api/catalog/categories")]
 public sealed class CategoriesController : BaseApiController
 {
+    private const string WriteRoles = "CatalogManager,Administrator";
+
     private readonly ISender _sender;
 
     public CategoriesController(ISender sender)
@@ -27,9 +37,10 @@ public sealed class CategoriesController : BaseApiController
     }
 
     [HttpPost]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CreateCategory(
         [FromBody] CreateCategoryRequest request,
         CancellationToken ct)
@@ -42,7 +53,7 @@ public sealed class CategoriesController : BaseApiController
         var result = await _sender.Send(command, ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
         var response = new CategoryResponse
         {
@@ -52,13 +63,18 @@ public sealed class CategoriesController : BaseApiController
             ParentCategoryId = request.ParentCategoryId
         };
 
-        return CreatedAtAction(nameof(GetCategoryById), new { id = result.Data }, response);
+        return CreatedAtAction(
+            nameof(GetCategoryById),
+            new { categoryId = result.Data },
+            response);
     }
 
     [HttpPut("{categoryId:guid}")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateCategory(
         Guid categoryId,
         [FromBody] UpdateCategoryRequest request,
@@ -74,15 +90,17 @@ public sealed class CategoriesController : BaseApiController
         var result = await _sender.Send(command, ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
         return NoContent();
     }
 
     [HttpPost("{categoryId:guid}/images")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> AddCategoryImage(
         Guid categoryId,
         [FromForm] AddCategoryImageRequest request,
@@ -97,15 +115,17 @@ public sealed class CategoriesController : BaseApiController
         var result = await _sender.Send(command, ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
         return NoContent();
     }
 
     [HttpDelete("{categoryId:guid}/images/{fileId:guid}")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> RemoveCategoryImage(
         Guid categoryId,
         Guid fileId,
@@ -115,63 +135,94 @@ public sealed class CategoriesController : BaseApiController
         var result = await _sender.Send(command, ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
         return NoContent();
     }
 
     [HttpGet("{categoryId:guid}")]
     [Authorize]
+    [CacheControl(Public = true, MaxAge = 1800)]
     [ProducesResponseType(typeof(CategoryResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCategoryById(
         Guid categoryId,
         CancellationToken ct)
     {
-        var query = new GetCategoryByIdQuery(categoryId);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(new GetCategoryByIdQuery(categoryId), ct);
 
         if (!result.Succeeded)
-            return NotFound(result.Errors);
+            return ToNotFoundProblem(result.Errors);
 
-        var response = new CategoryResponse
-        {
-            Id = result.Data!.Id,
-            Name = result.Data.Name,
-            Description = result.Data.Description,
-            ParentCategoryId = result.Data.ParentCategoryId,
-            ImageFileIds = result.Data.ImageFileIds
-        };
-
-        return Ok(response);
+        return Ok(MapToResponse(result.Data!));
     }
 
     [HttpGet]
     [Authorize]
-    [ProducesResponseType(typeof(IReadOnlyList<CategoryResponse>), StatusCodes.Status200OK)]
     [CacheControl(Public = true, MaxAge = 1800)]
+    [ProducesResponseType(typeof(PaginatedResponse<CategoryResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ListCategories(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var query = new ListCategoriesQuery(pageNumber, pageSize);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(new ListCategoriesQuery(pageNumber, pageSize), ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
-        var responses = result.Data!.Items
-            .Select(category => new CategoryResponse
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description,
-                ParentCategoryId = category.ParentCategoryId,
-                ImageFileIds = category.ImageFileIds
-            })
-            .ToList();
+        var page = result.Data!;
 
-        return Ok(responses);
+        var response = new PaginatedResponse<CategoryResponse>
+        {
+            Items = page.Items.Select(MapToResponse).ToList(),
+            PageNumber = page.PageNumber,
+            PageSize = page.PageSize,
+            TotalPages = page.TotalPages,
+            TotalCount = page.TotalCount,
+            HasPreviousPage = page.HasPreviousPage,
+            HasNextPage = page.HasNextPage
+        };
+
+        return Ok(response);
     }
+
+    // ------------------------------------------------------------------
+    // Mapping
+    // ------------------------------------------------------------------
+
+    private static CategoryResponse MapToResponse(CategoryDto dto) => new()
+    {
+        Id = dto.Id,
+        Name = dto.Name,
+        Description = dto.Description,
+        ParentCategoryId = dto.ParentCategoryId,
+        ImageFileIds = dto.ImageFileIds
+    };
+
+    // ------------------------------------------------------------------
+    // Error helpers
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns an RFC 7807 validation problem with the given errors.
+    /// Shape matches GlobalExceptionMiddleware's ProblemDetails output
+    /// so clients see one error contract across the API.
+    /// </summary>
+    private IActionResult ToValidationProblem(string[] errors)
+    {
+        var modelState = new ModelStateDictionary();
+        foreach (var error in errors)
+        {
+            modelState.AddModelError(string.Empty, error);
+        }
+
+        return ValidationProblem(modelState);
+    }
+
+    private IActionResult ToNotFoundProblem(string[] errors) =>
+        Problem(
+            title: "Resource not found.",
+            detail: string.Join(" ", errors),
+            statusCode: StatusCodes.Status404NotFound);
 }

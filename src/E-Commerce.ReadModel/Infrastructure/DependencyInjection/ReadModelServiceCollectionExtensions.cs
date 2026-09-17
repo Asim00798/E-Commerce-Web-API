@@ -1,4 +1,6 @@
-﻿using E_Commerce.ReadModel.Features.CustomerProfile.Queries;
+﻿using E_Commerce.Application.Modules.Profiles.CustomerProfile.Abstractions;
+using E_Commerce.Application.Modules.Profiles.EmployeeProfile.Abstractions;
+using E_Commerce.ReadModel.Features.CustomerProfile.Queries;
 using E_Commerce.ReadModel.Features.EmployeeProfile.Queries;
 using E_Commerce.ReadModel.Infrastructure.Connections;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,5 +1,7 @@
 ﻿using E_Commerce.Application.BoundedContexts.Onboarding.IntegrationEvents;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
+using E_Commerce.Application.Shared.Security.Authorization.Roles;
+using E_Commerce.Application.Shared.Security.Authorization.Services;
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.Behaviors;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.Repositories;
@@ -20,17 +22,19 @@ public sealed class CreateUserOnRegistrationVerifiedHandler
     private readonly IIdentityService _identityService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CreateUserOnRegistrationVerifiedHandler> _logger;
-
+    private readonly IRoleManagementService _roleManagementService;
     public CreateUserOnRegistrationVerifiedHandler(
         IRegistrationRepository registrationRepo,
         IIdentityService identityService,
         IUnitOfWork unitOfWork,
-        ILogger<CreateUserOnRegistrationVerifiedHandler> logger)
+        ILogger<CreateUserOnRegistrationVerifiedHandler> logger,
+        IRoleManagementService roleManagementService)
     {
         _registrationRepo = registrationRepo;
         _identityService = identityService;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _roleManagementService = roleManagementService;
     }
 
     public async Task HandleAsync(
@@ -43,6 +47,10 @@ public sealed class CreateUserOnRegistrationVerifiedHandler
 
         // Create the Identity user with the pre-hashed password
         var userId = await CreateIdentityUserAsync(evt, registration, ct);
+
+        // Assign the "Customer" role to the newly created user
+        await AssignCustomerRoleAsync(userId, ct);
+
         // Remove the registration after successfully creating the user
         await RemoveRegistrationAsync(registration, ct);
         // Log the successful provisioning
@@ -86,5 +94,13 @@ public sealed class CreateUserOnRegistrationVerifiedHandler
             "Account provisioned for registration {RegistrationId}, user {UserId}",
             registrationId,
             userId);
+    }
+
+    private async Task AssignCustomerRoleAsync(Guid userId, CancellationToken ct)
+    {
+        await _roleManagementService.AssignRoleToUserAsync(
+            userId,
+            SystemRoles.Customer,
+            ct);
     }
 }

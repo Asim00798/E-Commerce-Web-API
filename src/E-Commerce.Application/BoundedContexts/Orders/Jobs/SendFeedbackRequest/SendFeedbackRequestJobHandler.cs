@@ -3,7 +3,7 @@ using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Application.Shared.Communication.Notifications.Channels;
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.Repositories;
-using E_Commerce.Domain.BoundedContexts.UserManagement.Registration.Repositories;
+using E_Commerce.Domain.BoundedContexts.UserManagement.People.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Application.BoundedContexts.Orders.Jobs.SendFeedbackRequest;

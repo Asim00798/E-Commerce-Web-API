@@ -1,7 +1,8 @@
-using System.Data;
-using E_Commerce.ReadModel.Features.CustomerProfile.Models;
+using E_Commerce.Application.Modules.Profiles.CustomerProfile.Abstractions;
+using E_Commerce.Application.Modules.Profiles.CustomerProfile.Models;
 using E_Commerce.ReadModel.Infrastructure.Connections;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace E_Commerce.ReadModel.Features.CustomerProfile.Queries;
 

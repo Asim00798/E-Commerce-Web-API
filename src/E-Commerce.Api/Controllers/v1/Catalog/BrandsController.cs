@@ -2,21 +2,32 @@ using E_Commerce.Api.Attributes;
 using E_Commerce.Api.Controllers.Common;
 using E_Commerce.Api.DTOs.v1.Catalog.Brands.Requests;
 using E_Commerce.Api.DTOs.v1.Catalog.Brands.Responses;
+using E_Commerce.Api.DTOs.v1.Shared;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Commands.CreateBrand;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Commands.UpdateBrand;
+using E_Commerce.Application.BoundedContexts.Catalog.Brands.DTOs;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Queries.GetBrandById;
 using E_Commerce.Application.BoundedContexts.Catalog.Brands.Queries.ListBrands;
 using E_Commerce.Application.Shared.Files.Models;
+using E_Commerce.Application.Shared.Security.Authorization.Roles;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace E_Commerce.Api.Controllers.v1.Catalog;
 
+/// <summary>
+/// Manages brand resources.
+/// Reads are available to any authenticated user.
+/// Writes require the CatalogManager or Administrator role.
+/// </summary>
 [ApiController]
 [Route("api/catalog/brands")]
 public sealed class BrandsController : BaseApiController
 {
+    private const string WriteRoles = $"{SystemRoles.CatalogManager},{SystemRoles.Administrator}";
+
     private readonly ISender _sender;
 
     public BrandsController(ISender sender)
@@ -25,9 +36,10 @@ public sealed class BrandsController : BaseApiController
     }
 
     [HttpPost]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CreateBrand(
         [FromForm] CreateBrandRequest request,
         CancellationToken ct)
@@ -45,8 +57,12 @@ public sealed class BrandsController : BaseApiController
         var result = await _sender.Send(command, ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
+        // The command returns only the new brand ID. LogoFileId is not
+        // available without a re-query, so the created-response body
+        // omits it. Clients can fetch the full brand via the Location
+        // header target (GetBrandById), which includes LogoFileId.
         var response = new BrandResponse
         {
             Id = result.Data,
@@ -54,13 +70,18 @@ public sealed class BrandsController : BaseApiController
             DescriptionText = request.Description
         };
 
-        return CreatedAtAction(nameof(GetBrandById), new { id = result.Data }, response);
+        return CreatedAtAction(
+            nameof(GetBrandById),
+            new { brandId = result.Data },
+            response);
     }
 
     [HttpPut("{brandId:guid}")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateBrand(
         Guid brandId,
         [FromForm] UpdateBrandRequest request,
@@ -85,60 +106,95 @@ public sealed class BrandsController : BaseApiController
         var result = await _sender.Send(command, ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
         return NoContent();
     }
 
     [HttpGet("{brandId:guid}")]
     [Authorize]
-    [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [CacheControl(Public = true, MaxAge = 1800)]
+    [ProducesResponseType(typeof(BrandResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBrandById(
         Guid brandId,
         CancellationToken ct)
     {
-        var query = new GetBrandByIdQuery(brandId);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(new GetBrandByIdQuery(brandId), ct);
 
         if (!result.Succeeded)
-            return NotFound(result.Errors);
+            return ToNotFoundProblem(result.Errors);
 
-        var response = new BrandResponse
-        {
-            Id = result.Data!.Id,
-            Name = result.Data.Name,
-            DescriptionText = result.Data.DescriptionText
-        };
-
-        return Ok(response);
+        return Ok(MapToResponse(result.Data!));
     }
 
     [HttpGet]
     [Authorize]
-    [ProducesResponseType(typeof(IReadOnlyList<BrandResponse>), StatusCodes.Status200OK)]
     [CacheControl(Public = true, MaxAge = 1800)]
+    [ProducesResponseType(typeof(PaginatedResponse<BrandResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ListBrands(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var query = new ListBrandsQuery(pageNumber, pageSize);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(new ListBrandsQuery(pageNumber, pageSize), ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
-        var responses = result.Data!.Items
-            .Select(brand => new BrandResponse
-            {
-                Id = brand.Id,
-                Name = brand.Name,
-                DescriptionText = brand.DescriptionText
-            })
-            .ToList();
+        var page = result.Data!;
 
-        return Ok(responses);
+        var response = new PaginatedResponse<BrandResponse>
+        {
+            Items = page.Items.Select(MapToResponse).ToList(),
+            PageNumber = page.PageNumber,
+            PageSize = page.PageSize,
+            TotalPages = page.TotalPages,
+            TotalCount = page.TotalCount,
+            HasPreviousPage = page.HasPreviousPage,
+            HasNextPage = page.HasNextPage
+        };
+
+        return Ok(response);
     }
+
+    // ------------------------------------------------------------------
+    // Mapping
+    // ------------------------------------------------------------------
+
+    private static BrandResponse MapToResponse(BrandDto dto) => new()
+    {
+        Id = dto.Id,
+        Name = dto.Name,
+        DescriptionText = dto.DescriptionText,
+        // BrandDto.LogoFileId is a non-nullable Guid; Guid.Empty means "no logo".
+        // BrandResponse.LogoFileId is Guid? and uses null for the same meaning.
+        LogoFileId = dto.LogoFileId == Guid.Empty ? null : dto.LogoFileId
+    };
+
+    // ------------------------------------------------------------------
+    // Error helpers
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns an RFC 7807 validation problem with the given errors.
+    /// Shape matches GlobalExceptionMiddleware's ProblemDetails output
+    /// so clients see one error contract across the API.
+    /// </summary>
+    private IActionResult ToValidationProblem(string[] errors)
+    {
+        var modelState = new ModelStateDictionary();
+        foreach (var error in errors)
+        {
+            modelState.AddModelError(string.Empty, error);
+        }
+
+        return ValidationProblem(modelState);
+    }
+
+    private IActionResult ToNotFoundProblem(string[] errors) =>
+        Problem(
+            title: "Resource not found.",
+            detail: string.Join(" ", errors),
+            statusCode: StatusCodes.Status404NotFound);
 }

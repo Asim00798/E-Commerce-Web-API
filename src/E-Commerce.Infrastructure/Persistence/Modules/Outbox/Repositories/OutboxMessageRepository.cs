@@ -3,7 +3,7 @@ using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Entities;
 using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
 
-namespace E_Commerce.Infrastructure.Persistence.Outbox.Repository;
+namespace E_Commerce.Infrastructure.Persistence.Outbox.Repositories;
 
 public class OutboxMessageRepository : Repository<OutboxMessage>, IOutboxMessageRepository
 {

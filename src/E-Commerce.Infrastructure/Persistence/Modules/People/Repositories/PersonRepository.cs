@@ -1,5 +1,5 @@
 ﻿using E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots.Person.Behaviors;
-using E_Commerce.Domain.BoundedContexts.UserManagement.Registration.Repositories;
+using E_Commerce.Domain.BoundedContexts.UserManagement.People.Repositories;
 using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;

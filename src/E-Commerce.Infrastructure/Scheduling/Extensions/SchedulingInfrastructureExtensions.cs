@@ -54,7 +54,7 @@ public static class SchedulingInfrastructureExtensions
         services.AddScoped<OutboxProcessingJob>();
         RecurringJob.AddOrUpdate<OutboxProcessingJob>(
             "outbox-processor",
-            job => job.ExecuteAsync(),
+            job => job.ExecuteAsync(JobCancellationToken.Null),
             Cron.Minutely);
 
         services.AddScoped<DeadLetterMonitorJob>();
@@ -65,8 +65,8 @@ public static class SchedulingInfrastructureExtensions
 
         // -----------------------------------------------------------------
         // 6. Automatic trigger scheduling is handled by RecurringJobBootstrapper.
-        //    All triggers implementing ITrigger with [RecurringJob] attribute
-        //    are discovered and scheduled automatically at startup.
+        //    All triggers implementing IRecurringJobTrigger with [RecurringJob]
+        //    attribute are discovered and scheduled automatically at startup.
         // -----------------------------------------------------------------
 
         return services;

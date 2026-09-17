@@ -1,5 +1,4 @@
 ﻿using E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots.Person.Enums;
-using E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots.Person.Events;
 using E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots.Person.ValueObjects;
 using E_Commerce.Domain.SharedKernel.Abstractions;
 using E_Commerce.Domain.SharedKernel.Exceptions;
@@ -36,8 +35,6 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots
 
             HomeAddress = address;
             PersonalImage = personalImage;
-
-            AddDomainEvent(new PersonCreated(Id));
         }
 
         public void LinkIdentityUser(Guid identityUserId)
@@ -51,8 +48,6 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots
                     "Person is already linked to an identity account.");
 
             IdentityUserId = identityUserId;
-
-            AddDomainEvent(new IdentityUserLinkedToPerson(Id, identityUserId));
         }
     }
 }

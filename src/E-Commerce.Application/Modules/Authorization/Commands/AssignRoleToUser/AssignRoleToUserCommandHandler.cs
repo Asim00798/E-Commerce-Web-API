@@ -1,5 +1,5 @@
-﻿using E_Commerce.Application.Modules.Authorization.Abstractions;
-using E_Commerce.Application.Shared.Models;
+﻿using E_Commerce.Application.Shared.Models;
+using E_Commerce.Application.Shared.Security.Authorization.Services;
 using MediatR;
 
 namespace E_Commerce.Application.Modules.Authorization.Commands.AssignRoleToUser;

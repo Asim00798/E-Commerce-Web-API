@@ -19,6 +19,10 @@ builder.Services.AddHttpContextAccessor();
 //builder.Services.AddApplication();
 //builder.Services.AddInfrastructure(builder.Configuration);
 
+// ========== Controllers & API Explorer ==========
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
 // ========== API-level configuration ==========
 builder.Services.AddApiConfiguration(builder.Configuration);
 builder.Services.AddApiVersioningConfiguration(builder.Configuration);
@@ -28,10 +32,9 @@ builder.Services.AddHttpsConfiguration();
 builder.Services.AddProductionRateLimiting(builder.Configuration);
 builder.Services.AddLowercaseRouting();
 builder.Services.AddHttpCaching();
+builder.Services.AddForwardedHeadersConfiguration(builder.Configuration);
 
-// ========== Controllers & SignalR ==========
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+// ========== SignalR ==========
 //builder.Services.AddSignalR();
 
 var app = builder.Build();
@@ -42,15 +45,33 @@ var app = builder.Build();
 //    scope.ServiceProvider.ScheduleRecurringJobs(typeof(IRecurringJobTrigger).Assembly);
 //}
 
-// ========== Swagger (dev only) — before auth so UI is always reachable ==========
-app.UseDevelopmentSwagger();
-
 // ========== Middleware pipeline (order matters) ==========
+//
+// Ordering rules:
+//
+//   Correlation   — outermost. Pushes the correlation-ID log scope so every
+//                   downstream log entry (including Serilog's request completion
+//                   log) carries the ID.
+//
+//   Serilog       — inside correlation. Logs the final HTTP status after all
+//                   transformations (exception handling, status rewriting).
+//
+//   SecurityHeaders — sets hardening headers on all responses.
+//
+//   Exception     — transforms exceptions into ProblemDetails responses.
+//                   Must be inside Serilog so that Serilog observes the final
+//                   status code; must be outside Swagger so Swagger errors are
+//                   also handled.
+//
+app.UseForwardedHeadersConfiguration();
+app.UseCorrelationId();               // outermost — log scope wraps everything below
+app.UseSerilogRequestLogging();       // inside correlation — request logs carry correlation ID
 app.UseSecurityHeaders();
-app.UseCorrelationId();
-app.UseGlobalExceptionHandler();
+app.UseGlobalExceptionHandler();      // inside Serilog — transforms exceptions into HTTP responses
 
-app.UseSerilogRequestLogging();
+// Swagger before auth so the UI is reachable without a token,
+// but inside correlation + exception handling.
+app.UseDevelopmentSwagger();
 
 app.UseHttpsConfiguration(app.Environment);
 app.UseCorsConfiguration();

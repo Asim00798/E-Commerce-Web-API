@@ -1,7 +1,7 @@
 ﻿using E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots.Person.Behaviors;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 
-namespace E_Commerce.Domain.BoundedContexts.UserManagement.Registration.Repositories
+namespace E_Commerce.Domain.BoundedContexts.UserManagement.People.Repositories
 {
     public interface IPersonRepository : IRepository<Person>
     {

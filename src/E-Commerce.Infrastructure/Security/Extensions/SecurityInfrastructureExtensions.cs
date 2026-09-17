@@ -1,7 +1,6 @@
 ﻿using E_Commerce.Application.BoundedContexts.Onboarding.Abstractions;
 using E_Commerce.Application.Modules.Authentication.Abstractions;
 using E_Commerce.Application.Modules.Authentication.Constants;
-using E_Commerce.Application.Modules.Authorization.Abstractions;
 using E_Commerce.Application.Modules.Identity.AccountManagement.Abstractions;
 using E_Commerce.Application.Shared.Security.Authorization.Services;
 using E_Commerce.Application.Shared.Security.Cryptography;

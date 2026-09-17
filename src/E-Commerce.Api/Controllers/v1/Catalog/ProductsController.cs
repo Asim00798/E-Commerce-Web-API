@@ -2,6 +2,7 @@ using E_Commerce.Api.Attributes;
 using E_Commerce.Api.Controllers.Common;
 using E_Commerce.Api.DTOs.v1.Catalog.Products.Requests;
 using E_Commerce.Api.DTOs.v1.Catalog.Products.Responses;
+using E_Commerce.Api.DTOs.v1.Shared;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.AddProductImage;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.AddProductTag;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Commands.AddProductVariant;
@@ -24,13 +25,21 @@ using E_Commerce.Application.Shared.Files.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace E_Commerce.Api.Controllers.v1.Catalog;
 
+/// <summary>
+/// Manages product resources, including lifecycle, images, variants, tags, and stock.
+/// Reads are available to any authenticated user.
+/// Writes require the CatalogManager or Administrator role.
+/// </summary>
 [ApiController]
 [Route("api/catalog/products")]
 public sealed class ProductsController : BaseApiController
 {
+    private const string WriteRoles = "CatalogManager,Administrator";
+
     private readonly ISender _sender;
 
     public ProductsController(ISender sender)
@@ -38,10 +47,15 @@ public sealed class ProductsController : BaseApiController
         _sender = sender;
     }
 
+    // ------------------------------------------------------------------
+    // Create
+    // ------------------------------------------------------------------
+
     [HttpPost]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CreateProduct(
         [FromBody] CreateProductRequest request,
         CancellationToken ct)
@@ -63,66 +77,78 @@ public sealed class ProductsController : BaseApiController
         var result = await _sender.Send(command, ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
-        return CreatedAtAction(nameof(GetProductById), new { id = result.Data }, result.Data);
+        // Fetch the created product so the 201 body matches the shape
+        // clients receive from GET /products/{id}.
+        var queryResult = await _sender.Send(new GetProductByIdQuery(result.Data), ct);
+
+        if (!queryResult.Succeeded)
+        {
+            // Product was created but cannot be re-read — surface a 201 with
+            // a Location header and no body rather than masking the create.
+            return CreatedAtAction(
+                nameof(GetProductById),
+                new { productId = result.Data },
+                value: null);
+        }
+
+        return CreatedAtAction(
+            nameof(GetProductById),
+            new { productId = result.Data },
+            MapToProductResponse(queryResult.Data!));
     }
 
+    // ------------------------------------------------------------------
+    // Lifecycle
+    // ------------------------------------------------------------------
+
     [HttpPost("{productId:guid}/publish")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> PublishProduct(
-        Guid productId,
-        CancellationToken ct)
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> PublishProduct(Guid productId, CancellationToken ct)
     {
-        var command = new PublishProductCommand(productId);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new PublishProductCommand(productId), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
     [HttpPost("{productId:guid}/draft")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DraftProduct(
-        Guid productId,
-        CancellationToken ct)
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> DraftProduct(Guid productId, CancellationToken ct)
     {
-        var command = new DraftProductCommand(productId);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new DraftProductCommand(productId), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
     [HttpPost("{productId:guid}/discontinue")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DiscontinueProduct(
-        Guid productId,
-        CancellationToken ct)
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> DiscontinueProduct(Guid productId, CancellationToken ct)
     {
-        var command = new DiscontinueProductCommand(productId);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new DiscontinueProductCommand(productId), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
+    // ------------------------------------------------------------------
+    // Images
+    // ------------------------------------------------------------------
+
     [HttpPost("{productId:guid}/images")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> AddProductImage(
         Guid productId,
         [FromForm] AddProductImageRequest request,
@@ -133,55 +159,50 @@ public sealed class ProductsController : BaseApiController
             request.Image.FileName,
             request.Image.ContentType);
 
-        var command = new AddProductImageCommand(productId, image);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new AddProductImageCommand(productId, image), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
     [HttpPost("{productId:guid}/images/{imageId:guid}/main")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> SetMainProductImage(
         Guid productId,
         Guid imageId,
         CancellationToken ct)
     {
-        var command = new SetMainProductImageCommand(productId, imageId);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new SetMainProductImageCommand(productId, imageId), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
     [HttpDelete("{productId:guid}/images/{imageId:guid}")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> RemoveProductImage(
         Guid productId,
         Guid imageId,
         CancellationToken ct)
     {
-        var command = new RemoveProductImageCommand(productId, imageId);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new RemoveProductImageCommand(productId, imageId), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
+    // ------------------------------------------------------------------
+    // Variants
+    // ------------------------------------------------------------------
+
     [HttpPost("{productId:guid}/variants")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> AddProductVariant(
         Guid productId,
         [FromBody] AddProductVariantRequest request,
@@ -196,17 +217,15 @@ public sealed class ProductsController : BaseApiController
             request.StockQuantity);
 
         var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
     [HttpPut("{productId:guid}/variants/{variantId:guid}/price")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateProductVariantPrice(
         Guid productId,
         Guid variantId,
@@ -220,191 +239,230 @@ public sealed class ProductsController : BaseApiController
             request.Currency);
 
         var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
     [HttpDelete("{productId:guid}/variants/{variantId:guid}")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> RemoveProductVariant(
         Guid productId,
         Guid variantId,
         CancellationToken ct)
     {
-        var command = new RemoveProductVariantCommand(productId, variantId);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new RemoveProductVariantCommand(productId, variantId), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
+    // ------------------------------------------------------------------
+    // Tags
+    // ------------------------------------------------------------------
+
     [HttpPost("{productId:guid}/tags")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> AddProductTag(
         Guid productId,
         [FromBody] AddProductTagRequest request,
         CancellationToken ct)
     {
-        var command = new AddProductTagCommand(productId, request.Tag);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new AddProductTagCommand(productId, request.Tag), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
+    // NOTE: DELETE with a request body is unreliable across clients and proxies.
+    // If the client contract can change, prefer:
+    //   [HttpDelete("{productId:guid}/tags/{tag}")] with a route parameter,
+    // or [HttpDelete("{productId:guid}/tags")] with [FromQuery] string tag.
     [HttpDelete("{productId:guid}/tags")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> RemoveProductTag(
         Guid productId,
         [FromBody] RemoveProductTagRequest request,
         CancellationToken ct)
     {
-        var command = new RemoveProductTagCommand(productId, request.Tag);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(new RemoveProductTagCommand(productId, request.Tag), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
+    // ------------------------------------------------------------------
+    // Stock
+    // ------------------------------------------------------------------
+
     [HttpPost("{productId:guid}/variants/{variantId:guid}/stock/increase")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> IncreaseProductStock(
         Guid productId,
         Guid variantId,
         [FromBody] IncreaseProductStockRequest request,
         CancellationToken ct)
     {
-        var command = new IncreaseProductStockCommand(productId, variantId, request.Quantity);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(
+            new IncreaseProductStockCommand(productId, variantId, request.Quantity), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
 
     [HttpPost("{productId:guid}/variants/{variantId:guid}/stock/decrease")]
-    [Authorize(Roles = "CatalogManager,Administrator")]
+    [Authorize(Roles = WriteRoles)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> DecreaseProductStock(
         Guid productId,
         Guid variantId,
         [FromBody] DecreaseProductStockRequest request,
         CancellationToken ct)
     {
-        var command = new DecreaseProductStockCommand(productId, variantId, request.Quantity);
-        var result = await _sender.Send(command, ct);
-
-        if (!result.Succeeded)
-            return BadRequest(result.Errors);
-
-        return NoContent();
+        var result = await _sender.Send(
+            new DecreaseProductStockCommand(productId, variantId, request.Quantity), ct);
+        return result.Succeeded ? NoContent() : ToValidationProblem(result.Errors);
     }
+
+    // ------------------------------------------------------------------
+    // Reads
+    // ------------------------------------------------------------------
 
     [HttpGet("{productId:guid}")]
     [Authorize]
-    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [CacheControl(Public = true, MaxAge = 600)]
-    public async Task<IActionResult> GetProductById(
-        Guid productId,
-        CancellationToken ct)
+    [ProducesResponseType(typeof(ProductResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetProductById(Guid productId, CancellationToken ct)
     {
-        var query = new GetProductByIdQuery(productId);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(new GetProductByIdQuery(productId), ct);
 
         if (!result.Succeeded)
-            return NotFound(result.Errors);
+            return ToNotFoundProblem(result.Errors);
 
-        var response = MapToProductResponse(result.Data!);
-        return Ok(response);
+        return Ok(MapToProductResponse(result.Data!));
     }
 
     [HttpGet]
     [Authorize]
-    [ProducesResponseType(typeof(IReadOnlyList<ProductListResponse>), StatusCodes.Status200OK)]
+    [CacheControl(Public = true, MaxAge = 600)]
+    [ProducesResponseType(typeof(PaginatedResponse<ProductListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> ListProducts(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var query = new ListProductsQuery(pageNumber, pageSize);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(new ListProductsQuery(pageNumber, pageSize), ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
-        var responses = result.Data!.Items.Select(MapToProductListResponse).ToList();
-        return Ok(responses);
+        var page = result.Data!;
+
+        return Ok(new PaginatedResponse<ProductListResponse>
+        {
+            Items = page.Items.Select(MapToProductListResponse).ToList(),
+            PageNumber = page.PageNumber,
+            PageSize = page.PageSize,
+            TotalPages = page.TotalPages,
+            TotalCount = page.TotalCount,
+            HasPreviousPage = page.HasPreviousPage,
+            HasNextPage = page.HasNextPage
+        });
     }
 
     [HttpGet("search")]
     [Authorize]
-    [ProducesResponseType(typeof(IReadOnlyList<ProductListResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedResponse<ProductListResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SearchProducts(
         [FromQuery] string searchTerm,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var query = new SearchProductsQuery(searchTerm, pageNumber, pageSize);
-        var result = await _sender.Send(query, ct);
+        var result = await _sender.Send(
+            new SearchProductsQuery(searchTerm, pageNumber, pageSize), ct);
 
         if (!result.Succeeded)
-            return BadRequest(result.Errors);
+            return ToValidationProblem(result.Errors);
 
-        var responses = result.Data!.Items.Select(MapToProductListResponse).ToList();
-        return Ok(responses);
-    }
+        var page = result.Data!;
 
-    private static ProductResponse MapToProductResponse(ProductDto dto)
-    {
-        return new ProductResponse
+        return Ok(new PaginatedResponse<ProductListResponse>
         {
-            Id = dto.Id,
-            Name = dto.Description.Name,
-            ShortDescription = dto.Description.ShortDescription,
-            LongDescription = dto.Description.LongDescription,
-            BrandId = dto.BrandId,
-            CategoryId = dto.CategoryId,
-            Status = dto.Status,
-            Tags = dto.Tags,
-            Images = dto.Images,
-            Variants = dto.Variants
-        };
+            Items = page.Items.Select(MapToProductListResponse).ToList(),
+            PageNumber = page.PageNumber,
+            PageSize = page.PageSize,
+            TotalPages = page.TotalPages,
+            TotalCount = page.TotalCount,
+            HasPreviousPage = page.HasPreviousPage,
+            HasNextPage = page.HasNextPage
+        });
     }
 
-    private static ProductListResponse MapToProductListResponse(ProductListDto dto)
+    // ------------------------------------------------------------------
+    // Mapping
+    // ------------------------------------------------------------------
+
+    // NOTE: This mapper assigns Application DTOs (ProductImageDto, ProductVariantDto)
+    // directly to ProductResponse.Images / .Variants. This violates the API DTO
+    // policy — the wire contract is owned by the Application layer here. See the
+    // "Follow-up" section of the review. Fix requires new ProductImageResponse
+    // and ProductVariantResponse API DTOs.
+    private static ProductResponse MapToProductResponse(ProductDto dto) => new()
     {
-        return new ProductListResponse
+        Id = dto.Id,
+        Name = dto.Description.Name,
+        ShortDescription = dto.Description.ShortDescription,
+        LongDescription = dto.Description.LongDescription,
+        BrandId = dto.BrandId,
+        CategoryId = dto.CategoryId,
+        Status = dto.Status,
+        Tags = dto.Tags,
+        Images = dto.Images,
+        Variants = dto.Variants
+    };
+
+    private static ProductListResponse MapToProductListResponse(ProductListDto dto) => new()
+    {
+        Id = dto.Id,
+        Name = dto.Name,
+        ShortDescription = dto.ShortDescription,
+        BrandId = dto.BrandId,
+        CategoryId = dto.CategoryId,
+        Status = dto.Status,
+        MinPrice = dto.MinPrice,
+        Currency = dto.Currency,
+        TotalStock = dto.TotalStock
+    };
+
+    // ------------------------------------------------------------------
+    // Error helpers
+    // ------------------------------------------------------------------
+
+    private IActionResult ToValidationProblem(string[] errors)
+    {
+        var modelState = new ModelStateDictionary();
+        foreach (var error in errors)
         {
-            Id = dto.Id,
-            Name = dto.Name,
-            ShortDescription = dto.ShortDescription,
-            BrandId = dto.BrandId,
-            CategoryId = dto.CategoryId,
-            Status = dto.Status,
-            MinPrice = dto.MinPrice,
-            Currency = dto.Currency,
-            TotalStock = dto.TotalStock
-        };
+            modelState.AddModelError(string.Empty, error);
+        }
+        return ValidationProblem(modelState);
     }
+
+    private IActionResult ToNotFoundProblem(string[] errors) =>
+        Problem(
+            title: "Resource not found.",
+            detail: string.Join(" ", errors),
+            statusCode: StatusCodes.Status404NotFound);
 }

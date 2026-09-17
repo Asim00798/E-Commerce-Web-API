@@ -9,7 +9,7 @@ using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Behav
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Entities;
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.Repositories;
 using E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots.Person.Behaviors;
-using E_Commerce.Domain.BoundedContexts.UserManagement.Registration.Repositories;
+using E_Commerce.Domain.BoundedContexts.UserManagement.People.Repositories;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using E_Commerce.Domain.SharedKernel.ValueObjects;
@@ -53,7 +53,7 @@ public sealed class PlaceOrderCommandHandler
         PlaceOrderCommand request,
         CancellationToken ct)
     {
-        var customerId = GetCustomerId();
+        var customerId = _currentUser.UserId;
         if (customerId is null)
             return Result<Guid>.Failure("Customer not found.");
 
@@ -61,28 +61,59 @@ public sealed class PlaceOrderCommandHandler
     }
 
     #region Private Methods
-    private Guid? GetCustomerId()
-    {
-        return _currentUser.UserId;
-    }
 
+    /// <summary>
+    /// Orchestrates order placement in two phases:
+    ///
+    ///   Phase 1 (outside the transaction) — gather all inputs. These include
+    ///   cross-context synchronous calls (person lookup, shipping fee calculation)
+    ///   that must not hold a database transaction open for their duration.
+    ///
+    ///   Phase 2 (inside the transaction) — the operations that must be atomic:
+    ///   stock decrease, order creation, cart clearing, and the persistence of
+    ///   both aggregates.
+    /// </summary>
     private async Task<Result<Guid>> ExecuteOrderPlacementAsync(
         Guid customerId,
         CancellationToken ct)
     {
+        // ------------------------------------------------------------------
+        // Phase 1 — gather inputs (no active transaction)
+        // ------------------------------------------------------------------
+
+        var cartResult = await LoadCartAsync(customerId, ct);
+        if (!cartResult.Succeeded)
+            return Result<Guid>.Failure(cartResult.Errors);
+        var cart = cartResult.Data!;
+
+        var personResult = await LoadPersonAsync(customerId, ct);
+        if (!personResult.Succeeded)
+            return Result<Guid>.Failure(personResult.Errors);
+        var person = personResult.Data!;
+
+        var shippingFeeResult = await CalculateShippingFeeAsync(person, ct);
+        if (!shippingFeeResult.Succeeded)
+            return Result<Guid>.Failure(shippingFeeResult.Errors);
+        var shippingFee = shippingFeeResult.Data!;
+
+        // ------------------------------------------------------------------
+        // Phase 2 — atomic operations (inside the transaction)
+        // ------------------------------------------------------------------
+
         try
         {
             await _unitOfWork.BeginTransactionAsync(ct);
 
-            var preparationResult = await PrepareOrderAsync(customerId, ct);
-            if (!preparationResult.Succeeded)
+            var orderItems = BuildOrderItems(cart);
+
+            var stockResult = await DecreaseStockAsync(orderItems, ct);
+            if (!stockResult.Succeeded)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return Result<Guid>.Failure(preparationResult.Errors);
+                return Result<Guid>.Failure(stockResult.Errors);
             }
 
-            var order = preparationResult.Data!.Order;
-            var cart = preparationResult.Data.Cart;
+            var order = Order.Place(customerId, orderItems, shippingFee);
 
             await PersistOrderAsync(order, cart, ct);
             await _unitOfWork.SaveChangesAsync(ct);
@@ -104,37 +135,6 @@ public sealed class PlaceOrderCommandHandler
         }
     }
 
-    private async Task<Result<OrderPreparationResult>> PrepareOrderAsync(
-        Guid customerId,
-        CancellationToken ct)
-    {
-        var cartResult = await LoadCartAsync(customerId, ct);
-        if (!cartResult.Succeeded)
-            return Result<OrderPreparationResult>.Failure(cartResult.Errors);
-        var cart = cartResult.Data!;
-
-        var personResult = await LoadPersonAsync(customerId, ct);
-        if (!personResult.Succeeded)
-            return Result<OrderPreparationResult>.Failure(personResult.Errors);
-        var person = personResult.Data!;
-
-        var shippingFeeResult = await CalculateShippingFeeAsync(person, ct);
-        if (!shippingFeeResult.Succeeded)
-            return Result<OrderPreparationResult>.Failure(shippingFeeResult.Errors);
-        var shippingFee = shippingFeeResult.Data!;
-
-        var orderItems = BuildOrderItems(cart);
-
-        var stockResult = await DecreaseStockAsync(orderItems, ct);
-        if (!stockResult.Succeeded)
-            return Result<OrderPreparationResult>.Failure(stockResult.Errors);
-
-        var order = CreateOrder(customerId, orderItems, shippingFee);
-
-        return Result<OrderPreparationResult>.Success(
-            new OrderPreparationResult(order, cart));
-    }
-
     private async Task<Result<Cart>> LoadCartAsync(
         Guid customerId,
         CancellationToken ct)
@@ -151,12 +151,18 @@ public sealed class PlaceOrderCommandHandler
         CancellationToken ct)
     {
         var person = await _personRepository.GetByIdentityUserIdAsync(customerId, ct);
+
         if (person is null)
             return Result<Person>.Failure(
-                "Customer profile not found. Complete personal data before ordering.");
+                "Complete your personal profile before placing an order.");
 
         if (person.HomeAddress is null)
-            return Result<Person>.Failure("Delivery address is missing.");
+            return Result<Person>.Failure(
+                "A delivery address is required on your profile before placing an order.");
+
+        if (string.IsNullOrWhiteSpace(person.HomeAddress.LocationMapUrl))
+            return Result<Person>.Failure(
+                "A location map URL is required on your delivery address before placing an order.");
 
         return Result<Person>.Success(person);
     }
@@ -165,6 +171,9 @@ public sealed class PlaceOrderCommandHandler
         Person person,
         CancellationToken ct)
     {
+        // LoadPersonAsync guarantees HomeAddress and LocationMapUrl are non-null,
+        // so the null-forgiving operators below are honest assertions rather than
+        // wishful thinking.
         var shippingRequest = new ShippingFeeCalculationRequest
         {
             FullName = person.Name.ToString(),
@@ -202,26 +211,24 @@ public sealed class PlaceOrderCommandHandler
     {
         foreach (var item in orderItems)
         {
+            ct.ThrowIfCancellationRequested();
+
             var stockResult = await _stockService.DecreaseStockAsync(
                 item.ProductId,
                 item.ProductVariantId,
                 item.Quantity,
                 ct);
 
+            // StockService currently signals insufficient stock by throwing a
+            // DomainException, which the outer catch handles. This check is
+            // kept defensively in case the service transitions to a Result-based
+            // failure signal.
             if (!stockResult.Succeeded)
                 return Result.Failure(
                     $"Insufficient stock for product {item.ProductName}.");
         }
 
         return Result.Success();
-    }
-
-    private static Order CreateOrder(
-        Guid customerId,
-        List<OrderItem> orderItems,
-        Money shippingFee)
-    {
-        return Order.Place(customerId, orderItems, shippingFee);
     }
 
     private async Task PersistOrderAsync(
@@ -238,8 +245,6 @@ public sealed class PlaceOrderCommandHandler
     {
         _metrics.RecordCreated(customerTier: "standard");
     }
-
-    private sealed record OrderPreparationResult(Order Order, Cart Cart);
 
     #endregion
 }

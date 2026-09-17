@@ -63,7 +63,7 @@ namespace E_Commerce.Infrastructure.Persistence.Common.Implementation
         public virtual async Task<bool> HardDeleteAsync(Guid id, CancellationToken ct = default)
         {
             var rowsAffected = await _dbSet
-                .Where(e => EF.Property<Guid>(e, "Id") == id)
+                .Where(e => EF.Property<Guid>(e, "Id") == id).IgnoreQueryFilters()
                 .ExecuteDeleteAsync(ct);   // EF Core 7+
 
             return rowsAffected > 0;

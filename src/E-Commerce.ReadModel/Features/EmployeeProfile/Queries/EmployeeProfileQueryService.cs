@@ -1,4 +1,5 @@
-using E_Commerce.ReadModel.Features.EmployeeProfile.Models;
+using E_Commerce.Application.Modules.Profiles.EmployeeProfile.Abstractions;
+using E_Commerce.Application.Modules.Profiles.EmployeeProfile.Models;
 using E_Commerce.ReadModel.Infrastructure.Connections;
 using Microsoft.Data.SqlClient;
 using System.Data;

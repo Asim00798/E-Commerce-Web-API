@@ -1,4 +1,6 @@
-﻿using E_Commerce.Application.Modules.Authorization.Commands.AssignPermissionToRole;
+﻿using E_Commerce.Api.Controllers.Common;
+using E_Commerce.Api.DTOs.v1.Security.Requests;
+using E_Commerce.Application.Modules.Authorization.Commands.AssignPermissionToRole;
 using E_Commerce.Application.Modules.Authorization.Commands.AssignRoleToUser;
 using E_Commerce.Application.Modules.Authorization.Commands.CreatePermission;
 using E_Commerce.Application.Modules.Authorization.Commands.CreateRole;
@@ -15,14 +17,17 @@ using E_Commerce.Application.Modules.Authorization.Queries.ListPermissions;
 using E_Commerce.Application.Modules.Authorization.Queries.ListPermissionsForRole;
 using E_Commerce.Application.Modules.Authorization.Queries.ListRoles;
 using E_Commerce.Application.Shared.Models;
+using E_Commerce.Application.Shared.Security.Authorization.Roles;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce.Api.Controllers.v1.Security;
 
 [ApiController]
 [Route("api/authorization")]
-public sealed class AuthorizationController : ControllerBase
+[Authorize(Roles = $"{SystemRoles.Administrator},{SystemRoles.Support}")]
+public sealed class AuthorizationController : BaseApiController
 {
     private readonly ISender _sender;
 
@@ -240,11 +245,3 @@ public sealed class AuthorizationController : ControllerBase
         return Ok(result);
     }
 }
-
-// Later add the following to E_Commerce.Api.Controllers.Authorization.Requests
-public sealed record UpdatePermissionRequest(
-    string Name,
-    string? Description);
-
-public sealed record UpdateRoleRequest(
-    string Name);

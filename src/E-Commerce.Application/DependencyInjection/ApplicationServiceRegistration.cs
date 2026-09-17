@@ -18,18 +18,16 @@ public static class ApplicationServiceRegistration
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
-            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
-            cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
-            cfg.AddOpenBehavior(typeof(RoleAuthorizationBehavior<,>));
-            cfg.AddOpenBehavior(typeof(PermissionAuthorizationBehavior<,>));
-            cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
-            cfg.AddOpenBehavior(typeof(TelemetryBehavior<,>));
-            cfg.AddOpenBehavior(typeof(TracingBehavior<,>));
+            // Pipeline order (outermost → innermost)
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));                 // 1
+            cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));             // 2
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));              // 3
+            cfg.AddOpenBehavior(typeof(RoleAuthorizationBehavior<,>));       // 4
+            cfg.AddOpenBehavior(typeof(PermissionAuthorizationBehavior<,>)); // 5
+            cfg.AddOpenBehavior(typeof(TelemetryBehavior<,>));               // 6
+            cfg.AddOpenBehavior(typeof(TracingBehavior<,>));                 // 7
+            cfg.AddOpenBehavior(typeof(CachingBehavior<,>));                 // 8 — innermost
         });
-
-        //services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-        //services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
         // ---------------------------------------------------------------
         // Contexts Specific Validators

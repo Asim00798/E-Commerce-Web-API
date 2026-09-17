@@ -1,7 +1,4 @@
 ﻿using E_Commerce.Application.BoundedContexts.Orders.Abstractions;
-using E_Commerce.Domain.BoundedContexts.Core.Ordering.Repositories;
-using E_Commerce.Infrastructure.Persistence.Modules.Orders.Repositories;
-using E_Commerce.Infrastructure.Persistence.Modules.Orders.Repository;
 using E_Commerce.Infrastructure.Persistence.Modules.Orders.Services;
 
 namespace E_Commerce.Infrastructure.Extensions;
