@@ -1,6 +1,8 @@
 ﻿using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Infrastructure.Security.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Security.Identity.Services;
 

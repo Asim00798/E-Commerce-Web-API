@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Communication.Messaging.Dispatching;
 

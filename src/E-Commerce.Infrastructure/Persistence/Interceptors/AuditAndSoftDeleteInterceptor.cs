@@ -2,6 +2,7 @@
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Infrastructure.Persistence.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace E_Commerce.Infrastructure.Persistence.Interceptors;

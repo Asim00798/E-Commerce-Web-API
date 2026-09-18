@@ -4,6 +4,7 @@ using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Entities;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Processing;
 using E_Commerce.Infrastructure.Persistence.Context;
 using Hangfire;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Scheduling.Hangfire;

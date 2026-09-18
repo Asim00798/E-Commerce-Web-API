@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
 using E_Commerce.Infrastructure.Communication.Notifications.Entities;
 using E_Commerce.Infrastructure.Communication.Notifications.Messages;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Transport;
 

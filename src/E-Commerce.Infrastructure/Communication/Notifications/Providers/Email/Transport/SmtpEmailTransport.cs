@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Infrastructure.Communication.Notifications.Messages;
 using E_Commerce.Infrastructure.Communication.Notifications.Options;
 using MailKit.Net.Smtp;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 

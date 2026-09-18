@@ -1,10 +1,12 @@
-﻿namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
+﻿using E_Commerce.Application.Shared.Security.Authorization.Contracts;
+
+namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
 
 /// <summary>
 /// Permission constants for account management operations.
 /// These identifiers must exist in the <c>security.Permissions</c> table.
 /// </summary>
-public static class AccountPermissions
+public sealed class AccountPermissions : IPermissionSource
 {
     public const string Activate = "Accounts.Activate";
     public const string Deactivate = "Accounts.Deactivate";

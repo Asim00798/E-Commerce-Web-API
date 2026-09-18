@@ -1,12 +1,16 @@
 using E_Commerce.Domain.BoundedContexts.Core.Shipping.AggregateRoots.Shipment.Behaviors;
+using E_Commerce.Infrastructure.Persistence.Common.Configurations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Shipping.Configurations;
 
-public sealed class ShipmentConfiguration : IEntityTypeConfiguration<Shipment>
+public sealed class ShipmentConfiguration : BaseEntityConfiguration<Shipment>
 {
-    public void Configure(EntityTypeBuilder<Shipment> builder)
+    public override void Configure(EntityTypeBuilder<Shipment> builder)
     {
+        base.Configure(builder); // audit fields, soft-delete columns, global query filter
+
         builder.ToTable("Shipments", "shipping");
 
         builder.HasKey(x => x.Id);

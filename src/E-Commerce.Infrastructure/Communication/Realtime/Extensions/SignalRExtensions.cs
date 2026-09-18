@@ -6,6 +6,7 @@ using E_Commerce.Infrastructure.Communication.Realtime.Publishers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Communication.Realtime.Extensions;
 

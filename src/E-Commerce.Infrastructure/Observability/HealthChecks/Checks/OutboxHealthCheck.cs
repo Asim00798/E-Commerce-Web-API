@@ -1,5 +1,6 @@
-﻿using E_Commerce.Infrastructure.Persistence.Context;
-using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Entities;
+﻿using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Entities;
+using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace E_Commerce.Infrastructure.Observability.HealthChecks.Checks;

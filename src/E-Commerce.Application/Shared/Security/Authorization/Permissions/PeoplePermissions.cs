@@ -1,4 +1,6 @@
-﻿namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
+﻿using E_Commerce.Application.Shared.Security.Authorization.Contracts;
+
+namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
 
 /// <summary>
 /// Permissions for the People bounded context.
@@ -7,7 +9,7 @@
 /// own Person record. The non-Own variants are reserved for future
 /// administrative endpoints.
 /// </summary>
-public static class PeoplePermissions
+public sealed class PeoplePermissions : IPermissionSource
 {
     public const string ReadOwn = "People.ReadOwn";
     public const string CreateOwn = "People.CreateOwn";

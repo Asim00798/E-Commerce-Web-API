@@ -2,6 +2,7 @@ using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Contracts;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Entities;
 using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Infrastructure.Persistence.Outbox.Repositories;
 

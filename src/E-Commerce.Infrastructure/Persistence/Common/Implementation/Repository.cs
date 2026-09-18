@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Infrastructure.Persistence.Common.Implementation
 {

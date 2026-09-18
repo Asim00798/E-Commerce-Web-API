@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Application.BoundedContexts.Orders.Abstractions;
 using E_Commerce.Infrastructure.Persistence.Modules.Orders.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Extensions;
 

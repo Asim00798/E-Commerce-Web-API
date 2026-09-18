@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Application.Shared.Stock;
 using E_Commerce.Infrastructure.Catalog.Services;
 using E_Commerce.Infrastructure.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Catalog.Extensions;
 

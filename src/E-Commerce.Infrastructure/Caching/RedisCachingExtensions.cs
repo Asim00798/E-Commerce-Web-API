@@ -1,4 +1,6 @@
 ﻿using E_Commerce.Application.Shared.Caching;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 

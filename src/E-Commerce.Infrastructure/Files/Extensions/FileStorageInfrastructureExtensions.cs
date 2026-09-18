@@ -2,6 +2,8 @@
 using E_Commerce.Infrastructure.Files.Configuration;
 using E_Commerce.Infrastructure.Files.Services;
 using E_Commerce.Infrastructure.Files.Storage;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Files.Extensions;

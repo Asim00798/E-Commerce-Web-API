@@ -1,15 +1,17 @@
 ﻿using E_Commerce.Application.Shared.Communication.Notifications.Services;
 using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
+using E_Commerce.Infrastructure.Communication.Notifications.Options;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Composers;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Transport;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Push.Composers;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Push.Transport;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Composers;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Transport;
-using E_Commerce.Infrastructure.Communication.Notifications.Options;
 using E_Commerce.Infrastructure.Communication.Notifications.Rendering;
 using E_Commerce.Infrastructure.Communication.Notifications.Services;
 using E_Commerce.Infrastructure.Persistence.Modules.Notifications.Repositories;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Communication.Notifications.Extensions;
 

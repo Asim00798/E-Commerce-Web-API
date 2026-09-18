@@ -3,6 +3,7 @@ using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Enums
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.Repositories;
 using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Orders.Repository

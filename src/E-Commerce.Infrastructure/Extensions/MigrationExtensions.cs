@@ -1,5 +1,7 @@
 using E_Commerce.Infrastructure.Persistence.Context;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Extensions;
 

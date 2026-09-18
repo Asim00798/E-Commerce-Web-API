@@ -3,6 +3,7 @@ using E_Commerce.Domain.SharedKernel.Services;
 using E_Commerce.Infrastructure.Payment.Configuration;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Api.Models;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Exceptions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Headers;

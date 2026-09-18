@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using System.Security.Cryptography;
-using E_Commerce.Application.Modules.Authentication.Abstractions;
+﻿using E_Commerce.Application.Modules.Authentication.Abstractions;
 using E_Commerce.Application.Modules.Authentication.Dtos;
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Domain.SharedKernel.Services;
@@ -10,7 +8,11 @@ using E_Commerce.Infrastructure.Security.Authentication.Tokens.Refresh;
 using E_Commerce.Infrastructure.Security.Cryptography;
 using E_Commerce.Infrastructure.Security.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace E_Commerce.Infrastructure.Security.Authentication.Services;
 

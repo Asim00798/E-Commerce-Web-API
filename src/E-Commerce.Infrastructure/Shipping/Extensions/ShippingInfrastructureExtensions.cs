@@ -3,6 +3,8 @@ using E_Commerce.Application.Shared.Shipping.Services;
 using E_Commerce.Domain.BoundedContexts.Core.Shipping.Policies;
 using E_Commerce.Infrastructure.Shipping.Location;
 using E_Commerce.Infrastructure.Shipping.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Shipping.Extensions;
 

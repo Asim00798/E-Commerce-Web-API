@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Application.Shared.Files.Services;
 using E_Commerce.Infrastructure.Files.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Files.Storage;

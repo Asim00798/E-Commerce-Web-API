@@ -1,6 +1,8 @@
-﻿namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
+﻿using E_Commerce.Application.Shared.Security.Authorization.Contracts;
 
-public static class CatalogPermissions
+namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
+
+public sealed class CatalogPermissions : IPermissionSource
 {
     public const string ViewBrands = "Catalog.Brands.Read";
     public const string ManageBrands = "Catalog.Brands.Manage";

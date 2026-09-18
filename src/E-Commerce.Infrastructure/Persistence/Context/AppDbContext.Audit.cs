@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Infrastructure.Persistence.Audit;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Infrastructure.Persistence.Context
 {

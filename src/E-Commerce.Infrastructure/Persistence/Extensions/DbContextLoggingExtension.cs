@@ -1,4 +1,7 @@
-﻿namespace E_Commerce.Infrastructure.Persistence.Extensions;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+namespace E_Commerce.Infrastructure.Persistence.Extensions;
 
 public static class DbContextLoggingExtension
 {

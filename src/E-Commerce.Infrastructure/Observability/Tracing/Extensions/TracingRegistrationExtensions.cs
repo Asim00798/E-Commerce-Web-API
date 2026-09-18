@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Application.Shared.Observability.Tracing;
 using E_Commerce.Infrastructure.Observability.Tracing.ActivitySource;
 using E_Commerce.Infrastructure.Observability.Tracing.Context;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Trace;
 
 namespace E_Commerce.Infrastructure.Observability.Tracing.Extensions;

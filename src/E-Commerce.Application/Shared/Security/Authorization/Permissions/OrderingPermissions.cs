@@ -1,9 +1,11 @@
-﻿namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
+﻿using E_Commerce.Application.Shared.Security.Authorization.Contracts;
+
+namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
 
 /// <summary>
 /// Permission constants for order management operations.
 /// </summary>
-public static class OrderingPermissions
+public sealed class OrderingPermissions : IPermissionSource
 {
     public const string Read = "Orders.Read";
     public const string Place = "Orders.Place";

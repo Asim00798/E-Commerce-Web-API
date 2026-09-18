@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Contracts;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Scheduling.Hangfire
 {

@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
 using E_Commerce.Infrastructure.Communication.Notifications.Entities;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Notifications.Repositories;
 

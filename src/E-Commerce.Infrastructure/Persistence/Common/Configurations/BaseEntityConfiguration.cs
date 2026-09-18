@@ -1,4 +1,5 @@
 using E_Commerce.Domain.SharedKernel.Abstractions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace E_Commerce.Infrastructure.Persistence.Common.Configurations;

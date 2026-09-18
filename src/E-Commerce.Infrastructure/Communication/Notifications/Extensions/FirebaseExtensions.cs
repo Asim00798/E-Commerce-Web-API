@@ -1,7 +1,10 @@
-﻿using FirebaseAdmin;
+﻿using E_Commerce.Infrastructure.Communication.Notifications.Options;
+using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
-using E_Commerce.Infrastructure.Communication.Notifications.Options;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Communication.Notifications.Extensions;
 

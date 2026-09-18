@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Domain.SharedKernel.Abstractions;
+using Microsoft.EntityFrameworkCore;
 namespace E_Commerce.Infrastructure.Persistence.Extensions
 {
     public static class ValidationExtension

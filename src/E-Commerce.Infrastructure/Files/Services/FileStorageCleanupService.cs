@@ -4,6 +4,8 @@ using E_Commerce.Infrastructure.Files.Configuration;
 using E_Commerce.Infrastructure.Files.Entities;
 using E_Commerce.Infrastructure.Persistence.Context;
 using E_Commerce.Infrastructure.Persistence.Modules.Files.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Files.Services;

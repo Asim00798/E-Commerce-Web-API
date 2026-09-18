@@ -2,6 +2,7 @@ using E_Commerce.Infrastructure.Persistence.Extensions;
 using E_Commerce.Infrastructure.Security.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace E_Commerce.Infrastructure.Persistence.Context;

@@ -1,6 +1,7 @@
-﻿using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
-using E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Entities;
+﻿using E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Entities;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Refund.Behaviors;
+using Microsoft.EntityFrameworkCore;
+using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
 
 namespace E_Commerce.Infrastructure.Persistence.Context;
 

@@ -1,10 +1,10 @@
 using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
-using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 using E_Commerce.Infrastructure.Payment.Configuration;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Api.Client;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Gateway;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Webhooks;
-using E_Commerce.Infrastructure.Persistence.Modules.Finance.Repositories;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Payment.Extensions;

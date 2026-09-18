@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Infrastructure.Persistence.Interceptors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Extensions;
 

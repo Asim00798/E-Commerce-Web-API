@@ -1,6 +1,8 @@
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Infrastructure.Extensions;
 using E_Commerce.Infrastructure.Security.Identity.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.DependencyInjection;
 

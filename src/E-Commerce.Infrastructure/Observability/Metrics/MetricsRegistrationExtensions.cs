@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Application.Shared.Observability.Metrics;
+using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;                                  // For WithMetrics, AddMeter, AddOtlpExporter
 
 namespace E_Commerce.Infrastructure.Observability.Metrics;

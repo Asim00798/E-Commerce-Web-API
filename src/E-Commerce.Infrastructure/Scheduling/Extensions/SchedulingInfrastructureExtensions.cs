@@ -3,6 +3,8 @@ using E_Commerce.Application.Modules.Scheduling.Coordination;
 using E_Commerce.Application.Modules.Scheduling.Policies;
 using E_Commerce.Infrastructure.Scheduling.Hangfire;
 using Hangfire;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Scheduling.Extensions;
 

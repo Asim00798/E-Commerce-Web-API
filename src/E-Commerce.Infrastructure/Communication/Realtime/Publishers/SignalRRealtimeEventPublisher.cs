@@ -2,6 +2,7 @@
 using E_Commerce.Application.Shared.Communication.Notifications.Models;
 using E_Commerce.Infrastructure.Communication.Realtime.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Communication.Realtime.Publishers;
 

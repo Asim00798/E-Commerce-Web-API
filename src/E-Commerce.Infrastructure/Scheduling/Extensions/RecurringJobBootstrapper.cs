@@ -2,6 +2,8 @@
 using E_Commerce.Application.Modules.Scheduling.Attributes;
 using Hangfire;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Scheduling.Extensions;
 

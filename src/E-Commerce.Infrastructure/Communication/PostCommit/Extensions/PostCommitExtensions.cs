@@ -1,5 +1,6 @@
 ﻿using E_Commerce.Application.Shared.Communication.PostCommit;
 using E_Commerce.Infrastructure.Communication.PostCommit.Processing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Communication.PostCommit.Extensions;
 

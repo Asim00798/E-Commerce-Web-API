@@ -1,5 +1,6 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace E_Commerce.Infrastructure.Observability.HealthChecks.Checks;
 

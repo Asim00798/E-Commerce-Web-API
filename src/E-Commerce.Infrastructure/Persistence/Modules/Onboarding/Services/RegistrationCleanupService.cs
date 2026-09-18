@@ -1,6 +1,7 @@
-﻿using OnboardingRegistration = E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.Behaviors.Registration;
-using E_Commerce.Application.BoundedContexts.Onboarding.Abstractions;
+﻿using E_Commerce.Application.BoundedContexts.Onboarding.Abstractions;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
+using OnboardingRegistration = E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.Behaviors.Registration;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Onboarding.Services
 {

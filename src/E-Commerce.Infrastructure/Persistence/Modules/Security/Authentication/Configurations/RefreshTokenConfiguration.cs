@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Infrastructure.Security.Authentication.Tokens.Refresh;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Security.Authentication.Configurations;

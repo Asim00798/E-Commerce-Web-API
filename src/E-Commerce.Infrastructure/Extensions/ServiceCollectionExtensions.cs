@@ -1,11 +1,7 @@
-﻿using E_Commerce.Application.Shared.Security.Identity;
-using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
-using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
-using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Extensions;
-using E_Commerce.Infrastructure.Identity.Services;
-using E_Commerce.Infrastructure.Persistence.Common.Implementation;
+﻿using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 using E_Commerce.Infrastructure.Persistence.Context;
-using E_Commerce.Infrastructure.Persistence.Interceptors;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Extensions;
 

@@ -1,5 +1,6 @@
 using E_Commerce.Infrastructure.Communication.Notifications.Messages;
 using E_Commerce.Infrastructure.Communication.Notifications.Options;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;

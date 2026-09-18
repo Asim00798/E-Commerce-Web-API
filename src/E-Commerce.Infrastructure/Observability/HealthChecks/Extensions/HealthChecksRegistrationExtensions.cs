@@ -1,5 +1,7 @@
 ﻿using E_Commerce.Infrastructure.Observability.HealthChecks.Checks;
 using E_Commerce.Infrastructure.Observability.HealthChecks.Configuration;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace E_Commerce.Infrastructure.Observability.HealthChecks.Extensions;

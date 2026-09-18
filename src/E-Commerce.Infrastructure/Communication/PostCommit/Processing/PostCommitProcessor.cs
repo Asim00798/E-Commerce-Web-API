@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Application.Shared.Communication.PostCommit;
+using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.Infrastructure.Communication.PostCommit.Processing;
 

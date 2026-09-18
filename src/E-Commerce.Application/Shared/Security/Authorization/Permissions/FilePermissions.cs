@@ -1,6 +1,8 @@
-﻿namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
+﻿using E_Commerce.Application.Shared.Security.Authorization.Contracts;
 
-public static class FilePermissions
+namespace E_Commerce.Application.Shared.Security.Authorization.Permissions;
+
+public sealed class FilePermissions : IPermissionSource
 {
     public const string Read = "Files.Read";
     public const string Upload = "Files.Upload";

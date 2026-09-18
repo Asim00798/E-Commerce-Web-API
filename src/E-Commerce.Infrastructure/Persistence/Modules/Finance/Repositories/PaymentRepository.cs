@@ -2,6 +2,7 @@ using E_Commerce.Domain.BoundedContexts.Core.Finance.Enums;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 using E_Commerce.Infrastructure.Persistence.Common.Implementation;
 using E_Commerce.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Finance.Repositories;
