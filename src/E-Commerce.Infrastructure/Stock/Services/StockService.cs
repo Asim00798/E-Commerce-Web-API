@@ -4,7 +4,7 @@ using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
 using E_Commerce.Domain.SharedKernel.Exceptions;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
 
-namespace E_Commerce.Infrastructure.Catalog.Services;
+namespace E_Commerce.Infrastructure.Stock.Services;
 
 /// <summary>
 /// Stock-owned implementation of the shared stock capability.

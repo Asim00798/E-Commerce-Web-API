@@ -6,6 +6,8 @@ namespace E_Commerce.Domain.SharedKernel.ValueObjects
     {
         public decimal Kilograms { get; init; }
 
+        private Weight() { }
+
         public Weight(decimal kilograms)
         {
             if (kilograms <= 0)

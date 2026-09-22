@@ -5,7 +5,9 @@ namespace E_Commerce.Domain.SharedKernel.ValueObjects
     public sealed record Money
     {
         public decimal Amount { get; init; }
-        public string Currency { get; init; }
+        public string Currency { get; init; } = String.Empty;
+
+        private Money() { }
 
         public Money(decimal amount, string currency = "USD")
         {

@@ -5,6 +5,8 @@ using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Application.Shared.Behaviors;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Decorators;
+using E_Commerce.Infrastructure.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -12,7 +14,7 @@ namespace E_Commerce.Application.DependencyInjection;
 
 public static class ApplicationServiceRegistration
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         // MediatR & behaviors
         services.AddMediatR(cfg =>
@@ -28,6 +30,11 @@ public static class ApplicationServiceRegistration
             cfg.AddOpenBehavior(typeof(TracingBehavior<,>));                 // 7
             cfg.AddOpenBehavior(typeof(CachingBehavior<,>));                 // 8 — innermost
         });
+
+        // ---------------------------------------------------------------
+        // Application Options
+        // ---------------------------------------------------------------
+        ConfigurationOptionsExtension.AddApplicationOptions(services, configuration);
 
         // ---------------------------------------------------------------
         // Contexts Specific Validators

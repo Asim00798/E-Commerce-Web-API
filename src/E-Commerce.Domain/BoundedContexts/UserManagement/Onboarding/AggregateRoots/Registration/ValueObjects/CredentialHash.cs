@@ -4,7 +4,9 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateR
 {
     public sealed record CredentialHash
     {
-        public string Value { get; }
+        public string Value { get; } = string.Empty;
+
+        private CredentialHash() { }
 
         public CredentialHash(string hash)
         {

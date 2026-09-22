@@ -1,3 +1,4 @@
+using E_Commerce.Application.BoundedContexts.Catalog.Caching;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.Validation;
 using E_Commerce.Application.Shared.Caching;
 using E_Commerce.Application.Shared.Files.Services;
@@ -52,7 +53,7 @@ public sealed class AddProductImageCommandHandler : IRequestHandler<AddProductIm
             await _unitOfWork.SaveChangesAsync(ct);
 
             // Invalidate cache after successful commit
-            await _cache.RemoveAsync($"catalog:product:{command.ProductId}", ct);
+            await _cache.RemoveAsync(CatalogCacheKeys.Product(product.Id), CancellationToken.None);
 
             return Result<Guid>.Success(fileId);
         }

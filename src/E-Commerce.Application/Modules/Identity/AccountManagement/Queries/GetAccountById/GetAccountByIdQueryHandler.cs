@@ -1,6 +1,7 @@
 ﻿using E_Commerce.Application.Modules.Identity.AccountManagement.Abstractions;
 using E_Commerce.Application.Modules.Identity.AccountManagement.Dtos;
 using E_Commerce.Application.Shared.Models;
+using E_Commerce.Application.Shared.Security.Authorization.Permissions;
 using E_Commerce.Application.Shared.Security.Authorization.Services;
 using E_Commerce.Application.Shared.Security.Identity;
 using MediatR;

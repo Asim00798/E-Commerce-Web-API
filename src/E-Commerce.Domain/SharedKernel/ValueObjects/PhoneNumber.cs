@@ -4,8 +4,10 @@ namespace E_Commerce.Domain.SharedKernel.ValueObjects;
 
 public sealed record PhoneNumber
 {
-    public string Value { get; init; }
+    public string Value { get; init; } = string.Empty;
     public bool IsPrimary { get; init; } = false;
+
+    private PhoneNumber() { }
 
     public PhoneNumber(string value, bool isPrimary = false)
     {

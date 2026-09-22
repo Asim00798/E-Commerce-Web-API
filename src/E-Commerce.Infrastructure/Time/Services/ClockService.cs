@@ -1,6 +1,6 @@
 using E_Commerce.Domain.SharedKernel.Services;
 
-namespace E_Commerce.Infrastructure.Time;
+namespace E_Commerce.Infrastructure.Time.Services;
 
 /// <summary>
 /// Default implementation of <see cref="IClock"/> that delegates

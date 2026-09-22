@@ -6,6 +6,8 @@ namespace E_Commerce.Domain.SharedKernel.ValueObjects
     {
         public int Value { get; init; }
 
+        private Quantity() { }
+
         public Quantity(int value)
         {
             if (value <= 0)

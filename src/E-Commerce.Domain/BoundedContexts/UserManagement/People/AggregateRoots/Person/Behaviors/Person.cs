@@ -9,13 +9,15 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.People.AggregateRoots
     public sealed partial class Person : BaseEntity, IAggregateRoot
     {
         public Guid? IdentityUserId { get; private set; }
-        public FullName Name { get; private set; }
+        public FullName Name { get; private set; } = null!;
         public DateOnly DateOfBirth { get; private set; }
-        public Gender Gender { get; private set ; }
-        public PhoneNumber PhoneNumber { get; private set; }
-        public Email Email { get; private set; }
+        public Gender Gender { get; private set; }
+        public PhoneNumber PhoneNumber { get; private set; } = null!;
+        public Email Email { get; private set; } = null!;
         public Address? HomeAddress { get; private set; }
-        public PersonalImage? PersonalImage { get; private set; }
+        public PersonalImage? PersonalImage { get; private set; } 
+
+        private Person() { }
 
         //DDD Constructor
         public Person(

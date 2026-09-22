@@ -3,6 +3,7 @@ using E_Commerce.Application.Modules.Profiles.EmployeeProfile.Abstractions;
 using E_Commerce.ReadModel.Features.CustomerProfile.Queries;
 using E_Commerce.ReadModel.Features.EmployeeProfile.Queries;
 using E_Commerce.ReadModel.Infrastructure.Connections;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.ReadModel.Infrastructure.DependencyInjection;
@@ -14,8 +15,16 @@ public static class ReadModelServiceCollectionExtensions
     /// Does not execute database migrations.
     /// </summary>
     public static IServiceCollection AddReadModel(
-        this IServiceCollection services)
+        this IServiceCollection services,IConfiguration configuration)
     {
+        ///----------------------------------------------------------------
+        /// Register ReadModel configuration
+        /// ---------------------------------------------------------------
+        ReadModelConfigurationExtensions.AddReadModelConfiguration(services, configuration);
+
+        ///----------------------------------------------------------------
+        /// Register ReadModel services
+        /// ---------------------------------------------------------------
         services.AddSingleton<
             IReadDbConnectionFactory,
             SqlReadDbConnectionFactory>();

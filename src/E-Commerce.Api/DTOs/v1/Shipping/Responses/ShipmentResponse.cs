@@ -2,28 +2,26 @@ namespace E_Commerce.Api.DTOs.v1.Shipping.Responses;
 
 public sealed class ShipmentResponse
 {
-    public Guid ShipmentId { get; set; }
+    public Guid ShipmentId { get; init; }
 
-    public Guid OrderId { get; set; }
+    public Guid OrderId { get; init; }
 
-    public Guid CustomerId { get; set; }
+    public Guid CustomerId { get; init; }
+    public string Status { get; init; } = string.Empty;
 
-    public string Status { get; set; } = string.Empty;
+    public string TrackingNumber { get; init; } = string.Empty;
 
-    public string TrackingNumber { get; set; } = string.Empty;
+    public Guid? AssignedDriverId { get; init; }
 
-    public Guid? AssignedDriverId { get; set; }
+    public string FullName { get; init; } = string.Empty;
 
-    public string FullName { get; set; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
+    public string Street { get; init; } = string.Empty;
 
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string City { get; init; } = string.Empty;
 
-    public string Street { get; set; } = string.Empty;
+    public string LocationMapUrl { get; init; } = string.Empty;
 
-    public string City { get; set; } = string.Empty;
-
-    public string LocationMapUrl { get; set; } = string.Empty;
-
-    public IReadOnlyList<DeliveryAttemptResponse> DeliveryAttempts { get; set; } =
+    public IReadOnlyList<DeliveryAttemptResponse> DeliveryAttempts { get; init; } =
         Array.Empty<DeliveryAttemptResponse>();
 }

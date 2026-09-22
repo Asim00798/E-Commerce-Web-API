@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System.Text.Json;
 
-namespace E_Commerce.Infrastructure.Caching;
+namespace E_Commerce.Infrastructure.Caching.Services;
 
 /// <summary>
 /// Redis implementation of ICache. Uses a shared IConnectionMultiplexer singleton.
@@ -13,7 +13,7 @@ public sealed class RedisCache : ICache
 {
     private readonly IDatabase _db;
     private readonly ILogger<RedisCache> _logger;
-    public RedisCache(IConnectionMultiplexer redis, ILogger<RedisCache> logger)
+    public RedisCache(IConnectionMultiplexer redis,ILogger<RedisCache> logger)
     {
         _db = redis.GetDatabase();
         _logger = logger;
@@ -54,16 +54,14 @@ public sealed class RedisCache : ICache
         {
             await _db.KeyDeleteAsync(key);
         }
-        catch (Exception ex) when (ex is RedisException or RedisTimeoutException or RedisConnectionException)
-        {
-            throw new CacheException($"Failed to remove cache key {key}", ex);
-        }
-        catch (CacheException ex)
+        catch (Exception ex) when (ex is CacheException or RedisException or RedisTimeoutException or RedisConnectionException)
         {
             _logger.LogWarning(
                 ex,
                 "Cache removal failed for key {Key}",
                 key);
+
+            //No need to throw, we don't want to fail the request if cache removal fails
         }
     }
 }

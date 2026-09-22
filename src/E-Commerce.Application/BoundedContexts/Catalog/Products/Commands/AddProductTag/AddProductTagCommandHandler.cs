@@ -1,3 +1,4 @@
+using E_Commerce.Application.BoundedContexts.Catalog.Caching;
 using E_Commerce.Application.Shared.Caching;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Catalog.Repositories;
@@ -34,7 +35,7 @@ public sealed class AddProductTagCommandHandler : IRequestHandler<AddProductTagC
             await _unitOfWork.SaveChangesAsync(ct);
 
             // Invalidate cache after successful commit
-            await _cache.RemoveAsync($"catalog:product:{command.ProductId}", ct);
+            await _cache.RemoveAsync(CatalogCacheKeys.Product(product.Id), CancellationToken.None);
 
             return Result.Success();
         }

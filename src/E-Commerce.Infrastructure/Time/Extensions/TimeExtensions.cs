@@ -1,7 +1,8 @@
 ﻿using E_Commerce.Domain.SharedKernel.Services;
+using E_Commerce.Infrastructure.Time.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace E_Commerce.Infrastructure.Time
+namespace E_Commerce.Infrastructure.Time.Extensions
 {
     public static class TimeExtensions
     {

@@ -1,4 +1,5 @@
-﻿namespace E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.ValueObjects
+﻿
+namespace E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.ValueObjects
 {
     /// <summary>
     /// Immutable snapshot of one verification channel (email or phone).
@@ -14,6 +15,8 @@
         public int ResendCount { get; init; }
 
         public static readonly VerificationChannel Empty = new();
+
+        internal VerificationChannel() { }
 
         public bool IsVerified => VerifiedAt.HasValue;
         public bool IsCodeActive(DateTime utcNow) =>

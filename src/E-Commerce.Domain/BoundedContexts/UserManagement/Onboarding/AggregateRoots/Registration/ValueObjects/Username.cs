@@ -4,7 +4,9 @@ namespace E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateR
 {
     public sealed record Username
     {
-        public string Value { get; }
+        public string Value { get; } = string.Empty;
+
+        private Username() { }
 
         public Username(string value)
         {

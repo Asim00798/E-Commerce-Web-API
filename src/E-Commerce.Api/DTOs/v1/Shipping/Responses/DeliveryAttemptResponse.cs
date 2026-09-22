@@ -2,13 +2,13 @@ namespace E_Commerce.Api.DTOs.v1.Shipping.Responses;
 
 public sealed class DeliveryAttemptResponse
 {
-    public int AttemptNumber { get; set; }
+    public int AttemptNumber { get; init; }
 
-    public DateTime AttemptedAtUtc { get; set; }
+    public DateTime AttemptedAtUtc { get; init; }
 
-    public string Result { get; set; } = string.Empty;
+    public string Result { get; init; } = string.Empty;
 
-    public string? FailureReason { get; set; }
+    public string? FailureReason { get; init; }
 
-    public string? Notes { get; set; }
+    public string? Notes { get; init; }
 }

@@ -1,3 +1,4 @@
+using E_Commerce.Application.BoundedContexts.Catalog.Caching;
 using E_Commerce.Application.BoundedContexts.Catalog.Products.DTOs;
 using E_Commerce.Application.Shared.Caching;
 using E_Commerce.Application.Shared.Models;
@@ -11,6 +12,6 @@ namespace E_Commerce.Application.BoundedContexts.Catalog.Products.Queries.GetPro
 public sealed record GetProductByIdQuery(Guid ProductId)
     : IRequest<Result<ProductDto>>, ICacheableQuery
 {
-    public string CacheKey => $"catalog:product:{ProductId}";
+    public string CacheKey => CatalogCacheKeys.Product(ProductId);
     public TimeSpan CacheDuration => TimeSpan.FromMinutes(10);
 }

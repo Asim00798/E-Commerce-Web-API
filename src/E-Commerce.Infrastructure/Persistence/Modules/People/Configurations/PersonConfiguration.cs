@@ -116,23 +116,19 @@ public sealed class PersonConfiguration : BaseEntityConfiguration<Person>
         {
             address.Property(a => a.Street)
                 .HasColumnName("Street")
-                .IsRequired(false)
                 .HasMaxLength(200);
 
             address.Property(a => a.City)
                 .HasColumnName("City")
-                .IsRequired(false)
                 .HasMaxLength(100);
 
             address.Property(a => a.Type)
                 .HasColumnName("AddressType")
                 .HasConversion<string>()
-                .IsRequired(false)
                 .HasMaxLength(20);
 
             address.Property(a => a.LocationMapUrl)
                 .HasColumnName("LocationMapUrl")
-                .IsRequired(false)
                 .HasMaxLength(500);
         });
 
@@ -142,8 +138,7 @@ public sealed class PersonConfiguration : BaseEntityConfiguration<Person>
         builder.OwnsOne(p => p.PersonalImage, image =>
         {
             image.Property(i => i.FileId)
-                .HasColumnName("PersonalImageFileId")
-                .IsRequired(false);
+                .HasColumnName("PersonalImageFileId");
         });
 
         // ------------------------------------------------------------------

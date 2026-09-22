@@ -3,8 +3,10 @@ using E_Commerce.Application.DependencyInjection;
 using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Infrastructure.Communication.Realtime.Hubs;
 using E_Commerce.Infrastructure.DependencyInjection;
+using E_Commerce.Infrastructure.Extensions;
 using E_Commerce.Infrastructure.Observability.Logging;
 using E_Commerce.Infrastructure.Scheduling.Extensions;
+using E_Commerce.ReadModel.Infrastructure.DependencyInjection;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,9 +17,10 @@ builder.AddInfrastructureLogging();
 // ========== HTTP ==========
 builder.Services.AddHttpContextAccessor();
 
-// ========== Application / Infrastructure ==========
-//builder.Services.AddApplication();
-//builder.Services.AddInfrastructure(builder.Configuration);
+// ========== Application / Infrastructure / ReadModel ==========
+builder.Services.AddApplication(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddReadModel(builder.Configuration);
 
 // ========== Controllers & API Explorer ==========
 builder.Services.AddControllers();
@@ -38,6 +41,10 @@ builder.Services.AddForwardedHeadersConfiguration(builder.Configuration);
 //builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+// ========== Apply startup DB migrations for EF and ReadModel ==========
+await app.ApplyMigrationsAsync();
+app.Services.ApplyReadModelMigrations();
 
 // ========== Schedule recurring jobs ==========
 //using (var scope = app.Services.CreateScope())

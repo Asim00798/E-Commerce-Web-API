@@ -2,15 +2,15 @@
 
 public sealed class PaymentResponse
 {
-    public Guid PaymentId { get; set; }
-    public Guid OrderId { get; set; }
-    public Guid CustomerId { get; set; }
-    public decimal Amount { get; set; }
-    public string Currency { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public string Provider { get; set; } = string.Empty;
-    public string? ProviderIntentionId { get; set; }
-    public string? ProviderTransactionId { get; set; }
-    public DateTime? CompletedAtUtc { get; set; }
-    public decimal RefundedAmount { get; set; }
+    public Guid PaymentId { get; init; }
+    public Guid OrderId { get; init; }
+    public Guid CustomerId { get; init; }
+    public decimal Amount { get; init; }
+    public string Currency { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+    public string Provider { get; init; } = string.Empty;
+    public string? ProviderIntentionId { get; init; }
+    public string? ProviderTransactionId { get; init; }
+    public DateTime? CompletedAtUtc { get; init; }
+    public decimal RefundedAmount { get; init; }
 }

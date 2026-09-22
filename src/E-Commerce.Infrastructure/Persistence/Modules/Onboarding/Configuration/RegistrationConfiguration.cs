@@ -7,24 +7,17 @@ namespace E_Commerce.Infrastructure.Persistence.Modules.Onboarding.Configuration
 
 /// <summary>
 /// EF Core configuration for the <see cref="Registration"/> aggregate.
-/// Applies shared auditing, soft‑delete conventions, owned value objects,
-/// JSON‑mapped verification channels, unique indexes, and a RowVersion concurrency token.
+/// Applies shared auditing, soft-delete conventions, owned value objects,
+/// JSON-mapped verification channels, unique indexes, and a RowVersion concurrency token.
 /// </summary>
 internal sealed class RegistrationConfiguration : BaseEntityConfiguration<Registration>
 {
     public override void Configure(EntityTypeBuilder<Registration> builder)
     {
-        base.Configure(builder);   // audit + soft‑delete + query filter
+        base.Configure(builder);   // audit + soft-delete + query filter
 
         builder.ToTable("Registrations", "onboarding");
         builder.HasKey(r => r.Id);
-
-        // Unique indexes – only one registration per email/phone/username.
-        // Because completed registrations are removed and expired ones cleaned up,
-        // plain unique indexes are sufficient.
-        builder.HasIndex(r => r.Email).IsUnique();
-        builder.HasIndex(r => r.PhoneNumber).IsUnique();
-        builder.HasIndex(r => r.Username).IsUnique();
 
         // Owned value objects
         builder.OwnsOne(r => r.Email, email =>
@@ -33,6 +26,7 @@ internal sealed class RegistrationConfiguration : BaseEntityConfiguration<Regist
                  .HasColumnName("Email")
                  .IsRequired()
                  .HasMaxLength(256);
+            email.HasIndex(e => e.Value).IsUnique();
             email.WithOwner();
         });
 
@@ -42,6 +36,7 @@ internal sealed class RegistrationConfiguration : BaseEntityConfiguration<Regist
                  .HasColumnName("PhoneNumber")
                  .IsRequired()
                  .HasMaxLength(20);
+            phone.HasIndex(p => p.Value).IsUnique();
             phone.WithOwner();
         });
 
@@ -51,6 +46,7 @@ internal sealed class RegistrationConfiguration : BaseEntityConfiguration<Regist
                     .HasColumnName("Username")
                     .IsRequired()
                     .HasMaxLength(100);
+            username.HasIndex(u => u.Value).IsUnique();
             username.WithOwner();
         });
 

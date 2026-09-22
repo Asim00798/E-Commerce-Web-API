@@ -5,7 +5,9 @@ namespace E_Commerce.Domain.SharedKernel.ValueObjects
 {
     public sealed record Email
     {
-        public string Value { get; init; }
+        public string Value { get; init; } = string.Empty;
+
+        private Email() { }
 
         public Email(string email)
         {

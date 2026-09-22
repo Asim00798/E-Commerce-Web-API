@@ -7,6 +7,10 @@ public static class SoftDeleteExtension
 {
     /// <summary>
     /// Applies a global query filter to entities inheriting BaseEntity.
+    ///
+    /// Owned entity types are excluded — they are configured through their
+    /// owner via <c>OwnsOne</c>/<c>OwnsMany</c> and cannot be configured as
+    /// top-level entities.
     /// </summary>
     public static void ApplySoftDeleteFilter(
         this ModelBuilder modelBuilder)
@@ -15,7 +19,8 @@ public static class SoftDeleteExtension
 
         var entityTypes = modelBuilder.Model
             .GetEntityTypes()
-            .Where(t => baseEntityType.IsAssignableFrom(t.ClrType));
+            .Where(t => baseEntityType.IsAssignableFrom(t.ClrType))
+            .Where(t => !t.IsOwned());
 
         foreach (var entityType in entityTypes)
         {

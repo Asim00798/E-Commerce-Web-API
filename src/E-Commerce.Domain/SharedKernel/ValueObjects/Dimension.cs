@@ -8,6 +8,8 @@ namespace E_Commerce.Domain.SharedKernel.ValueObjects
         public decimal Width { get; init; }
         public decimal Height { get; init; }
 
+        private Dimension(){}
+
         public Dimension(decimal length, decimal width, decimal height)
         {
             Length = ValidateDimension(length, nameof(length));

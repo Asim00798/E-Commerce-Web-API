@@ -1,6 +1,7 @@
-using E_Commerce.Application.Shared.Security.Identity;
+using E_Commerce.Infrastructure.Caching.Extensions;
 using E_Commerce.Infrastructure.Extensions;
-using E_Commerce.Infrastructure.Security.Identity.Services;
+using E_Commerce.Infrastructure.Persistence.Extensions;
+using E_Commerce.Infrastructure.Stock.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,16 +14,22 @@ public static class InfrastructureServiceRegistration
 {
     /// <summary>
     /// Registers DbContexts, repositories, services, caching, security, messaging,
-    /// health checks, and background jobs.
+    /// health checks, and background jobs...etc
     /// </summary>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddInfrastructureServices(configuration);
-        //SchedulingInfrastructureExtensions.AddSchedulingInfrastructure(services, configuration.GetConnectionString("Hangfire"));
-        // TODO: Wire up other infrastructure registrations (security, messaging, etc.)
-        services.AddScoped<IIdentityService, IdentityService>();
+        // Persistence
+        services.AddPersistence(configuration);
+        services.AddMigrationOptions(configuration);
+        services.AddPersistenceInterceptors();
+        // Caching
+        services.AddRedisCaching(configuration);
+
+        // Stock
+        services.AddStockInfrastructure();
+
         return services;
     }
 }

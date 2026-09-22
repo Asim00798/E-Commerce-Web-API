@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace E_Commerce.Infrastructure.Execution;
+namespace E_Commerce.Infrastructure.Execution.AppContexts;
 
 public class ExecutionContext : IAppContext
 {

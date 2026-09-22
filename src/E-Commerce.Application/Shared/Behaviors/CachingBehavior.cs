@@ -31,17 +31,7 @@ public sealed class CachingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
         if (request is not ICacheableQuery cacheable)
             return await next();
 
-        TResponse? cached;
-        try
-        {
-            cached = await _cache.GetAsync<TResponse>(cacheable.CacheKey, cancellationToken);
-        }
-        catch (CacheException ex)
-        {
-            _logger.LogWarning(ex, "Cache get failed for key {CacheKey}. Falling back to database.", cacheable.CacheKey);
-            cached = default;
-        }
-
+        var cached = await TryGetFromCacheAsync(cacheable, cancellationToken);
         if (cached is not null)
         {
             _logger.LogDebug("Cache hit for key {CacheKey}", cacheable.CacheKey);
@@ -57,15 +47,60 @@ public sealed class CachingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
             return response;
         }
 
+        await TrySetInCacheAsync(cacheable, response, cancellationToken);
+
+        return response;
+    }
+
+    // ------------------------------------------------------------------
+    // Cache operations
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Attempts to read the cached response. Returns <c>default</c> if the
+    /// cache misses or the cache infrastructure fails — the caller falls
+    /// through to the handler.
+    /// </summary>
+    private async Task<TResponse?> TryGetFromCacheAsync(
+        ICacheableQuery cacheable,
+        CancellationToken cancellationToken)
+    {
         try
         {
-            await _cache.SetAsync(cacheable.CacheKey, response, cacheable.CacheDuration, cancellationToken);
+            return await _cache.GetAsync<TResponse>(cacheable.CacheKey, cancellationToken);
+        }
+        catch (CacheException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Cache get failed for key {CacheKey}. Falling back to database.",
+                cacheable.CacheKey);
+
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to store the handler's response. Failures are logged and
+    /// swallowed — the request has already succeeded and caching is
+    /// best-effort.
+    /// </summary>
+    private async Task TrySetInCacheAsync(
+        ICacheableQuery cacheable,
+        TResponse response,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _cache.SetAsync(
+                cacheable.CacheKey,
+                response,
+                cacheable.CacheDuration,
+                cancellationToken);
         }
         catch (CacheException ex)
         {
             _logger.LogWarning(ex, "Cache set failed for key {CacheKey}.", cacheable.CacheKey);
         }
-
-        return response;
     }
 }

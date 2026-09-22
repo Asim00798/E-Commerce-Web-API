@@ -2,5 +2,5 @@
 
 public sealed class RefundResponse
 {
-    public Guid RefundId { get; set; }
+    public Guid RefundId { get; init; }
 }

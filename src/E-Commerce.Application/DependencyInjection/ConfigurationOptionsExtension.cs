@@ -19,10 +19,7 @@ public static class ConfigurationOptionsExtension
         // Ordering
         services.RegisterOptions<OrderingOptions>(configuration, "Ordering");
         
-        // Add other options here as the system grows.
-        // services.RegisterOptions<ShippingOptions>(configuration, "Shipping");
-        // services.RegisterOptions<PaymentOptions>(configuration, "Payment");
-
+        /* Add other application layer defined options here as the system grows.*/
         return services;
     }
 

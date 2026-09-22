@@ -29,7 +29,7 @@ public static class RepositoryRegistrationExtensions
         // Register generic repository
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-        // 
+        // Register unit of work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;

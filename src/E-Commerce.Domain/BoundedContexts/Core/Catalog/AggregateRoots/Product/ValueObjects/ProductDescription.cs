@@ -5,7 +5,7 @@ namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.
 {
     public sealed record ProductDescription
     {
-        public string Name { get; init; }
+        public string Name { get; init; } = string.Empty;
         public string? ShortDescription { get; init; }
         public string? LongDescription { get; init; }
         public Dimension? Dimensions { get; init; }
@@ -14,6 +14,18 @@ namespace E_Commerce.Domain.BoundedContexts.Core.Catalog.AggregateRoots.Product.
         public DateTimeOffset? DateOfExpiry { get; init; }
         public string? Material { get; init; }
         public string? Color { get; init; }
+
+        // ------------------------------------------------------------------
+        // EF Core parameterless constructor.
+        //
+        // EF Core cannot bind the owned navigations (Dimensions, Weight) via
+        // the public constructor, and the record-generated copy constructor
+        // is also unusable. EF Core falls back to this constructor during
+        // materialization, then sets every property (including the owned
+        // navigations) via reflection.
+        // ------------------------------------------------------------------
+        private ProductDescription()
+        {}
 
         public ProductDescription(
             string name,
