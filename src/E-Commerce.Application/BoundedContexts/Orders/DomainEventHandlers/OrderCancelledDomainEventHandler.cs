@@ -1,8 +1,8 @@
-﻿using Domain.SharedKernel.Events;
-using E_Commerce.Application.BoundedContexts.Orders.IntegrationEvents;
+﻿using E_Commerce.Application.BoundedContexts.Orders.IntegrationEvents;
 using E_Commerce.Application.Shared.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Events;
+using E_Commerce.Domain.SharedKernel.Events;
 
 namespace E_Commerce.Application.BoundedContexts.Orders.DomainEventHandlers;
 

@@ -1,5 +1,5 @@
-using Domain.SharedKernel.Events;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
+using E_Commerce.Domain.SharedKernel.Events;
 using E_Commerce.Infrastructure.Communication.Messaging.Dispatching;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Configuration;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Contracts;

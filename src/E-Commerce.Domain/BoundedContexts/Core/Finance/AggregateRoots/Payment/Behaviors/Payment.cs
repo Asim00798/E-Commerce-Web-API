@@ -25,8 +25,6 @@ public sealed partial class Payment : BaseEntity, IAggregateRoot
 
     public Money RefundedAmount { get; private set; } = null!;
 
-    public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
-
     public IReadOnlyCollection<PaymentTransaction> Transactions => _transactions.AsReadOnly();
 
     private Payment()

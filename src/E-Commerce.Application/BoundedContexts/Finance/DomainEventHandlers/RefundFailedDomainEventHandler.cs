@@ -1,4 +1,3 @@
-using Domain.SharedKernel.Events;
 using E_Commerce.Application.BoundedContexts.Finance.IntegrationEvents;
 using E_Commerce.Application.Shared.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
@@ -26,6 +25,7 @@ public sealed class RefundFailedDomainEventHandler
         var integrationEvent = new RefundFailedIntegrationEvent(
             domainEvent.RefundId,
             domainEvent.PaymentId,
+            domainEvent.OrderId,
             domainEvent.Amount.Amount,
             domainEvent.Amount.Currency,
             domainEvent.Reason)

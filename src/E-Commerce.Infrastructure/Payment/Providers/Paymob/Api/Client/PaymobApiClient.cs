@@ -11,8 +11,25 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 #endregion
+
 namespace E_Commerce.Infrastructure.Payment.Providers.Paymob.Api.Client;
 
+/// <summary>
+/// Paymob API client.
+///
+/// Endpoint paths:
+///   - POST /v1/intention/                                      (Intention API, Bearer auth)
+///   - POST /api/auth/tokens                                    (auth-token issuance)
+///   - GET  /api/acceptance/transactions/{id}                   (Accept API — transaction inquiry)
+///   - POST /api/acceptance/void_refund/refund                  (Accept API — refund)
+///   - GET  /api/ecommerce/orders/transaction_inquiry           (Ecommerce API — merchant order lookup)
+///
+/// All requests use the Bearer auth token obtained from POST /api/auth/tokens.
+/// If any Accept API endpoint rejects the Bearer token with 401 (some Paymob
+/// tenants require <c>Authorization: Token {secret_key}</c> on the Accept API),
+/// switch that method to <c>new AuthenticationHeaderValue("Token", _options.SecretKey)</c>
+/// and drop the 401 retry for it.
+/// </summary>
 public sealed class PaymobApiClient
 {
     private readonly HttpClient _httpClient;
@@ -23,7 +40,7 @@ public sealed class PaymobApiClient
     private string? _cachedToken;
     private DateTimeOffset _tokenExpiresAt = DateTimeOffset.MinValue;
     private const int TokenExpiryBufferSeconds = 60;
-    
+
     public PaymobApiClient(
         HttpClient httpClient,
         IOptions<PaymobOptions> options,
@@ -35,7 +52,7 @@ public sealed class PaymobApiClient
         _logger = logger;
         _clock = clock;
 
-        _httpClient.BaseAddress = new Uri(_options.BaseUrl.TrimEnd('/') + "/");
+        _httpClient.BaseAddress = BuildBaseAddress(_options.BaseUrl);
     }
 
     public async Task<CreateIntentionResponse> CreateIntentionAsync(
@@ -59,14 +76,21 @@ public sealed class PaymobApiClient
                    "Paymob intention response was empty.");
     }
 
-    public async Task<PaymobStatusResponse> GetTransactionStatusAsync(
-        string providerTransactionId,
+    /// <summary>
+    /// Looks up a transaction by the merchant order ID. Used during payment
+    /// reconciliation when a payment has not yet been captured and therefore
+    /// has no provider transaction ID.
+    /// </summary>
+    public async Task<PaymobStatusResponse> GetTransactionStatusByMerchantOrderIdAsync(
+        string merchantOrderId,
         CancellationToken ct)
     {
+        var encoded = Uri.EscapeDataString(merchantOrderId);
+
         using var response = await SendWithUnauthorizedRetryAsync(
             token => new HttpRequestMessage(
                 HttpMethod.Get,
-                $"v1/transactions/{Uri.EscapeDataString(providerTransactionId)}")
+                $"api/ecommerce/orders/transaction_inquiry?merchant_order_id={encoded}")
             {
                 Headers = { Authorization = new AuthenticationHeaderValue("Bearer", token) }
             },
@@ -74,7 +98,36 @@ public sealed class PaymobApiClient
 
         await EnsurePaymobSuccessAsync(response, ct);
 
-        return await response.Content.ReadFromJsonAsync<PaymobStatusResponse>(cancellationToken: ct)
+        return await response.Content.ReadFromJsonAsync<PaymobStatusResponse>(
+                   cancellationToken: ct)
+               ?? throw new PaymobApiException(
+                   response.StatusCode,
+                   null,
+                   "Paymob merchant order inquiry response was empty.");
+    }
+
+    /// <summary>
+    /// Transaction inquiry by provider transaction ID. Also serves refund
+    /// status — refund outcome is read from the parent transaction's
+    /// <c>is_refunded</c> field.
+    /// </summary>
+    public async Task<PaymobStatusResponse> GetTransactionStatusAsync(
+        string providerTransactionId,
+        CancellationToken ct)
+    {
+        using var response = await SendWithUnauthorizedRetryAsync(
+            token => new HttpRequestMessage(
+                HttpMethod.Get,
+                $"api/acceptance/transactions/{Uri.EscapeDataString(providerTransactionId)}")
+            {
+                Headers = { Authorization = new AuthenticationHeaderValue("Bearer", token) }
+            },
+            ct);
+
+        await EnsurePaymobSuccessAsync(response, ct);
+
+        return await response.Content.ReadFromJsonAsync<PaymobStatusResponse>(
+                   cancellationToken: ct)
                ?? throw new PaymobApiException(
                    response.StatusCode,
                    null,
@@ -89,11 +142,11 @@ public sealed class PaymobApiClient
         var payload = new
         {
             transaction_id = providerTransactionId,
-            amount = amountInMinorUnit
+            amount_cents = amountInMinorUnit
         };
 
         using var response = await SendWithUnauthorizedRetryAsync(
-            token => new HttpRequestMessage(HttpMethod.Post, "v1/transactions/refunds")
+            token => new HttpRequestMessage(HttpMethod.Post, "api/acceptance/void_refund/refund")
             {
                 Content = new StringContent(
                     JsonSerializer.Serialize(payload),
@@ -112,29 +165,24 @@ public sealed class PaymobApiClient
                    "Paymob refund response was empty.");
     }
 
-    public async Task<PaymobRefundStatusResponse> GetRefundStatusAsync(
-     string refundTransactionId,
-     CancellationToken ct)
-    {
-        var token = await GetTokenAsync(ct);
-
-        using var requestMessage = new HttpRequestMessage(
-            HttpMethod.Get,
-            $"v1/transactions/{Uri.EscapeDataString(refundTransactionId)}");
-
-        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        using var response = await _httpClient.SendAsync(requestMessage, ct);
-        await EnsurePaymobSuccessAsync(response, ct);
-
-        return await response.Content.ReadFromJsonAsync<PaymobRefundStatusResponse>(cancellationToken: ct)
-               ?? throw new PaymobApiException(
-                   response.StatusCode,
-                   null,
-                   "Paymob refund status response was empty.");
-    }
-
     #region Private Methods
+
+    /// <summary>
+    /// Normalises the configured base URL to a root URL ending in "/".
+    /// Accepts either <c>https://accept.paymob.com</c> or
+    /// <c>https://accept.paymob.com/api</c> — the trailing <c>/api</c> segment
+    /// is stripped so relative paths can include <c>api/</c> where needed.
+    /// </summary>
+    private static Uri BuildBaseAddress(string configuredBaseUrl)
+    {
+        var baseUrl = configuredBaseUrl.TrimEnd('/');
+
+        const string apiSuffix = "/api";
+        if (baseUrl.EndsWith(apiSuffix, StringComparison.OrdinalIgnoreCase))
+            baseUrl = baseUrl[..^apiSuffix.Length];
+
+        return new Uri(baseUrl + "/");
+    }
 
     private async Task<HttpResponseMessage> SendWithUnauthorizedRetryAsync(
         Func<string, HttpRequestMessage> requestFactory,
@@ -150,10 +198,8 @@ public sealed class PaymobApiClient
             return response;
         }
 
-        // Dispose the 401 response before retrying.
         response.Dispose();
 
-        // Invalidate only the token that actually failed.
         await InvalidateTokenAsync(token, ct);
 
         var newToken = await GetTokenAsync(ct);
@@ -185,7 +231,7 @@ public sealed class PaymobApiClient
     {
         var payload = new { api_key = _options.ApiKey };
 
-        using var response = await _httpClient.PostAsJsonAsync("auth/tokens", payload, ct);
+        using var response = await _httpClient.PostAsJsonAsync("api/auth/tokens", payload, ct);
         await EnsurePaymobSuccessAsync(response, ct);
 
         var auth = await response.Content.ReadFromJsonAsync<PaymobAuthResponse>(cancellationToken: ct);
@@ -246,7 +292,7 @@ public sealed class PaymobApiClient
             response.StatusCode,
             truncated,
             "Paymob API request failed.");
-    }  
+    }
 
     #endregion
 }

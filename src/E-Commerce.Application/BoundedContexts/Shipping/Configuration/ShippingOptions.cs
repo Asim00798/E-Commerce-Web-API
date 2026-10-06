@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.BoundedContexts.Shipping.Models;
+namespace E_Commerce.Application.BoundedContexts.Shipping.Configuration;
 
 /// <summary>
 /// Application-level shipping options.

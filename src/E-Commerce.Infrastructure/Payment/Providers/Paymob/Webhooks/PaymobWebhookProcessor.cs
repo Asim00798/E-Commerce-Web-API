@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
 using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
 using E_Commerce.Application.BoundedContexts.Finance.Commands.HandlePaymentWebhook;
 using E_Commerce.Application.BoundedContexts.Finance.Models;
@@ -78,7 +79,7 @@ public sealed class PaymobWebhookProcessor : IPaymentWebhookProcessor
                 PaymentWebhookErrorType.Unauthorized);
         }
 
-        if (string.IsNullOrWhiteSpace(callback.TransactionId) ||
+        if (callback.Id is null ||
             string.IsNullOrWhiteSpace(callback.IntentionId))
         {
             return PaymentWebhookCommandResult.Failure(
@@ -88,7 +89,7 @@ public sealed class PaymobWebhookProcessor : IPaymentWebhookProcessor
 
         var command = new HandlePaymentWebhookCommand(
             Provider: "Paymob",
-            ProviderTransactionId: callback.TransactionId,
+            ProviderTransactionId: callback.Id.Value.ToString(CultureInfo.InvariantCulture),
             ProviderIntentionId: callback.IntentionId,
             Success: callback.Success,
             Message: callback.ErrorOccurred ? "Payment failed" : null);

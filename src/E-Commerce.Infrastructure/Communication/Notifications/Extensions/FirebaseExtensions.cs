@@ -11,54 +11,41 @@ namespace E_Commerce.Infrastructure.Communication.Notifications.Extensions;
 public static class FirebaseExtensions
 {
     public static IServiceCollection AddFirebaseMessaging(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    this IServiceCollection services,
+    IConfiguration configuration)
     {
-        var pushOptions = configuration
-            .GetSection("Push")
-            .Get<PushOptions>();
-
-        var serviceProvider = services.BuildServiceProvider();
-
-        var logger = serviceProvider
-            .GetRequiredService<ILoggerFactory>()
-            .CreateLogger("FirebaseMessaging");
-
-        FirebaseApp app;
-
-        if (string.IsNullOrWhiteSpace(pushOptions?.CredentialFilePath))
+        services.AddSingleton<FirebaseMessaging>(sp =>
         {
-            logger.LogWarning(
-                "Firebase credential path is missing. " +
-                "Using Application Default Credentials.");
+            var logger = sp.GetRequiredService<ILoggerFactory>()
+                .CreateLogger("FirebaseMessaging");
 
-            app = FirebaseApp.Create();
-        }
-        else
-        {
-            logger.LogInformation(
-                "Initializing Firebase using service account credential file: {CredentialPath}",
-                pushOptions.CredentialFilePath);
+            var pushOptions = configuration
+                .GetSection(PushOptions.SectionName)
+                .Get<PushOptions>();
 
-            var credential = CredentialFactory
-                .FromFile<ServiceAccountCredential>(
-                    pushOptions.CredentialFilePath)
-                .ToGoogleCredential();
+            FirebaseApp app;
 
-            app = FirebaseApp.Create(new AppOptions
+            if (string.IsNullOrWhiteSpace(pushOptions?.CredentialFilePath))
             {
-                Credential = credential
-            });
+                logger.LogWarning(
+                    "Firebase credential path is missing. Using Application Default Credentials.");
+                app = FirebaseApp.Create();
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Initializing Firebase using service account credential file: {CredentialPath}",
+                    pushOptions.CredentialFilePath);
 
-            logger.LogInformation(
-                "Firebase initialized successfully using service account credentials.");
-        }
+                var credential = CredentialFactory
+                    .FromFile<ServiceAccountCredential>(pushOptions.CredentialFilePath)
+                    .ToGoogleCredential();
 
-        services.AddSingleton(
-            FirebaseMessaging.GetMessaging(app));
+                app = FirebaseApp.Create(new AppOptions { Credential = credential });
+            }
 
-        logger.LogInformation(
-            "Firebase Messaging service registered successfully.");
+            return FirebaseMessaging.GetMessaging(app);
+        });
 
         return services;
     }

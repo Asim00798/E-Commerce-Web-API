@@ -7,34 +7,38 @@ using E_Commerce.Application.Shared.Security.Cryptography;
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Application.Shared.Security.Verification;
 using E_Commerce.Infrastructure.Identity.Services;
+using E_Commerce.Infrastructure.Persistence.Context;
 using E_Commerce.Infrastructure.Persistence.Modules.Onboarding.Services;
 using E_Commerce.Infrastructure.Persistence.Modules.Security.Authentication.Repositories;
+using E_Commerce.Infrastructure.Persistence.Modules.Security.Authorization.Repositories;
 using E_Commerce.Infrastructure.Security.Authentication.Services;
 using E_Commerce.Infrastructure.Security.Authentication.Tokens.Jwt;
 using E_Commerce.Infrastructure.Security.Authentication.Tokens.Refresh;
 using E_Commerce.Infrastructure.Security.Authorization.Policies;
 using E_Commerce.Infrastructure.Security.Authorization.Services;
 using E_Commerce.Infrastructure.Security.Cryptography;
+using E_Commerce.Infrastructure.Security.Identity.Entities;
 using E_Commerce.Infrastructure.Security.Identity.Services;
 using E_Commerce.Infrastructure.Security.Verification;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Security.Extensions;
 
 /// <summary>
-/// Extension methods for registering all security‑related infrastructure services.
+/// Extension methods for registering all security-related infrastructure services.
 /// </summary>
 public static class SecurityInfrastructureExtensions
 {
     /// <summary>
     /// Registers identity, onboarding, authentication, and token services.
     /// </summary>
-    public static IServiceCollection AddIdentityInfrastructure(
+    public static IServiceCollection AddSecurityInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
@@ -44,6 +48,7 @@ public static class SecurityInfrastructureExtensions
         AddAccountManagementServices(services);
         AddAuthenticationServices(services, configuration);
         ConfigureAuthenticationSchemes(services, configuration);
+        AddAuthorizationServices(services);
 
         return services;
     }
@@ -56,8 +61,23 @@ public static class SecurityInfrastructureExtensions
         IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<VerificationOptions>(
-            configuration.GetSection(VerificationOptions.SectionName));
+        services.AddOptions<VerificationOptions>()
+            .Bind(configuration.GetSection(VerificationOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.HmacSecretKey),
+                "Verification:HmacSecretKey is required.")
+            .Validate(o =>
+            {
+                try
+                {
+                    return Convert.FromBase64String(o.HmacSecretKey).Length >= 16;
+                }
+                catch
+                {
+                    return false;
+                }
+            },
+                "Verification:HmacSecretKey must be valid Base64 and at least 128 bits.")
+            .ValidateOnStart();
 
         services.AddScoped<IVerificationCodeService, VerificationCodeService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -78,8 +98,27 @@ public static class SecurityInfrastructureExtensions
     // ---------------------------------------------------------------
 
     private static void AddIdentityServices(
-        IServiceCollection services)
+    IServiceCollection services)
     {
+        services
+            .AddIdentityCore<User>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            })
+            .AddRoles<IdentityRole<Guid>>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ICurrentUser, CurrentUser>();
     }
@@ -107,6 +146,21 @@ public static class SecurityInfrastructureExtensions
         ConfigureRefreshTokenHasherOptions(services, configuration);
         ConfigureJwtOptions(services, configuration);
 
+        // Data Protection is registered with ASP.NET Core defaults:
+        // per-machine, per-app-content-root key storage.
+        //
+        // Single-instance deployments are correct.
+        // Multi-instance deployments require a shared key store. Before
+        // scaling out, replace with one of:
+        //   .PersistKeysToFileSystem(new DirectoryInfo("/var/ecommerce/dp-keys"))
+        //   .PersistKeysToStackExchangeRedis(connectionMultiplexer)
+        //   .PersistKeysToAzureBlobStorage(...)
+        // and set .SetApplicationName("E-Commerce") so keys survive
+        // content-root path changes.
+        //
+        // Without shared keys, Google linking initiated on one instance
+        // cannot be completed on another — the protected LinkUserId fails
+        // to unprotect and the handler rejects it as tampered.
         services.AddDataProtection();
 
         services.AddScoped<JwtTokenGenerator>();
@@ -116,11 +170,12 @@ public static class SecurityInfrastructureExtensions
         services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         services.AddScoped<IUserLinkStateProtector, UserLinkStateProtector>();
+
         services.AddOptions<RefreshTokenOptions>()
-                .Bind(configuration.GetSection(RefreshTokenOptions.SectionName))
-                .Validate(x => x.TokenLifetime > TimeSpan.Zero,
-                    "Refresh token lifetime must be greater than zero.")
-                .ValidateOnStart();
+            .Bind(configuration.GetSection(RefreshTokenOptions.SectionName))
+            .Validate(x => x.TokenLifetime > TimeSpan.Zero,
+                "Refresh token lifetime must be greater than zero.")
+            .ValidateOnStart();
     }
 
     private static void ConfigureJwtOptions(
@@ -162,8 +217,33 @@ public static class SecurityInfrastructureExtensions
                     return false;
                 }
             },
-            "Refresh token hashing secret must be valid Base64 and at least 256 bits.")
+                "Refresh token hashing secret must be valid Base64 and at least 256 bits.")
             .ValidateOnStart();
+    }
+
+    // ---------------------------------------------------------------
+    // Authorization
+    // ---------------------------------------------------------------
+
+    private static void AddAuthorizationServices(IServiceCollection services)
+    {
+        services.AddAuthorization();
+
+        // Repositories
+        services.AddScoped<RolePermissionRepository>();
+        services.AddScoped<PermissionRepository>();
+
+        // Core authorization services
+        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IUserRoleService, UserRoleService>();
+
+        // Optional management services
+        services.AddScoped<IRoleManagementService, RoleManagementService>();
+        services.AddScoped<IPermissionManagementService, PermissionManagementService>();
+
+        // Authorization policy provider and handler
+        services.AddSingleton<IAuthorizationPolicyProvider, AuthorizationPolicyProvider>();
+        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
     }
 
     // ---------------------------------------------------------------
@@ -184,6 +264,9 @@ public static class SecurityInfrastructureExtensions
         })
         .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
         {
+            // Bound through the Options pattern elsewhere (ConfigureJwtOptions)
+            // for startup validation. Read here for the scheme configuration —
+            // this lambda runs during options build, not during host boot.
             var jwtSettings = configuration
                 .GetSection(JwtSettings.SectionName)
                 .Get<JwtSettings>()
@@ -216,21 +299,6 @@ public static class SecurityInfrastructureExtensions
             options.SignInScheme = AuthenticationConstants.ExternalCookieScheme;
             options.Scope.Add("email");
             options.SaveTokens = false;
-        });
-
-        // ---------------------------------------------------------------
-        // Authorization
-        // ---------------------------------------------------------------
-
-        services.AddScoped<IPermissionService, PermissionService>();
-        services.AddScoped<IUserRoleService, UserRoleService>();
-
-        // Optional management services
-        services.AddScoped<IRoleManagementService, RoleManagementService>();
-        services.AddScoped<IPermissionManagementService, PermissionManagementService>();
-
-        // Authorization policy provider and handler
-        services.AddSingleton<IAuthorizationPolicyProvider, AuthorizationPolicyProvider>();
-        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        });     
     }
 }

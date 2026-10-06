@@ -1,3 +1,4 @@
+using E_Commerce.Application.Extensions;
 using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Application.Modules.Scheduling.Coordination;
 using E_Commerce.Application.Modules.Scheduling.Policies;
@@ -51,19 +52,12 @@ public static class SchedulingInfrastructureExtensions
         services.AddScoped<HangfireJobDispatcher>();
 
         // -----------------------------------------------------------------
-        // 5. Infrastructure recurring jobs (not ITrigger-based)
+        // 5. Add job handlers and triggers in infrastructure layer
         // -----------------------------------------------------------------
-        services.AddScoped<OutboxProcessingJob>();
-        RecurringJob.AddOrUpdate<OutboxProcessingJob>(
-            "outbox-processor",
-            job => job.ExecuteAsync(JobCancellationToken.Null),
-            Cron.Minutely);
+        var infrastructureAssembly = typeof(SchedulingInfrastructureExtensions).Assembly;
 
-        services.AddScoped<DeadLetterMonitorJob>();
-        RecurringJob.AddOrUpdate<DeadLetterMonitorJob>(
-            "dead-letter-monitor",
-            job => job.ExecuteAsync(),
-            Cron.Hourly);
+        services.AddJobHandlers(infrastructureAssembly);
+        services.AddRecurringTriggers(infrastructureAssembly);
 
         // -----------------------------------------------------------------
         // 6. Automatic trigger scheduling is handled by RecurringJobBootstrapper.

@@ -6,7 +6,6 @@ public enum PaymentStatus
     AwaitingPayment = 2,
     Captured = 3,
     Failed = 4,
-    Cancelled = 5,
-    PartiallyRefunded = 6,
-    Refunded = 7
+    PartiallyRefunded = 5,
+    Refunded = 6
 }

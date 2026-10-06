@@ -40,15 +40,6 @@ public sealed partial class Payment
         AddPaymentFailedDomainEvent();
     }
 
-    public void Cancel()
-    {
-        EnsureCanCancel();
-
-        Status = PaymentStatus.Cancelled;
-
-        AddPaymentCancelledDomainEvent();
-    }
-
     private void EnsureCanAssignProviderIntention()
     {
         if (Status != PaymentStatus.Pending)
@@ -100,15 +91,6 @@ public sealed partial class Payment
         }
     }
 
-    private void EnsureCanCancel()
-    {
-        if (Status is not (PaymentStatus.Pending or PaymentStatus.AwaitingPayment))
-        {
-            throw new PaymentException(
-                "Payment cannot be cancelled in its current state.");
-        }
-    }
-
     private void RecordCaptureTransaction(string providerTransactionId)
     {
         _transactions.Add(new PaymentTransaction(
@@ -129,10 +111,5 @@ public sealed partial class Payment
     private void AddPaymentFailedDomainEvent()
     {
         AddDomainEvent(new PaymentFailedDomainEvent(Id, OrderId));
-    }
-
-    private void AddPaymentCancelledDomainEvent()
-    {
-        AddDomainEvent(new PaymentCancelledDomainEvent(Id, OrderId));
     }
 }

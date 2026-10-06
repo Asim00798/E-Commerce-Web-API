@@ -1,4 +1,3 @@
-using Domain.SharedKernel.Events;
 using E_Commerce.Application.BoundedContexts.Finance.IntegrationEvents;
 using E_Commerce.Application.Shared.Abstractions;
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;

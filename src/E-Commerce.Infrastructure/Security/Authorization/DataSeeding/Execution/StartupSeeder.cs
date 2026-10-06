@@ -41,7 +41,7 @@ public sealed class StartupSeeder : IHostedService
 
         try
         {
-            using var scope = _scopeFactory.CreateScope();
+            await using var scope = _scopeFactory.CreateAsyncScope();
             await RunAllSeedersAsync(scope.ServiceProvider, cancellationToken);
         }
         catch (Exception ex)

@@ -29,35 +29,25 @@ public sealed class HandlePaymentWebhookCommandHandler
         try
         {
             var payment = await _paymentRepository.GetByProviderIntentionIdAsync(
-                command.ProviderIntentionId!,
-                ct);
+                command.ProviderIntentionId!, ct);
 
             if (payment is null)
             {
-                // Webhook may arrive before the payment is visible/committed.
-                // Return Transient so the provider retries.
                 return PaymentWebhookCommandResult.Failure(
                     "Payment not found.",
                     PaymentWebhookErrorType.Transient);
             }
 
             if (IsAlreadyFinalized(payment))
-            {
                 return PaymentWebhookCommandResult.Success();
-            }
 
             if (command.Success)
             {
-                await CapturePaymentIfAwaitingAsync(
-                    payment,
-                    command.ProviderTransactionId,
-                    ct);
-            }
-            else
-            {
-                await FailPaymentIfPossibleAsync(payment, ct);
+                return await CapturePaymentIfAwaitingAsync(
+                    payment, command.ProviderTransactionId, ct);
             }
 
+            await FailPaymentIfPossibleAsync(payment, ct);
             return PaymentWebhookCommandResult.Success();
         }
         catch (DomainException ex)
@@ -70,25 +60,30 @@ public sealed class HandlePaymentWebhookCommandHandler
 
     private static bool IsAlreadyFinalized(PaymentAggregate payment)
     {
-        return payment.Status is PaymentStatus.Captured
-            or PaymentStatus.Failed
-            or PaymentStatus.Cancelled;
+        return payment.Status is PaymentStatus.Captured or PaymentStatus.Failed;
     }
 
-    private async Task CapturePaymentIfAwaitingAsync(
+    private async Task<PaymentWebhookCommandResult> CapturePaymentIfAwaitingAsync(
         PaymentAggregate payment,
         string providerTransactionId,
         CancellationToken ct)
     {
-        if (payment.Status != PaymentStatus.AwaitingPayment)
+        if (payment.Status == PaymentStatus.Pending)
         {
-            return;
+            // Tx2 hasn't committed yet; provider retry will find AwaitingPayment.
+            return PaymentWebhookCommandResult.Failure(
+                "Payment not yet ready for capture.",
+                PaymentWebhookErrorType.Transient);
         }
 
-        payment.Capture(providerTransactionId);
+        if (payment.Status != PaymentStatus.AwaitingPayment)
+            return PaymentWebhookCommandResult.Success();
 
+        payment.Capture(providerTransactionId);
         await _paymentRepository.UpdateAsync(payment, ct);
         await _unitOfWork.SaveChangesAsync(ct);
+
+        return PaymentWebhookCommandResult.Success();
     }
 
     private async Task FailPaymentIfPossibleAsync(
@@ -101,7 +96,6 @@ public sealed class HandlePaymentWebhookCommandHandler
         }
 
         payment.Fail();
-
         await _paymentRepository.UpdateAsync(payment, ct);
         await _unitOfWork.SaveChangesAsync(ct);
     }

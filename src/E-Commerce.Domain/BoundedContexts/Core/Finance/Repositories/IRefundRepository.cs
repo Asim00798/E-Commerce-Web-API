@@ -6,16 +6,26 @@ namespace E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 
 public interface IRefundRepository : IRepository<Refund>
 {
-    Task<Refund?> GetByPaymentIdAndAmountAsync(Guid paymentId, Money amount, CancellationToken ct = default);
+    Task<Refund?> GetByPaymentIdAndAmountAsync(
+        Guid paymentId,
+        Money amount,
+        CancellationToken ct = default);
 
-    /// <summary>
-    /// Atomically transitions a refund from Requested to Processing.
-    /// Returns true if this caller claimed the refund.
-    /// </summary>
-    Task<bool> TryMarkProcessingAsync(Guid refundId, CancellationToken ct = default);
+    Task<IReadOnlyList<Refund>> GetOutstandingByPaymentIdAsync(
+        Guid paymentId,
+        CancellationToken ct = default);
+
+    Task<IReadOnlyList<Refund>> GetRequestedOlderThanAsync(
+        DateTime cutoffUtc,
+        int maxResults,
+        CancellationToken ct = default);
 
     Task<IReadOnlyList<Refund>> GetProcessingOlderThanAsync(
         DateTime cutoffUtc,
         int maxResults,
+        CancellationToken ct = default);
+
+    Task<bool> TryMarkProcessingAsync(
+        Guid refundId,
         CancellationToken ct = default);
 }

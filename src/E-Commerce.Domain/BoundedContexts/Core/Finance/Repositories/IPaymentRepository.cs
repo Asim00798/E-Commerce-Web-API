@@ -8,7 +8,7 @@ public interface IPaymentRepository : IRepository<Payment>
     Task<Payment?> GetByOrderIdAsync(Guid orderId, CancellationToken ct = default);
     Task<Payment?> GetByProviderIntentionIdAsync(string providerIntentionId, CancellationToken ct = default);
     Task<Payment?> GetByProviderTransactionIdAsync(string providerTransactionId, CancellationToken ct = default);
-    Task<IReadOnlyList<Payment>> GetAwaitingPaymentWithTransactionOlderThanAsync(
+    Task<IReadOnlyList<Payment>> GetAwaitingPaymentWithIntentionOlderThanAsync(
     DateTime cutoffUtc,
     int maxResults,
     CancellationToken ct = default);

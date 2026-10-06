@@ -1,11 +1,8 @@
-﻿using E_Commerce.Domain.BoundedContexts.Core.Shipping.ValueObjects;
+﻿using E_Commerce.Domain.BoundedContexts.Core.Shipping.AggregateRoots.Shipment.Exceptions;
+using E_Commerce.Domain.BoundedContexts.Core.Shipping.ValueObjects;
 
 namespace E_Commerce.Domain.BoundedContexts.Core.Shipping.Policies;
 
-/// <summary>
-/// Local distance-based shipping fee policy.
-/// Pure domain class containing the business pricing rules.
-/// </summary>
 public sealed class LocalShippingFeePolicy
 {
     public ShippingFeeResult CalculateFee(ShippingDistance distance)
@@ -31,7 +28,7 @@ public sealed class LocalShippingFeePolicy
                 break;
 
             default:
-                throw new InvalidOperationException(
+                throw new ShipmentException(
                     $"Distance {distance.Kilometers} km is outside the service area.");
         }
 

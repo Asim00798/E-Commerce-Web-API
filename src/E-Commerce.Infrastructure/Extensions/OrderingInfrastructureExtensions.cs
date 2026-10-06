@@ -1,4 +1,5 @@
 ﻿using E_Commerce.Application.BoundedContexts.Orders.Abstractions;
+using E_Commerce.Application.Shared.Orders;
 using E_Commerce.Infrastructure.Persistence.Modules.Orders.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +18,9 @@ public static class OrderingInfrastructureExtensions
 
         // Application services implemented in Infrastructure
         services.AddScoped<IPendingOrderCleanupService, PendingOrderCleanupService>();
+
+        // Shared contract consumed by Finance to prevent tampered payment fields.
+        services.AddScoped<IOrderPricingReader, OrderPricingReader>();
 
         return services;
     }

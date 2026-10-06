@@ -10,6 +10,7 @@ public sealed class RefundFailedIntegrationEvent : IIntegrationEvent
 
     public Guid RefundId { get; }
     public Guid PaymentId { get; }
+    public Guid OrderId { get; }
     public decimal Amount { get; }
     public string Currency { get; }
     public string? Reason { get; }
@@ -17,12 +18,14 @@ public sealed class RefundFailedIntegrationEvent : IIntegrationEvent
     public RefundFailedIntegrationEvent(
         Guid refundId,
         Guid paymentId,
+        Guid orderId,
         decimal amount,
         string currency,
         string? reason)
     {
         RefundId = refundId;
         PaymentId = paymentId;
+        OrderId = orderId;
         Amount = amount;
         Currency = currency;
         Reason = reason;

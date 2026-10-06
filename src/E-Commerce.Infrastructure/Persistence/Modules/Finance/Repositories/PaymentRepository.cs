@@ -9,11 +9,13 @@ namespace E_Commerce.Infrastructure.Persistence.Modules.Finance.Repositories;
 
 public sealed class PaymentRepository : Repository<PaymentAggregate>, IPaymentRepository
 {
-
     public PaymentRepository(AppDbContext dbContext) : base(dbContext)
-    {}
+    {
+    }
 
-    public async Task<PaymentAggregate?> GetByOrderIdAsync(Guid orderId, CancellationToken ct = default)
+    public async Task<PaymentAggregate?> GetByOrderIdAsync(
+        Guid orderId,
+        CancellationToken ct = default)
     {
         return await _dbContext.Payments
             .FirstOrDefaultAsync(x => x.OrderId == orderId, ct);
@@ -35,7 +37,13 @@ public sealed class PaymentRepository : Repository<PaymentAggregate>, IPaymentRe
             .FirstOrDefaultAsync(x => x.ProviderTransactionId == providerTransactionId, ct);
     }
 
-    public async Task<IReadOnlyList<PaymentAggregate>> GetAwaitingPaymentWithTransactionOlderThanAsync(
+    /// <summary>
+    /// Returns AwaitingPayment payments older than the cutoff that carry a
+    /// provider intention ID. Intention ID is the identifier required for
+    /// status inquiry — AwaitingPayment payments do not yet have a
+    /// transaction ID (that arrives on capture).
+    /// </summary>
+    public async Task<IReadOnlyList<PaymentAggregate>> GetAwaitingPaymentWithIntentionOlderThanAsync(
         DateTime cutoffUtc,
         int maxResults,
         CancellationToken ct = default)
@@ -44,7 +52,7 @@ public sealed class PaymentRepository : Repository<PaymentAggregate>, IPaymentRe
             .Where(x =>
                 x.Status == PaymentStatus.AwaitingPayment &&
                 x.CreatedAt < cutoffUtc &&
-                x.ProviderTransactionId != null)
+                x.ProviderIntentionId != null)
             .OrderBy(x => x.CreatedAt)
             .Take(maxResults)
             .ToListAsync(ct);

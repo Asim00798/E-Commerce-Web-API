@@ -5,7 +5,9 @@ using E_Commerce.Infrastructure.Payment.Providers.Paymob.Gateway;
 using E_Commerce.Infrastructure.Payment.Providers.Paymob.Webhooks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using E_Commerce.Domain.SharedKernel.Services;
 
 namespace E_Commerce.Infrastructure.Payment.Extensions;
 
@@ -24,7 +26,18 @@ public static class PaymentInfrastructureExtensions
             .Bind(paymentSection.GetSection(nameof(paymentOptions.Paymob)))
             .ValidateOnStart();
 
-        services.AddHttpClient<PaymobApiClient>();
+        services.AddHttpClient("Paymob");
+
+        services.AddScoped<PaymobApiClient>(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var client = factory.CreateClient("Paymob");
+            return new PaymobApiClient(
+                client,
+                sp.GetRequiredService<IOptions<PaymobOptions>>(),
+                sp.GetRequiredService<ILogger<PaymobApiClient>>(),
+                sp.GetRequiredService<IClock>());
+        });
 
         if (!string.Equals(paymentOptions.Provider, "Paymob", StringComparison.OrdinalIgnoreCase))
         {

@@ -1,7 +1,9 @@
 ﻿using E_Commerce.Application.Shared.Files.Services;
+using E_Commerce.Infrastructure.Files.Abstractions;
 using E_Commerce.Infrastructure.Files.Configuration;
 using E_Commerce.Infrastructure.Files.Services;
 using E_Commerce.Infrastructure.Files.Storage;
+using E_Commerce.Infrastructure.Persistence.Modules.Files.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -38,14 +40,16 @@ public static class FileStorageInfrastructureExtensions
         }
 
         services.AddScoped<IFileService, FileService>();
-        services.AddScoped<FileStorageCleanupService>();
+        services.AddScoped<IFileStorageCleanupService, FileStorageCleanupService>();
 
         services.AddScoped<IFileContentInspector, FileContentInspector>();
 
         /// <summary>
-        /// Repositories registration are handled by the automatic registration <see cref="RepositoryRegistrationExtensions"/>  
-        /// so no need to register for example <see cref="StoredFileRepository"/>
+        /// <see cref="StoredFileRepository"/> is not registered
+        /// via auto registration in <see cref="RepositoryRegistrationExtensions"/> 
+        /// because its concrete class that has no interface.
         /// </summary>
+        services.AddScoped<StoredFileRepository>();
 
         return services;
     }

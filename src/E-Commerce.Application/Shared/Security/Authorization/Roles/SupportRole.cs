@@ -12,6 +12,7 @@ public sealed class SupportRole : IRole
         OrderingPermissions.Read,
         OrderingPermissions.Manage,
         PeoplePermissions.Read,
-        FinancePermissions.Read
+        FinancePermissions.Read,
+        FinancePermissions.Refund
     ];
 }

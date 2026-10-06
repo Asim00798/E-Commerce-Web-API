@@ -16,6 +16,8 @@ public sealed class PaymobOptionsValidator : IValidateOptions<PaymobOptions>
 
         if (string.IsNullOrWhiteSpace(options.IntegrationId))
             errors.Add("Payment:Paymob:IntegrationId is required.");
+        else if (!int.TryParse(options.IntegrationId, out _))
+            errors.Add("Payment:Paymob:IntegrationId must be a valid integer.");
 
         if (string.IsNullOrWhiteSpace(options.BaseUrl))
             errors.Add("Payment:Paymob:BaseUrl is required.");

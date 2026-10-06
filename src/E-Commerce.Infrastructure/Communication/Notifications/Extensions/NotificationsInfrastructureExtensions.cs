@@ -1,5 +1,6 @@
-﻿using E_Commerce.Application.Shared.Communication.Notifications.Services;
-using E_Commerce.Infrastructure.Communication.Notifications.Contracts;
+﻿using E_Commerce.Application.Shared.Communication.Notifications.Channels;
+using E_Commerce.Application.Shared.Communication.Notifications.Services;
+using E_Commerce.Infrastructure.Communication.Notifications.Channels;
 using E_Commerce.Infrastructure.Communication.Notifications.Options;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Composers;
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Email.Transport;
@@ -9,7 +10,6 @@ using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Compos
 using E_Commerce.Infrastructure.Communication.Notifications.Providers.Sms.Transport;
 using E_Commerce.Infrastructure.Communication.Notifications.Rendering;
 using E_Commerce.Infrastructure.Communication.Notifications.Services;
-using E_Commerce.Infrastructure.Persistence.Modules.Notifications.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,14 +18,40 @@ namespace E_Commerce.Infrastructure.Communication.Notifications.Extensions;
 public static class NotificationsInfrastructureExtensions
 {
     public static IServiceCollection AddNotificationInfrastructure(
-        this IServiceCollection services, IConfiguration configuration)
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        // Options
+        // Options with inline validation
         services.AddOptions<EmailOptions>()
-                .Bind(configuration.GetSection(EmailOptions.SectionName))
-                .ValidateOnStart();   // triggers Validate() automatically
-        services.Configure<SmsOptions>(configuration.GetSection("Sms"));
-        services.Configure<PushOptions>(configuration.GetSection("Push"));
+            .Bind(configuration.GetSection(EmailOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.Host),
+                "Email:Host is required.")
+            .Validate(o => o.Port > 0 && o.Port <= 65535,
+                "Email:Port must be between 1 and 65535.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.SenderEmail),
+                "Email:SenderEmail is required.")
+            .Validate(o => o.TimeoutSeconds >= 1,
+                "Email:TimeoutSeconds must be at least 1.")
+            .ValidateOnStart();
+
+        services.AddOptions<SmsOptions>()
+            .Bind(configuration.GetSection(SmsOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.AccountSid),
+                "Sms:AccountSid is required.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.AuthToken),
+                "Sms:AuthToken is required.")
+            .Validate(o => !string.IsNullOrWhiteSpace(o.FromNumber),
+                "Sms:FromNumber is required.")
+            .ValidateOnStart();
+
+        services.AddOptions<PushOptions>()
+            .Bind(configuration.GetSection(PushOptions.SectionName))
+            .ValidateOnStart();
+
+        // Notification channels
+        services.AddScoped<IEmailChannel, EmailChannel>();
+        services.AddScoped<ISmsChannel, SmsChannel>();
+        services.AddScoped<IPushChannel, PushChannel>();
 
         // Transports
         services.AddScoped<IEmailTransport, SmtpEmailTransport>();
@@ -42,26 +68,22 @@ public static class NotificationsInfrastructureExtensions
             new RazorTemplateRenderer(
                 Path.Combine(AppContext.BaseDirectory, "Communication", "Notifications", "Templates")));
 
-        // Transport audit logging (optional decorator)
+        // Transport audit logging
         services.Decorate<IEmailTransport, LoggedEmailTransport>();
-        services.Decorate<ISmsTransport, LoggedSmsTransport>();   
+        services.Decorate<ISmsTransport, LoggedSmsTransport>();
         services.Decorate<IPushTransport, LoggedPushTransport>();
-        // Inside AddNotificationInfrastructure (or wherever you register notification services)
-       
-        services.AddScoped<IPushDeviceRepository, PushDeviceRepository>();
 
-        // Ensure the transport also receives IPushDeviceRepository (already wired)
-        services.AddScoped<IPushTransport, FirebasePushTransport>();
-        
-        // Push device repository
-        /// <summary>
-        /// Repositories auto registration handled by <see cref="RepositoryRegistrationExtensions"/>
-        /// services.AddScoped<IPushDeviceRepository, PushDeviceRepository>(); 
-        /// is handled there, so no need to register it again here.
-        /// </summary>
-
-        // Push registration service (bridging module to infrastructure)
+        // Push registration service
         services.AddScoped<IPushDeviceRegistrationService, PushDeviceRegistrationService>();
+
+        // NOTE: Repositories (IPushDeviceRepository, INotificationLogRepository,
+        // INotificationPreferencesRepository) are auto-discovered by
+        // RepositoryRegistrationExtensions. No explicit registration needed.
+
+        // NOTE: FirebaseApp / FirebaseMessaging singleton is registered by
+        // AddFirebaseMessaging(configuration). The host composition root
+        // must call both AddNotificationInfrastructure and AddFirebaseMessaging.
+
         return services;
     }
 }

@@ -5,20 +5,23 @@ namespace E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Refund.E
 
 public sealed class RefundFailedDomainEvent : DomainEvent
 {
+    public Guid RefundId { get; }
+    public Guid PaymentId { get; }
+    public Guid OrderId { get; }
+    public Money Amount { get; }
+    public string? Reason { get; }
+
     public RefundFailedDomainEvent(
         Guid refundId,
         Guid paymentId,
+        Guid orderId,
         Money amount,
-        string? reason)
+        string? reason = null)
     {
         RefundId = refundId;
         PaymentId = paymentId;
+        OrderId = orderId;
         Amount = amount;
         Reason = reason;
     }
-
-    public Guid RefundId { get; }
-    public Guid PaymentId { get; }
-    public Money Amount { get; }
-    public string? Reason { get; }
 }

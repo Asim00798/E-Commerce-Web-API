@@ -1,4 +1,4 @@
-using E_Commerce.Application.BoundedContexts.Shipping.Models;
+using E_Commerce.Application.BoundedContexts.Shipping.Configuration;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Domain.BoundedContexts.Core.Shipping.Repositories;

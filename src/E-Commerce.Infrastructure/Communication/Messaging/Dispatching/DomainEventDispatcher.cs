@@ -1,5 +1,4 @@
-﻿using Domain.SharedKernel.Events;
-using E_Commerce.Domain.SharedKernel.Events;
+﻿using E_Commerce.Domain.SharedKernel.Events;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace E_Commerce.Infrastructure.Communication.Messaging.Dispatching;

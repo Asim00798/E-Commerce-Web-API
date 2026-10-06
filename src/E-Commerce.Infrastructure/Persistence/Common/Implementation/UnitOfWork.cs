@@ -1,5 +1,4 @@
-﻿using Domain.SharedKernel.Events;
-using E_Commerce.Application.Shared.Communication.PostCommit;
+﻿using E_Commerce.Application.Shared.Communication.PostCommit;
 using E_Commerce.Application.Shared.Exceptions;
 using E_Commerce.Domain.SharedKernel.Abstractions;
 using E_Commerce.Domain.SharedKernel.Events;

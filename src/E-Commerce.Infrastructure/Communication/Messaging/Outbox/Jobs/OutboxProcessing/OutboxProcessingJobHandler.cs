@@ -1,28 +1,28 @@
-﻿using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Configuration;
+﻿using E_Commerce.Application.Modules.Scheduling.Abstractions;
+using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Configuration;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Contracts;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Entities;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Processing;
 using E_Commerce.Infrastructure.Persistence.Context;
-using Hangfire;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace E_Commerce.Infrastructure.Scheduling.Hangfire;
+namespace E_Commerce.Infrastructure.Communication.Messaging.Outbox.Jobs.OutboxProcessing;
 
 /// <summary>
-/// Hangfire recurring job that processes pending outbox messages.
+/// Processes pending outbox messages in batches.
 /// Moves messages that exceed the configured retry limit to the dead-letter table.
 ///
-/// Concurrency: the job is protected by <see cref="DisableConcurrentExecutionAttribute"/>
-/// so only one instance runs at a time per Hangfire server. Multi-server deployments
-/// require the fetch/claim semantics on the outbox table to prevent two servers
-/// from picking up the same message.
+/// Concurrency: serialization is enforced at the dispatcher level
+/// (see HangfireJobDispatcher — [DisableConcurrentExecution]).
+/// Multi-server deployments require the fetch/claim semantics on the outbox
+/// table to prevent two servers from picking up the same message.
 ///
-/// Cancellation: the job respects Hangfire's shutdown token. Cancellation is not
-/// treated as a handler failure — the in-flight message is left in its current
-/// state and will be retried on the next cycle.
+/// Cancellation: the shutdown token arrives via the orchestrator. Cancellation
+/// is not treated as a handler failure — the in-flight message is left in its
+/// current state and will be retried on the next cycle.
 /// </summary>
-public sealed class OutboxProcessingJob
+public sealed class OutboxProcessingJobHandler : IJobHandler<OutboxProcessingJobPayload>
 {
     private const int BatchSize = 20;
 
@@ -31,15 +31,15 @@ public sealed class OutboxProcessingJob
     private readonly IDeadLetterRepository _deadLetterRepo;
     private readonly AppDbContext _dbContext;
     private readonly OutboxOptions _options;
-    private readonly ILogger<OutboxProcessingJob> _logger;
+    private readonly ILogger<OutboxProcessingJobHandler> _logger;
 
-    public OutboxProcessingJob(
+    public OutboxProcessingJobHandler(
         IOutboxMessageRepository outboxRepo,
         OutboxDispatchService dispatchService,
         IDeadLetterRepository deadLetterRepo,
         AppDbContext dbContext,
         IOptions<OutboxOptions> options,
-        ILogger<OutboxProcessingJob> logger)
+        ILogger<OutboxProcessingJobHandler> logger)
     {
         _outboxRepo = outboxRepo;
         _dispatchService = dispatchService;
@@ -49,10 +49,11 @@ public sealed class OutboxProcessingJob
         _logger = logger;
     }
 
-    [DisableConcurrentExecution(timeoutInSeconds: 120)]
-    public async Task ExecuteAsync(IJobCancellationToken cancellationToken)
+    public async Task HandleAsync(
+        OutboxProcessingJobPayload job,
+        CancellationToken cancellationToken)
     {
-        var ct = cancellationToken.ShutdownToken;
+        var ct = cancellationToken;
 
         var messages = await _outboxRepo.GetPendingMessagesAsync(BatchSize, ct);
         if (messages.Count == 0)
@@ -105,7 +106,7 @@ public sealed class OutboxProcessingJob
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            // Shutdown requested — let Hangfire handle cancellation.
+            // Shutdown requested — let the orchestrator handle cancellation.
             // The message stays in its current state and will be retried.
             throw;
         }

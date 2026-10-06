@@ -35,11 +35,8 @@ public sealed class PaymentsController : BaseApiController
     /// Returns the provider intention ID and checkout URL.
     /// </summary>
     /// <remarks>
-    /// SECURITY NOTE: The current request carries CustomerId, Amount, and
-    /// Currency from the client. These are not authoritative and allow
-    /// tampering with the payment amount. Until the Application layer is
-    /// changed to look up these values from Ordering, any authenticated
-    /// customer can initiate a payment for an arbitrary amount.
+    /// The order's amount, currency, and customer are resolved server-side
+    /// from Ordering. Client-supplied values are not accepted.
     /// </remarks>
     [HttpPost("initiate")]
     [ProducesResponseType(typeof(PaymentInitiationResponse), StatusCodes.Status200OK)]
@@ -51,9 +48,6 @@ public sealed class PaymentsController : BaseApiController
     {
         var command = new InitiatePaymentCommand(
             request.OrderId,
-            request.CustomerId,
-            request.Amount,
-            request.Currency,
             request.Method,
             request.ReturnUrl,
             request.CancelUrl,

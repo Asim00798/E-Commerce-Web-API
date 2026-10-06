@@ -1,11 +1,11 @@
-﻿using Domain.SharedKernel.Events;
-using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
+﻿using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
 using E_Commerce.Application.Shared.Communication.Notifications.Constants;
 using E_Commerce.Application.Shared.Communication.Notifications.Models;
 using E_Commerce.Application.Shared.Communication.Notifications.Persistence;
 using E_Commerce.Application.Shared.Communication.PostCommit;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Events;
+using E_Commerce.Domain.SharedKernel.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

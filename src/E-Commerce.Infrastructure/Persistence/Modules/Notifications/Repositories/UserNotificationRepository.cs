@@ -11,8 +11,7 @@ namespace E_Commerce.Infrastructure.Persistence.Modules.Notifications.Repositori
 /// Maps between the <see cref="UserNotificationDto"/> (Application layer)
 /// and the <see cref="UserNotification"/> entity (Persistence layer).
 /// </summary>
-internal sealed class UserNotificationRepository
-    : IUserNotificationRepository
+public sealed class UserNotificationRepository: IUserNotificationRepository
 {
     private readonly AppDbContext _db;
 

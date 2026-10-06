@@ -1,6 +1,4 @@
 using E_Commerce.Application.Shared.Communication.Notifications.Abstractions;
-using E_Commerce.Application.Shared.Communication.PostCommit;
-using E_Commerce.Infrastructure.Communication.PostCommit.Processing;
 using E_Commerce.Infrastructure.Communication.Realtime.Hubs;
 using E_Commerce.Infrastructure.Communication.Realtime.Publishers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,7 +14,7 @@ namespace E_Commerce.Infrastructure.Communication.Realtime.Extensions;
 public static class SignalRExtensions
 {
     /// <summary>
-    /// Registers SignalR, the post‑commit processor, the real‑time event publisher,
+    /// Registers SignalR, the real‑time event publisher,
     /// and configures JWT bearer token extraction for WebSocket connections.
     /// <para>
     /// Call this method <b>once</b> during service registration in <c>Program.cs</c>:
@@ -31,9 +29,6 @@ public static class SignalRExtensions
     {
         // Core SignalR services
         services.AddSignalR();
-
-        // Post‑commit processor (executes callbacks after transaction commit)
-        services.AddScoped<IPostCommitProcessor, PostCommitProcessor>();
 
         // Real‑time publisher (SignalR implementation)
         services.AddScoped<IRealtimeEventPublisher, SignalRRealtimeEventPublisher>();

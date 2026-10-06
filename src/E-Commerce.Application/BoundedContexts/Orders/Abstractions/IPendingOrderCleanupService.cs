@@ -1,13 +1,13 @@
 ﻿namespace E_Commerce.Application.BoundedContexts.Orders.Abstractions;
 
+/// <summary>
+/// Read-only query for pending orders that have exceeded the expiration threshold.
+/// Does not mutate state or save changes. Cancellation and stock restoration
+/// are performed by dedicated integration event handlers.
+/// </summary>
 public interface IPendingOrderCleanupService
 {
-    /// <summary>
-    /// Marks all pending orders older than the threshold as payment failed.
-    /// Returns the IDs of the affected orders.
-    /// This method does NOT save changes; the caller is responsible for saving.
-    /// </summary>
-    Task<IReadOnlyList<Guid>> ExpirePendingOrdersAsync(
+    Task<IReadOnlyList<Guid>> GetExpiredPendingOrderIdsAsync(
         TimeSpan expirationThreshold,
         CancellationToken cancellationToken = default);
 }

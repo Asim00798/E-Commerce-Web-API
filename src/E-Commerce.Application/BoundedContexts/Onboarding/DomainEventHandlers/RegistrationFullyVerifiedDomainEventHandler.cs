@@ -1,8 +1,8 @@
-﻿using Domain.SharedKernel.Events;
-using E_Commerce.Application.BoundedContexts.Onboarding.IntegrationEvents;
+﻿using E_Commerce.Application.BoundedContexts.Onboarding.IntegrationEvents;
 using E_Commerce.Application.Shared.Abstractions;                    // IAppContext
 using E_Commerce.Application.Shared.Communication.Messaging.Abstractions;
 using E_Commerce.Domain.BoundedContexts.UserManagement.Onboarding.AggregateRoots.Registration.Events;
+using E_Commerce.Domain.SharedKernel.Events;
 
 namespace E_Commerce.Application.BoundedContexts.Onboarding.DomainEventHandlers;
 

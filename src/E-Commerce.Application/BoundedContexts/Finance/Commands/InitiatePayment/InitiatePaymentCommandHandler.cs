@@ -1,6 +1,9 @@
 using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
 using E_Commerce.Application.BoundedContexts.Finance.Models;
 using E_Commerce.Application.Shared.Models;
+using E_Commerce.Application.Shared.Orders;
+using E_Commerce.Application.Shared.Security.Authorization.Roles;
+using E_Commerce.Application.Shared.Security.Identity;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.ValueObjects;
@@ -15,17 +18,23 @@ public sealed class InitiatePaymentCommandHandler
     : IRequestHandler<InitiatePaymentCommand, Result<PaymentInitiationResult>>
 {
     private readonly IPaymentRepository _paymentRepository;
+    private readonly IOrderPricingReader _orderPricingReader;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPaymentGateway _paymentGateway;
+    private readonly ICurrentUser _currentUser;
 
     public InitiatePaymentCommandHandler(
         IPaymentRepository paymentRepository,
+        IOrderPricingReader orderPricingReader,
         IUnitOfWork unitOfWork,
-        IPaymentGateway paymentGateway)
+        IPaymentGateway paymentGateway,
+        ICurrentUser currentUser)
     {
         _paymentRepository = paymentRepository;
+        _orderPricingReader = orderPricingReader;
         _unitOfWork = unitOfWork;
         _paymentGateway = paymentGateway;
+        _currentUser = currentUser;
     }
 
     public async Task<Result<PaymentInitiationResult>> Handle(
@@ -34,25 +43,52 @@ public sealed class InitiatePaymentCommandHandler
     {
         try
         {
-            var payment = await CreateAndPersistPaymentAsync(command, ct);
+            var snapshot = await _orderPricingReader.GetByOrderIdAsync(command.OrderId, ct);
+            if (snapshot is null)
+                return Result<PaymentInitiationResult>.Failure("Order not found.");
+
+            var currentUserId = _currentUser.UserId;
+            if (currentUserId is null)
+                return Result<PaymentInitiationResult>.Failure(
+                    "Authenticated user identifier is missing.");
+
+            var isPrivileged = _currentUser.IsInRole(SystemRoles.Administrator) ||
+                               _currentUser.IsInRole(SystemRoles.Support);
+
+            if (!isPrivileged && snapshot.CustomerId != currentUserId.Value)
+                return Result<PaymentInitiationResult>.Failure("Order not found.");
+
+            var existing = await _paymentRepository.GetByOrderIdAsync(command.OrderId, ct);
+            if (existing is not null)
+                return Result<PaymentInitiationResult>.Failure(
+                    "Payment already initiated for this order.");
+
+            var money = new Money(snapshot.Amount, snapshot.Currency);
+            var method = new PaymentMethod(command.Method);
+
+            var payment = Payment.Create(
+                snapshot.OrderId,
+                snapshot.CustomerId,
+                money,
+                method);
+
+            await _paymentRepository.AddAsync(payment, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
 
             var initiationRequest = BuildInitiationRequest(command, payment);
 
             var initiationResult = await TryInitiatePaymentWithProviderAsync(
-                payment,
-                initiationRequest,
-                ct);
+                payment, initiationRequest, ct);
 
             if (initiationResult is null)
-            {
                 return Result<PaymentInitiationResult>.Failure("Payment initiation failed.");
-            }
 
             payment.AssignProviderIntention(
                 initiationResult.Provider,
                 initiationResult.IntentionId);
 
-            await UpdatePaymentAsync(payment, ct);
+            await _paymentRepository.UpdateAsync(payment, ct);
+            await _unitOfWork.SaveChangesAsync(ct);
 
             return Result<PaymentInitiationResult>.Success(initiationResult);
         }
@@ -62,38 +98,14 @@ public sealed class InitiatePaymentCommandHandler
         }
     }
 
-    private async Task<Payment> CreateAndPersistPaymentAsync(
-        InitiatePaymentCommand command,
-        CancellationToken ct)
-    {
-        var money = CreateMoney(command);
-        var method = new PaymentMethod(command.Method);
-
-        var payment = Payment.Create(
-            command.OrderId,
-            command.CustomerId,
-            money,
-            method);
-
-        await _paymentRepository.AddAsync(payment, ct);
-        await _unitOfWork.SaveChangesAsync(ct);
-
-        return payment;
-    }
-
-    private static Money CreateMoney(InitiatePaymentCommand command)
-    {
-        return new Money(command.Amount, command.Currency);
-    }
-
     private static PaymentInitiationRequest BuildInitiationRequest(
         InitiatePaymentCommand command,
         Payment payment)
     {
         return new PaymentInitiationRequest
         {
-            OrderId = command.OrderId,
-            CustomerId = command.CustomerId,
+            OrderId = payment.OrderId,
+            CustomerId = payment.CustomerId,
             Amount = payment.Amount,
             Method = command.Method,
             ReturnUrl = command.ReturnUrl,
@@ -112,8 +124,7 @@ public sealed class InitiatePaymentCommandHandler
         try
         {
             initiationResult = await _paymentGateway.InitiatePaymentAsync(
-                initiationRequest,
-                ct);
+                initiationRequest, ct);
         }
         catch
         {
@@ -121,7 +132,8 @@ public sealed class InitiatePaymentCommandHandler
             return null;
         }
 
-        if (initiationResult is null || string.IsNullOrWhiteSpace(initiationResult.IntentionId))
+        if (initiationResult is null ||
+            string.IsNullOrWhiteSpace(initiationResult.IntentionId))
         {
             await MarkPaymentFailedAsync(payment, ct);
             return null;
@@ -133,13 +145,6 @@ public sealed class InitiatePaymentCommandHandler
     private async Task MarkPaymentFailedAsync(Payment payment, CancellationToken ct)
     {
         payment.Fail();
-
-        await _paymentRepository.UpdateAsync(payment, ct);
-        await _unitOfWork.SaveChangesAsync(ct);
-    }
-
-    private async Task UpdatePaymentAsync(Payment payment, CancellationToken ct)
-    {
         await _paymentRepository.UpdateAsync(payment, ct);
         await _unitOfWork.SaveChangesAsync(ct);
     }

@@ -1,6 +1,4 @@
-﻿using E_Commerce.Domain.SharedKernel.Events;
-
-namespace Domain.SharedKernel.Events;
+﻿namespace E_Commerce.Domain.SharedKernel.Events;
 
 public interface IDomainEventDispatcher
 {

@@ -18,6 +18,7 @@ public sealed class CustomerRole : IRole
         OrderingPermissions.Cancel,
         CustomerEngagementPermissions.Read,
         CustomerEngagementPermissions.Rate,
-        CustomerEngagementPermissions.Wishlist
+        CustomerEngagementPermissions.Wishlist,
+        FinancePermissions.Read
     ];
 }

@@ -1,5 +1,4 @@
 ﻿using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Behaviors;
-using E_Commerce.Domain.BoundedContexts.Core.Ordering.AggregateRoots.Order.Enums;
 using E_Commerce.Infrastructure.Persistence.Common.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

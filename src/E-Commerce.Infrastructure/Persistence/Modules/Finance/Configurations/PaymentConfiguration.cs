@@ -1,13 +1,16 @@
 using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using E_Commerce.Infrastructure.Persistence.Common.Configurations;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Finance.Configurations;
 
-public sealed class PaymentConfiguration : IEntityTypeConfiguration<PaymentAggregate>
+public sealed class PaymentConfiguration : BaseEntityConfiguration<PaymentAggregate>
 {
-    public void Configure(EntityTypeBuilder<PaymentAggregate> builder)
+    public override void Configure(EntityTypeBuilder<PaymentAggregate> builder)
     {
+        base.Configure(builder);
+
         builder.ToTable("Payments", "finance");
 
         builder.HasKey(x => x.Id);
@@ -56,10 +59,6 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<PaymentAggre
             money.Property(m => m.Currency).HasColumnName("RefundedCurrency").HasMaxLength(3);
         });
 
-        builder.Property(x => x.RowVersion)
-            .IsRowVersion()
-            .IsConcurrencyToken();
-
         builder.HasMany(x => x.Transactions)
             .WithOne()
             .HasForeignKey("PaymentId")
@@ -76,5 +75,10 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<PaymentAggre
         builder.HasIndex(x => x.ProviderTransactionId)
             .IsUnique()
             .HasFilter("[ProviderTransactionId] IS NOT NULL");
+
+        builder.Property<byte[]>("RowVersion")
+            .IsRowVersion()
+            .HasColumnName("RowVersion")
+            .IsRequired();
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -8,7 +8,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="dbup-core" Version="6.0.0" />
 		<PackageReference Include="dbup-sqlserver" Version="5.0.41" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
@@ -19,7 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\E-Commerce.Application\E-Commerce.Application.csproj" />
+		<ProjectReference Include="..\E-Commerce.Application\E-Commerce.Application.csproj" />
 	</ItemGroup>
 
 </Project>

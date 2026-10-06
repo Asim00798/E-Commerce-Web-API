@@ -8,7 +8,7 @@ namespace E_Commerce.Infrastructure.Persistence.Modules.Onboarding.Services
     /// <summary>
     /// EF Core implementation of <see cref="IRegistrationCleanupService"/>.
     /// </summary>
-    internal sealed class RegistrationCleanupService : IRegistrationCleanupService
+    public sealed class RegistrationCleanupService : IRegistrationCleanupService
     {
         private readonly AppDbContext _dbContext;
 

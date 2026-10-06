@@ -1,13 +1,15 @@
 ﻿using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
+using E_Commerce.Application.BoundedContexts.Finance.Jobs.ProcessRefund;
 using E_Commerce.Application.BoundedContexts.Finance.Models;
+using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
+using E_Commerce.Domain.SharedKernel.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using RefundAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Refund.Behaviors.Refund;
 using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
-using E_Commerce.Domain.SharedKernel.Services;
 
 namespace E_Commerce.Application.BoundedContexts.Finance.Commands.ReconcileRefunds;
 
@@ -18,6 +20,7 @@ public sealed class ReconcileRefundsCommandHandler
     private readonly IPaymentRepository _paymentRepository;
     private readonly IPaymentGateway _paymentGateway;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IJobScheduler _jobScheduler;
     private readonly IClock _clock;
     private readonly ILogger<ReconcileRefundsCommandHandler> _logger;
 
@@ -26,6 +29,7 @@ public sealed class ReconcileRefundsCommandHandler
         IPaymentRepository paymentRepository,
         IPaymentGateway paymentGateway,
         IUnitOfWork unitOfWork,
+        IJobScheduler jobScheduler,
         IClock clock,
         ILogger<ReconcileRefundsCommandHandler> logger)
     {
@@ -33,6 +37,7 @@ public sealed class ReconcileRefundsCommandHandler
         _paymentRepository = paymentRepository;
         _paymentGateway = paymentGateway;
         _unitOfWork = unitOfWork;
+        _jobScheduler = jobScheduler;
         _clock = clock;
         _logger = logger;
     }
@@ -41,10 +46,32 @@ public sealed class ReconcileRefundsCommandHandler
         ReconcileRefundsCommand command,
         CancellationToken ct)
     {
-        var cutoff = CalculateRefundReconciliationCutoff();
+        // Phase 1 — recover stale Requested refunds whose ProcessRefundJob
+        // was never enqueued (crash between SaveChangesAsync and Enqueue).
+        var orphanCutoff = _clock.UtcNow.AddMinutes(-5);
+
+        var orphanedRequested = await _refundRepository.GetRequestedOlderThanAsync(
+            orphanCutoff,
+            command.BatchSize,
+            ct);
+
+        foreach (var refund in orphanedRequested)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            _jobScheduler.Enqueue(new ProcessRefundJob(refund.Id));
+
+            _logger.LogInformation(
+                "Re-enqueued stale Requested refund {RefundId} (requested at {RequestedAtUtc})",
+                refund.Id,
+                refund.RequestedAtUtc);
+        }
+
+        // Phase 2 — resolve stuck Processing refunds via provider status query.
+        var processingCutoff = _clock.UtcNow.AddMinutes(-15);
 
         var stuckRefunds = await _refundRepository.GetProcessingOlderThanAsync(
-            cutoff,
+            processingCutoff,
             command.BatchSize,
             ct);
 
@@ -57,34 +84,39 @@ public sealed class ReconcileRefundsCommandHandler
         return Result.Success();
     }
 
-    private DateTime CalculateRefundReconciliationCutoff()
-    {
-        return _clock.UtcNow.AddMinutes(-15);
-    }
-
     private async Task ReconcileRefundAsync(
         RefundAggregate refund,
         CancellationToken ct)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(refund.ProviderTransactionId))
-            {
-                // Without a provider refund ID, we cannot query status.
-                // Requeue for another attempt.
-                await RequeueRefundAsync(refund, ct);
-                return;
-            }
-
-            var payment = await LoadPaymentForRefundAsync(refund.PaymentId, ct);
+            var payment = await _paymentRepository.GetByIdAsync(refund.PaymentId, ct);
 
             if (payment is null)
             {
-                await RequeueRefundAsync(refund, ct);
+                _logger.LogWarning(
+                    "Refund {RefundId} references missing payment {PaymentId}. " +
+                    "Manual reconciliation required.",
+                    refund.Id,
+                    refund.PaymentId);
                 return;
             }
 
-            var providerReference = BuildProviderReference(payment, refund);
+            if (string.IsNullOrWhiteSpace(payment.ProviderTransactionId))
+            {
+                // The parent payment was never captured, so Paymob has no
+                // refund signal to expose. Requeueing would re-issue the
+                // refund against Paymob (no idempotency key), risking a
+                // double refund. Leave in Processing; operator resolves.
+                _logger.LogWarning(
+                    "Refund {RefundId} is Processing but parent payment {PaymentId} " +
+                    "has no provider transaction id. Manual reconciliation required.",
+                    refund.Id,
+                    refund.PaymentId);
+                return;
+            }
+
+            var providerReference = BuildProviderReference(payment);
             var status = await _paymentGateway.GetRefundStatusAsync(providerReference, ct);
 
             await ApplyRefundStatusAsync(refund, payment, status, ct);
@@ -92,6 +124,13 @@ public sealed class ReconcileRefundsCommandHandler
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             throw;
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Invalid provider reference while reconciling refund {RefundId}",
+                refund.Id);
         }
         catch (HttpRequestException ex)
         {
@@ -109,33 +148,16 @@ public sealed class ReconcileRefundsCommandHandler
         }
     }
 
-    private async Task<PaymentAggregate?> LoadPaymentForRefundAsync(
-        Guid paymentId,
-        CancellationToken ct)
-    {
-        return await _paymentRepository.GetByIdAsync(paymentId, ct);
-    }
-
-    private async Task RequeueRefundAsync(
-        RefundAggregate refund,
-        CancellationToken ct)
-    {
-        refund.Requeue();
-
-        await _refundRepository.UpdateAsync(refund, ct);
-        await _unitOfWork.SaveChangesAsync(ct);
-    }
-
     private static PaymentProviderReference BuildProviderReference(
-        PaymentAggregate payment,
-        RefundAggregate refund)
+        PaymentAggregate payment)
     {
         return new PaymentProviderReference
         {
             Provider = payment.Provider,
             IntentionId = payment.ProviderIntentionId,
-            // The provider-side identifier for the refund itself.
-            TransactionId = refund.ProviderTransactionId
+            // Parent payment transaction — Paymob exposes refund status here,
+            // not on the refund's own transaction id.
+            TransactionId = payment.ProviderTransactionId
         };
     }
 

@@ -1,13 +1,16 @@
 using E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Entities;
+using E_Commerce.Infrastructure.Persistence.Common.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace E_Commerce.Infrastructure.Persistence.Modules.Finance.Configurations;
 
-public sealed class PaymentTransactionConfiguration : IEntityTypeConfiguration<PaymentTransaction>
+public sealed class PaymentTransactionConfiguration : BaseEntityConfiguration<PaymentTransaction>
 {
-    public void Configure(EntityTypeBuilder<PaymentTransaction> builder)
+    public override void Configure(EntityTypeBuilder<PaymentTransaction> builder)
     {
+        base.Configure(builder);
+
         builder.ToTable("PaymentTransactions", "finance");
 
         builder.HasKey(x => x.Id);

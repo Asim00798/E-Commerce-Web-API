@@ -7,10 +7,7 @@ namespace E_Commerce.Application.BoundedContexts.Finance.Commands.InitiatePaymen
 
 public sealed record InitiatePaymentCommand(
     Guid OrderId,
-    Guid CustomerId,
-    decimal Amount,
-    string Currency,
     PaymentMethodType Method,
     string ReturnUrl,
     string CancelUrl,
-    string? IdempotencyKey = null) : IRequest<Result<PaymentInitiationResult>>;
+    string? IdempotencyKey) : IRequest<Result<PaymentInitiationResult>>;

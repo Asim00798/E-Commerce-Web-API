@@ -17,6 +17,13 @@ public sealed class PaymobWebhookController : BaseApiController
         _webhookProcessor = webhookProcessor;
     }
 
+    /// <summary>
+    /// Receives Paymob transaction callbacks.
+    ///
+    /// Paymob sends the HMAC as a query parameter on the callback URL
+    /// (<c>?hmac=...</c>). The controller also accepts it as a header for
+    /// resilience during provider-side transitions or local testing.
+    /// </summary>
     [HttpPost("webhook/paymob")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -26,16 +33,19 @@ public sealed class PaymobWebhookController : BaseApiController
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PaymobWebhook(
-        [FromHeader(Name = "hmac")] string? hmac,
+        [FromQuery(Name = "hmac")] string? queryHmac,
+        [FromHeader(Name = "hmac")] string? headerHmac,
         CancellationToken ct)
     {
+        var signature = queryHmac ?? headerHmac;
+
         using var reader = new StreamReader(Request.Body);
         var payload = await reader.ReadToEndAsync(ct);
 
         var result = await _webhookProcessor.ProcessAsync(
             "Paymob",
             payload,
-            hmac,
+            signature,
             ct);
 
         if (result.Succeeded)

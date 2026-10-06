@@ -41,7 +41,7 @@ public sealed class ReconcilePaymentsCommandHandler
         var cutoff = CalculateReconciliationCutoff();
 
         var stalePayments = await _paymentRepository
-            .GetAwaitingPaymentWithTransactionOlderThanAsync(
+            .GetAwaitingPaymentWithIntentionOlderThanAsync(
                 cutoff,
                 command.BatchSize,
                 ct);
@@ -83,6 +83,15 @@ public sealed class ReconcilePaymentsCommandHandler
         {
             throw;
         }
+        catch (ArgumentException ex)
+        {
+            // Provider reference is not acceptable to the gateway — e.g., no
+            // queryable identifier available. Skip this payment; log for review.
+            _logger.LogError(
+                ex,
+                "Invalid provider reference while reconciling payment {PaymentId}",
+                payment.Id);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(
@@ -109,13 +118,16 @@ public sealed class ReconcilePaymentsCommandHandler
     }
 
     private static PaymentProviderReference BuildProviderReference(
-        PaymentAggregate payment)
+    PaymentAggregate payment)
     {
         return new PaymentProviderReference
         {
             Provider = payment.Provider,
             IntentionId = payment.ProviderIntentionId,
-            TransactionId = payment.ProviderTransactionId
+            TransactionId = payment.ProviderTransactionId,
+            // Paymob has no intention-status endpoint. For AwaitingPayment
+            // payments, query by merchant order ID.
+            MerchantOrderId = payment.OrderId.ToString()
         };
     }
 

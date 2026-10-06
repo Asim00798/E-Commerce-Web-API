@@ -1,4 +1,5 @@
 ﻿using DbUp;
+using DbUp.Engine;
 using Microsoft.Extensions.Logging;
 
 namespace E_Commerce.ReadModel.Infrastructure.Migrations;
@@ -12,9 +13,21 @@ public static class DbUpMigrationRunner
         string migrationConnectionString,
         ILogger logger)
     {
+        var upgrader = BuildUpgrader(migrationConnectionString);
+
+        var result = ExecuteMigrations(upgrader);
+
+        HandleMigrationResult(result, logger);
+
+        LogMigrationSuccess(logger);
+    }
+
+    private static UpgradeEngine BuildUpgrader(
+        string migrationConnectionString)
+    {
         var assembly = typeof(DbUpMigrationRunner).Assembly;
 
-        var upgrader = DeployChanges.To
+        return DeployChanges.To
             .SqlDatabase(migrationConnectionString)
             .WithScriptsEmbeddedInAssembly(
                 assembly,
@@ -23,18 +36,32 @@ public static class DbUpMigrationRunner
                     StringComparison.OrdinalIgnoreCase))
             .WithTransactionPerScript()
             .Build();
+    }
 
-        var result = upgrader.PerformUpgrade();
+    private static DatabaseUpgradeResult ExecuteMigrations(
+        UpgradeEngine upgrader)
+    {
+        return upgrader.PerformUpgrade();
+    }
 
-        if (!result.Successful)
+    private static void HandleMigrationResult(
+        DatabaseUpgradeResult result,
+        ILogger logger)
+    {
+        if (result.Successful)
         {
-            logger.LogError(
-                result.Error,
-                "ReadModel database migration failed.");
-
-            throw result.Error;
+            return;
         }
 
+        logger.LogError(
+            result.Error,
+            "ReadModel database migration failed.");
+
+        throw result.Error;
+    }
+
+    private static void LogMigrationSuccess(ILogger logger)
+    {
         logger.LogInformation(
             "ReadModel database migrations applied successfully.");
     }

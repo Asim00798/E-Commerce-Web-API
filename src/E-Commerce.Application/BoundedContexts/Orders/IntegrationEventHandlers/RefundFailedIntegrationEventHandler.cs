@@ -19,9 +19,12 @@ public sealed class RefundFailedIntegrationEventHandler
         RefundFailedIntegrationEvent integrationEvent,
         CancellationToken ct)
     {
-        // No state change; log only.
+        // Ordering does not change state on refund failure.
+        // Log with order context for operational visibility.
         _logger.LogWarning(
-            "Refund failed for payment {PaymentId}. Reason: {Reason}",
+            "Refund {RefundId} failed for order {OrderId}, payment {PaymentId}: {Reason}",
+            integrationEvent.RefundId,
+            integrationEvent.OrderId,
             integrationEvent.PaymentId,
             integrationEvent.Reason);
 

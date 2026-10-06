@@ -10,7 +10,7 @@ namespace E_Commerce.Infrastructure.Persistence.Modules.Onboarding.Repositories
     /// Entity Framework implementation of <see cref="IRegistrationRepository"/>.
     /// Inherits generic CRUD from <see cref="Repository{T}"/>.
     /// </summary>
-    internal sealed class RegistrationRepository
+    public sealed class RegistrationRepository
         : Repository<Registration>, IRegistrationRepository
     {
         public RegistrationRepository(AppDbContext dbContext) : base(dbContext)

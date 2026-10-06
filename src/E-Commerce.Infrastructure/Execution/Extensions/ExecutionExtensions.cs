@@ -8,7 +8,7 @@ namespace E_Commerce.Infrastructure.Execution.Extensions
     {
         public static IServiceCollection AddExecutionContext(this IServiceCollection services)
         {
-            services.AddSingleton<IAppContext, AppExecutionContext>();
+            services.AddScoped<IAppContext, AppExecutionContext>();
             return services;
         }
     }
