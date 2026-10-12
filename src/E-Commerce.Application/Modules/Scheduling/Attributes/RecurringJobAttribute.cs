@@ -1,7 +1,7 @@
 ﻿namespace E_Commerce.Application.Modules.Scheduling.Attributes;
 
 /// <summary>
-/// Declares that the target <see cref="ITrigger"/> should be scheduled
+/// Declares that the target <see cref="IRecurringJobTrigger"/> should be scheduled
 /// as a Hangfire recurring job with the specified ID and cron expression.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]

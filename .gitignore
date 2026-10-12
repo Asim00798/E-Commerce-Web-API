@@ -29,6 +29,8 @@ desktop.ini
 ##################################
 # Logs
 ##################################
+logs/
+Logs/
 *.log
 
 ##################################
@@ -48,6 +50,8 @@ TestResults/
 # Secrets / Config
 ##################################
 appsettings.Local.json
+appsettings.Development.json
+appsettings.*.Local.json
 secrets.json
 
 ##################################
