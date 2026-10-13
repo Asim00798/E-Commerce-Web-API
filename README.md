@@ -60,7 +60,7 @@ The solution organizes business capabilities around their respective responsibil
 
 These features represent the business-facing capabilities of the application. Their documentation describes their requirements, technical design, integration contracts, and workflows.
 
-Business-feature documentation is organized under [`docs/business-features/`](./docs/business-features/).
+Business-feature documentation is organized under [`docs/features-and-capabilities/business-features/`](./docs/features-and-capabilities/business-features/).
 
 ---
 
@@ -87,7 +87,7 @@ These capabilities have dedicated documentation describing their requirements, a
 
 Their presence does not imply that every provider, optional integration, or deployment-specific capability is enabled in every environment.
 
-Technical-capability documentation is organized under [`docs/technical-capabilities/`](./docs/technical-capabilities/).
+Technical-capability documentation is organized under [`docs/features-and-capabilities/technical-capabilities/`](./docs/features-and-capabilities/technical-capabilities/).
 
 ---
 
@@ -112,7 +112,7 @@ The architecture does not require microservices, a message broker, or service-to
 * **Operational awareness:** Failure handling, idempotency, observability, and concurrency are treated as architectural concerns.
 * **Proportionate complexity:** Infrastructure and abstractions address actual requirements rather than speculative future needs.
 
-For the detailed architectural overview, see [`architecture.md`](./architecture.md).
+For the detailed architectural overview, see [`docs/Architecture/README.md`](./docs/Architecture/README.md).
 
 ---
 
@@ -125,10 +125,9 @@ E-Commerce/
 ├── .github/
 │   └── workflows/
 ├── docs/
-│   ├── architecture/
+│   ├── Architecture/
 │   ├── decisions/
-│   ├── business-features/
-│   └── technical-capabilities/
+│   └── features-and-capabilities/
 ├── src/
 │   ├── E-Commerce.sln
 │   ├── global.json
@@ -267,7 +266,7 @@ In particular:
 
 The API acts as the composition root, connecting the required implementations and services.
 
-For the detailed architectural rules, see [`docs/architecture/`](./docs/architecture/).
+For the detailed architectural rules, see [`docs/Architecture/`](./docs/Architecture/).
 
 ---
 
@@ -442,7 +441,7 @@ It does not, by itself, guarantee exactly-once delivery or execution. Dispatch a
 
 In this modular monolith, durable database-backed processing is preferred over introducing a message broker without a concrete requirement.
 
-For implementation details, see [`docs/technical-capabilities/communication/outbox/`](./docs/technical-capabilities/communication/outbox/).
+For implementation details, see [`docs/features-and-capabilities/technical-capabilities/communication/outbox/`](./docs/features-and-capabilities/technical-capabilities/communication/outbox/).
 
 ---
 
@@ -476,7 +475,7 @@ Scheduling and Outbox processing have different responsibilities.
 
 The Outbox processing job uses the Scheduling infrastructure to execute its delivery workflow. The Scheduling module does not replace the Outbox's persistence and delivery guarantees.
 
-For the detailed design, see [`docs/technical-capabilities/scheduling/`](./docs/technical-capabilities/scheduling/).
+For the detailed design, see [`docs/features-and-capabilities/technical-capabilities/scheduling/`](./docs/features-and-capabilities/technical-capabilities/scheduling/).
 
 ---
 
@@ -492,7 +491,7 @@ Not every query requires a separate read model. CQRS does not automatically requ
 
 The objective is to introduce read-side complexity only when it provides a meaningful benefit.
 
-For the specialized read-side design, see the ReadModel documentation under [`docs/architecture/`](./docs/architecture/).
+For the specialized read-side design, see [`docs/Architecture/readmodel-layer.md`](./docs/Architecture/readmodel-layer.md).
 
 ---
 
@@ -512,10 +511,10 @@ The application distinguishes between having an authenticated account and satisf
 
 For the detailed documentation, see:
 
-* [`docs/technical-capabilities/security/identity/`](./docs/technical-capabilities/security/identity/)
-* [`docs/technical-capabilities/security/authentication/`](./docs/technical-capabilities/security/authentication/)
-* [`docs/business-features/Onboarding/`](./docs/business-features/Onboarding/)
-* [`docs/business-features/People/`](./docs/business-features/People/)
+* [`docs/features-and-capabilities/technical-capabilities/security/identity/`](./docs/features-and-capabilities/technical-capabilities/security/identity/)
+* [`docs/features-and-capabilities/technical-capabilities/security/authentication/`](./docs/features-and-capabilities/technical-capabilities/security/authentication/)
+* [`docs/features-and-capabilities/business-features/Onboarding/`](./docs/features-and-capabilities/business-features/Onboarding/)
+* [`docs/features-and-capabilities/business-features/People/`](./docs/features-and-capabilities/business-features/People/)
 
 ---
 
@@ -523,17 +522,18 @@ For the detailed documentation, see:
 
 The repository documentation is organized by purpose, from high-level architecture to detailed business features and technical capabilities.
 
-| Location                                                         | Purpose                                                                                                   |
-| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [`README.md`](./README.md)                                       | Project introduction, capabilities, architecture summary, and documentation entry point.                  |
-| [`architecture.md`](./architecture.md)                           | High-level architectural overview and architectural principles.                                           |
-| [`setup-guide.md`](./setup-guide.md)                             | Solution setup and initial configuration.                                                                 |
-| [`docs/README.md`](./docs/README.md)                             | Documentation index and navigation.                                                                       |
-| [`docs/architecture/`](./docs/architecture/)                     | Layer responsibilities, context mapping, and architectural details.                                       |
-| [`docs/decisions/`](./docs/decisions/)                           | Architecture Decision Records documenting significant decisions and their rationale.                      |
-| [`docs/business-features/`](./docs/business-features/)           | Business-feature requirements, references, workflows, and integration guides.                             |
-| [`docs/technical-capabilities/`](./docs/technical-capabilities/) | Technical-capability requirements, references, workflows, and integration documentation where applicable. |
-| [`.github/workflows/`](./.github/workflows/)                     | Repository workflow automation.                                                                           |
+| Location                                                                                                             | Purpose                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [`README.md`](./README.md)                                                                                           | Project introduction, capabilities, architecture summary, and documentation entry point.                  |
+| [`architecture.md`](./architecture.md)                                                                               | High-level architectural overview and architectural principles.                                           |
+| [`setup-guide.md`](./setup-guide.md)                                                                                 | Solution setup and initial configuration.                                                                 |
+| [`docs/Architecture/README.md`](./docs/Architecture/README.md)                                                       | Architectural documentation index.                                                                        |
+| [`docs/Architecture/`](./docs/Architecture/)                                                                         | Layer responsibilities, context mapping, and architectural details.                                       |
+| [`docs/decisions/README.md`](./docs/decisions/README.md)                                                             | Architecture Decision Records index.                                                                      |
+| [`docs/features-and-capabilities/README.md`](./docs/features-and-capabilities/README.md)                             | Features-and-capabilities documentation index.                                                            |
+| [`docs/features-and-capabilities/business-features/`](./docs/features-and-capabilities/business-features/)           | Business-feature requirements, references, workflows, and integration guides.                             |
+| [`docs/features-and-capabilities/technical-capabilities/`](./docs/features-and-capabilities/technical-capabilities/) | Technical-capability requirements, references, workflows, and integration documentation where applicable. |
+| [`.github/workflows/`](./.github/workflows/)                                                                         | Repository workflow automation.                                                                           |
 
 ### 14.1 Business-Feature Documentation
 
