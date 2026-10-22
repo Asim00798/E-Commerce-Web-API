@@ -1,7 +1,7 @@
 using E_Commerce.Application.Extensions;
-using E_Commerce.Application.Modules.Scheduling.Abstractions;
-using E_Commerce.Application.Modules.Scheduling.Coordination;
-using E_Commerce.Application.Modules.Scheduling.Policies;
+using E_Commerce.Application.Shared.Scheduling.Policies;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Scheduling.Coordination;
 using E_Commerce.Infrastructure.Scheduling.Hangfire;
 using Hangfire;
 using Microsoft.Extensions.DependencyInjection;

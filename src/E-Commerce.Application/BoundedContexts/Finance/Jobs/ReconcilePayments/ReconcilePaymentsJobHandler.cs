@@ -1,5 +1,5 @@
 ﻿using E_Commerce.Application.BoundedContexts.Finance.Commands.ReconcilePayments;
-using E_Commerce.Application.Modules.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
 using MediatR;
 
 namespace E_Commerce.Application.BoundedContexts.Finance.Jobs.ReconcilePayments;

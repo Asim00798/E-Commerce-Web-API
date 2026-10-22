@@ -1,7 +1,7 @@
-using E_Commerce.Application.Modules.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
 using Microsoft.Extensions.Logging;
 
-namespace E_Commerce.Application.Modules.Scheduling.Policies;
+namespace E_Commerce.Application.Shared.Scheduling.Policies;
 
 /// <summary>
 /// Prevents job execution after a configurable number of consecutive failures.

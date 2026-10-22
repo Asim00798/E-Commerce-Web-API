@@ -1,4 +1,4 @@
-﻿namespace E_Commerce.Application.Modules.Scheduling.Attributes;
+﻿namespace E_Commerce.Application.Shared.Scheduling.Attributes;
 
 /// <summary>
 /// Declares that the target <see cref="IRecurringJobTrigger"/> should be scheduled

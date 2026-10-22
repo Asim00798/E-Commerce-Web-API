@@ -1,4 +1,4 @@
-﻿using E_Commerce.Application.Modules.Scheduling.Abstractions;
+﻿using E_Commerce.Application.Shared.Scheduling.Abstractions;
 using E_Commerce.Infrastructure.Communication.Messaging.Outbox.Contracts;
 using Microsoft.Extensions.Logging;
 

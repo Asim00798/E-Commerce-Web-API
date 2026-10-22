@@ -1,6 +1,6 @@
-﻿using E_Commerce.Application.Modules.Scheduling.Abstractions;
-using Hangfire.Server;
+﻿using Hangfire.Server;
 using E_Commerce.Infrastructure.Scheduling.Execution;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
 
 namespace E_Commerce.Infrastructure.Scheduling.Hangfire;
 

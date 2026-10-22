@@ -1,7 +1,6 @@
 ﻿using E_Commerce.Application.BoundedContexts.Finance.Abstractions;
 using E_Commerce.Application.BoundedContexts.Finance.Jobs.ProcessRefund;
 using E_Commerce.Application.BoundedContexts.Finance.Models;
-using E_Commerce.Application.Modules.Scheduling.Abstractions;
 using E_Commerce.Application.Shared.Models;
 using E_Commerce.Domain.BoundedContexts.Core.Finance.Repositories;
 using E_Commerce.Domain.SharedKernel.PersistenceAbstractions;
@@ -10,6 +9,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using RefundAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Refund.Behaviors.Refund;
 using PaymentAggregate = E_Commerce.Domain.BoundedContexts.Core.Finance.AggregateRoots.Payment.Behaviors.Payment;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
 
 namespace E_Commerce.Application.BoundedContexts.Finance.Commands.ReconcileRefunds;
 

@@ -1,6 +1,6 @@
 ﻿using E_Commerce.Application.BoundedContexts.Onboarding.Abstractions;
 using E_Commerce.Application.BoundedContexts.Onboarding.Jobs;
-using E_Commerce.Application.Modules.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
 using E_Commerce.Domain.SharedKernel.Services;   // IClock lives here
 using Microsoft.Extensions.Logging;
 

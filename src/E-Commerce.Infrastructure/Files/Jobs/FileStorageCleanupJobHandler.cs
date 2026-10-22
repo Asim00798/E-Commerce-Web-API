@@ -1,4 +1,4 @@
-﻿using E_Commerce.Application.Modules.Scheduling.Abstractions;
+﻿using E_Commerce.Application.Shared.Scheduling.Abstractions;
 using E_Commerce.Infrastructure.Files.Abstractions;
 
 namespace E_Commerce.Infrastructure.Files.Jobs;

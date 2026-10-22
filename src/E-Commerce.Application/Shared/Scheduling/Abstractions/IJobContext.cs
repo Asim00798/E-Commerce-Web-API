@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Modules.Scheduling.Abstractions;
+namespace E_Commerce.Application.Shared.Scheduling.Abstractions;
 
 /// <summary>
 /// Provides runtime metadata for an executing job

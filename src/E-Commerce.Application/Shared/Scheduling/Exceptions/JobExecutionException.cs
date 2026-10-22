@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Modules.Scheduling.Exceptions;
+namespace E_Commerce.Application.Shared.Scheduling.Exceptions;
 
 /// <summary>
 /// Thrown when a job fails during execution (missing handler, pipeline failure, etc.).

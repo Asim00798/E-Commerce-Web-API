@@ -1,6 +1,6 @@
-using E_Commerce.Application.Modules.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
 
-namespace E_Commerce.Application.Modules.Scheduling.Policies;
+namespace E_Commerce.Application.Shared.Scheduling.Policies;
 
 /// <summary>
 /// Aborts a job that exceeds a specified time limit.

@@ -1,4 +1,4 @@
-﻿namespace E_Commerce.Application.Modules.Scheduling.Abstractions;
+﻿namespace E_Commerce.Application.Shared.Scheduling.Abstractions;
 
 /// <summary>
 /// Contract for a trigger that enqueues a recurring background job via IJobScheduler.

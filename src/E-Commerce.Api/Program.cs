@@ -1,6 +1,6 @@
 using E_Commerce.Api.Extensions;
 using E_Commerce.Application.DependencyInjection;
-using E_Commerce.Application.Modules.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
 using E_Commerce.Infrastructure.Communication.Realtime.Extensions;
 using E_Commerce.Infrastructure.DependencyInjection;
 using E_Commerce.Infrastructure.Extensions;

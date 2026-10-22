@@ -1,10 +1,10 @@
-﻿using E_Commerce.Application.Modules.Scheduling.Abstractions;
-using E_Commerce.Application.Modules.Scheduling.Exceptions;
-using E_Commerce.Application.Modules.Scheduling.Policies;
+﻿using E_Commerce.Application.Shared.Scheduling.Exceptions;
 using E_Commerce.Application.Shared.Observability.Tracing;
+using E_Commerce.Application.Shared.Scheduling.Abstractions;
+using E_Commerce.Application.Shared.Scheduling.Policies;
 using Microsoft.Extensions.Logging;
 
-namespace E_Commerce.Application.Modules.Scheduling.Coordination;
+namespace E_Commerce.Application.Shared.Scheduling.Coordination;
 
 public class JobOrchestrator : IJobOrchestrator
 {

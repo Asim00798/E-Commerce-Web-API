@@ -1,4 +1,4 @@
-namespace E_Commerce.Application.Modules.Scheduling.Abstractions;
+namespace E_Commerce.Application.Shared.Scheduling.Abstractions;
 
 /// <summary>
 /// Marker interface for a background job definition.
