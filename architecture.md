@@ -2,11 +2,10 @@
 
 **Project:** E-Commerce Modular Monolith
 **Version:** 1.0 – Final
-**Location:** `/architecture.md`
 
 **Purpose:** A concise, one-page-style reference to the system's architecture: project boundaries, dependency direction, runtime communication, architectural styles, DDD concepts, and design patterns.
 
-**Full reference:** [`docs/architecture/solution-overview.md`](./docs/architecture/solution-overview.md)
+**Read for more details:** [`docs/architecture/README.md`](./docs/architecture/README.md)
 
 ---
 
@@ -391,9 +390,8 @@ This document is the entry point to the architecture documentation.
 
 | Goal                             | Document                                                                             |
 | -------------------------------- | ------------------------------------------------------------------------------------ |
-| Full architectural reference     | [`docs/architecture/solution-overview.md`](./docs/architecture/solution-overview.md) |
-| Bounded-context map              | [`docs/architecture/context-map.md`](./docs/architecture/context-map.md)             |
-| Architecture documentation index | [`docs/architecture/README.md`](./docs/architecture/README.md)                       |
+| Architecture documentation index | [`docs/architecture/README.md`](./docs/architecture/README.md)
+| Bounded-context map              | [`docs/architecture/context-map.md`](./docs/architecture/context-map.md)             |                       |
 | Architecture Decision Records    | [`docs/decisions/README.md`](./docs/decisions/README.md)                             |
 | Feature documentation index      | [`docs/business-features/`](./docs/business-features/)                               |
 | Technical capabilities index     | [`docs/technical-capabilities/`](./docs/technical-capabilities/)                     |
@@ -431,4 +429,3 @@ Its primary objective is to maintain clear ownership, reliable execution, testab
 | **Deployment Model**     | Single Application Process |
 
 **Document Version:** 1.0 – Final
-**Location:** `/architecture.md`
